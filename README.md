@@ -1,435 +1,452 @@
-# Sistema de Gestión para Condominios - Documentación Técnica
+# condo-py — Sistema de Gestión para Condominios
 
-> **Proyecto Original:** `~/servers/condo-laravel` (Laravel PHP)
-> 
-> **Estado Actual:** ~10% completado
-> 
-> **Próxima Iteración:** Conversión a Python (pendiente)
-> 
-> **Fecha de Documentación:** Marzo 2026
+> **Estado del proyecto:** backend Python funcional en evolución
+>
+> **Arquitectura actual:** Chalice + SQLAlchemy + Pydantic + estructura DDD/CQRS modular
+>
+> **Objetivo de este README:** servir como mapa técnico para que **BULMA** desarrolle nuevos módulos siguiendo el patrón real del proyecto, no referencias heredadas.
 
 ---
 
-## 1. Visión General del Proyecto
+## 1. Visión general
 
-### 1.1 Descripción
-Sistema de gestión integral para condominios que permite administrar residentes, áreas comunes, finanzas, visitantes, seguridad y comunicación entre administrador y propietarios.
+`condo-py` es un backend para gestión de condominios. Actualmente expone endpoints HTTP mediante **AWS Chalice**, usa **SQLAlchemy** para persistencia y organiza el código de negocio bajo `src/chalicelib/dddpy/` con una convención repetible por módulo.
 
-### 1.2 Tecnologías del Original (Laravel)
-- **Framework:** Laravel 5.x / 6.x
-- **ORM:** Eloquent
-- **Autenticación:** JWT (tymon/jwt-auth) + Session tradicional
-- **Frontend:** Blade Templates + Theme system
-- **Módulos:** Arquitectura modular (app/Modules)
+El proyecto ya tiene una base modular consistente y tests automatizados. Sin embargo, la implementación actual debe entenderse como:
+
+- **DDD/CQRS en transición**, no una implementación purista
+- **modular CRUD bien estructurado**, con espacio claro de mejora hacia dominio rico
+- una base válida para construir nuevos módulos si se respeta un estándar técnico común
 
 ---
 
-## 2. Arquitectura Modular
+## 2. Stack tecnológico actual
 
-### 2.1 Módulos Existentes
+### Backend
+- **Python**
+- **AWS Chalice** como framework HTTP/API
+- **SQLAlchemy** como ORM
+- **Pydantic** para validación de entrada/salida
+- **Pytest** para pruebas
+- **Alembic** para migraciones
+- **Docker / docker-compose** para entorno local
 
-| Módulo | Propósito | Estado |
-|--------|-----------|--------|
-| **Core** | Modelos base compartidos | Básico |
-| **Heimdall** | Gestión de usuarios, roles, permisos, autenticación | Principal |
-| **M7vBlack** | Interfaz de administración (themes, layouts) | UI |
-| **Continental** | (Por definir) | Inicial |
-| **Publico** | Portal público, login, dashboard público | Básico |
-
----
-
-## 3. Modelos de Datos (Heimdall)
-
-### 3.1 Tablas Identificadas
-
-#### `heimdall_companies` - Empresas/Condominios
-| Campo | Tipo | Descripción |
-|-------|------|-------------|
-| id | BIGINT | PK |
-| company | VARCHAR(255) | Nombre del condominio |
-| code | VARCHAR(50) | Código identificador |
-| description | TEXT | Descripción |
-
-**Relaciones:**
-- `users()` → hasMany(User::class)
+### Estructura del proyecto
+- `src/app.py` → entry point de Chalice
+- `src/chalicelib/api/` → rutas HTTP por módulo
+- `src/chalicelib/dddpy/` → módulos de dominio/aplicación/infrastructura
+- `src/tests/` → pruebas por módulo
+- `documentation/` → notas y guías técnicas complementarias
 
 ---
 
-#### `users` - Usuarios del Sistema
-| Campo | Tipo | Descripción |
-|-------|------|-------------|
-| id | BIGINT | PK |
-| name | VARCHAR(255) | Nombre completo |
-| email | VARCHAR(255) | Email (único) |
-| password | VARCHAR(255) | Hash bcrypt |
-| phone | VARCHAR(20) | Teléfono |
-| avatar | VARCHAR(255) | URL avatar |
-| linkedin | VARCHAR(255) | Perfil LinkedIn |
-| facebook | VARCHAR(255) | Perfil Facebook |
-| instagram | VARCHAR(255) | Perfil Instagram |
-| twitter | VARCHAR(255) | Perfil Twitter |
-| company_id | BIGINT | FK → heimdall_companies |
-| occupation_id | BIGINT | FK → heimdall_occupations |
-| active | TINYINT | Estado (1=activo) |
-| remember_token | VARCHAR(100) | Token recordar sesión |
+## 3. Estructura real del proyecto
 
-**Relaciones:**
-- `Companies()` → belongsTo(Companies::class)
-- `Occupations()` → belongsTo(Occupations::class)
-- `From()` / `To()` → belongsTo(UsersMessages::class) - para mensajería
-- `roles()` → belongsToMany(Role::class) - via shinobi
-- `permissions()` → belongsToMany(Permission::class)
-
----
-
-#### `heimdall_roles` - Roles
-| Campo | Tipo | Descripción |
-|-------|------|-------------|
-| id | BIGINT | PK |
-| name | VARCHAR(255) | Nombre visible |
-| slug | VARCHAR(255) | Identificador único |
-| description | TEXT | Descripción |
-| special | VARCHAR(50) | Rol especial (null/all/access) |
-
-**Traits:**
-- `RolTrait` - lógica de gestión de roles
-
----
-
-#### `heimdall_permissions` - Permisos
-| Campo | Tipo | Descripción |
-|-------|------|-------------|
-| id | BIGINT | PK |
-| name | VARCHAR(255) | Nombre visible |
-| slug | VARCHAR(255) | Identificador único |
-| description | TEXT | Descripción |
-
-**Traits:**
-- `PermissionTrait` - lógica de gestión de permisos
-
----
-
-#### `heimdall_occupations` - Ocupaciones/Cargos
-| Campo | Tipo | Descripción |
-|-------|------|-------------|
-| id | BIGINT | PK |
-| occupation | VARCHAR(255) | Nombre del cargo |
-| description | TEXT | Descripción |
-
-**Relaciones:**
-- `users()` → hasMany(User::class)
-
----
-
-#### `heimdall_modules` - Módulos del Sistema
-| Campo | Tipo | Descripción |
-|-------|------|-------------|
-| id | BIGINT | PK |
-| name | VARCHAR(255) | Nombre del módulo |
-| slug | VARCHAR(255) | Identificador |
-| description | TEXT | Descripción |
-| active | TINYINT | Estado |
-
----
-
-#### `users_messages` - Mensajería Interna
-| Campo | Tipo | Descripción |
-|-------|------|-------------|
-| id | BIGINT | PK |
-| from | BIGINT | FK → users (remitente) |
-| to | BIGINT | FK → users (destinatario) |
-| subject | VARCHAR(255) | Asunto |
-| message | TEXT | Contenido |
-| read | TINYINT | Leído (0/1) |
-| created_at | TIMESTAMP | Fecha envío |
-
----
-
-### 3.2 Modelos del Módulo Core
-
-#### `core_business_type` - Tipos de Negocio
-#### `core_social` - Redes Sociales
-#### `core_social_type` - Tipos de Red Social
-
----
-
-## 4. Servicios (Heimdall/Services)
-
-### 4.1 AuthService
-**Propósito:** Gestión de autenticación JWT
-
-**Métodos Principales:**
-```php
-signIn(email, password) → array[guards, meta, profile]
-- Genera token JWT
-- Mantiene sesión Laravel tradicional
-- Retorna roles, permisos y perfil
-
-removeLoginSession()
-- Cierra sesión
-
-validateToken(token) → array
-- Valida token JWT
-
-validateGuard(roles, permissions) → array
-- Valida roles y permisos del usuario
-```
-
-### 4.2 UserService
-**Propósito:** CRUD de usuarios
-
-**Métodos Principales:**
-```php
-getUsers(cant?, basicSearch?, advanceSearch?) → Collection
-- Lista usuarios con paginación
-- Búsqueda por email, first_name, last_name
-- Includes: roles, brands, agencies, reports
-
-getUser(id) → User
-- Obtiene usuario específico con relaciones
-
-setUser(data) → User
-- Crea nuevo usuario
-- Hashea password
-- Sincroniza roles
-
-updateUser(data, id) → User
-- Actualiza usuario
-- Sincroniza roles, brands, agencies, reports
-- Limpia cache
-
-deleteUser(id) → User
-- Elimina usuario
-
-total() → int
-- Cuenta usuarios activos
-```
-
-### 4.3 RoleService
-**Propósito:** Gestión de roles
-
-**Métodos:**
-- `listAll()` - Lista todos los roles
-- `create(data)` - Crea rol
-- `update(data, id)` - Actualiza rol
-- `delete(id)` - Elimina rol
-
-### 4.4 PermissionService
-**Propósito:** Gestión de permisos
-
-**Métodos:**
-- `listAll()` - Lista todos los permisos
-- `create(data)` - Crea permiso
-- `update(data, id)` - Actualiza permiso
-- `delete(id)` - Elimina permiso
-
-### 4.5 ProfileService
-**Propósito:** Gestión de perfil de usuario
-
-### 4.6 GroupService
-**Propósito:** Gestión de grupos
-
-### 4.7 MessageService
-**Propósito:** Sistema de mensajería entre usuarios
-
----
-
-## 5. Controladores (Heimdall/Http/Controllers)
-
-### 5.1 AuthController
-- `signIn()` - Login
-- `signOut()` - Logout
-- `me()` - Datos del usuario actual
-
-### 5.2 UserController
-- `listAll()` - Listado de usuarios
-- `create()` - Formulario nuevo usuario
-- `store(request)` - Guarda usuario
-- `edit(id)` - Formulario edición
-- `update(request, id)` - Actualiza usuario
-- `delete(id)` - Formulario eliminación
-- `destroy(id)` - Elimina usuario
-
-### 5.3 RolesController
-- `listAll()` - Listado de roles
-- `create()` - Formulario nuevo rol
-- `store(request)` - Guarda rol
-- `edit(id)` - Formulario edición
-- `update(request, id)` - Actualiza rol
-- `destroy(id)` - Elimina rol
-
-### 5.4 PermissionsController
-- `listAll()` - Listado de permisos
-- `create()` - Formulario nuevo permiso
-- `store(request)` - Guarda permiso
-- `edit(id)` - Formulario edición
-- `update(request, id)` - Actualiza permiso
-- `destroy(id)` - Elimina permiso
-
-### 5.5 ProfileController
-- `edit()` - Edición de perfil
-- `update(request)` - Actualiza perfil
-
-### 5.6 MessageController
-- `index()` - Lista de mensajes
-- `create()` - Enviar mensaje
-- `read(id)` - Leer mensaje
-- `delete(id)` - Eliminar mensaje
-
-### 5.7 ModulesController
-- `listAll()` - Listado de módulos
-- `create()` - Crear módulo
-- `edit(id)` - Editar módulo
-
-### 5.8 DashboardController
-- `index()` - Dashboard principal
-
----
-
-## 6. Rutas (Heimdall/Routes)
-
-### 6.1 Web Routes
-```
-/heimdall              - Dashboard
-/heimdall/users        - Gestión usuarios
-/heimdall/users/create - Crear usuario
-/heimdall/users/{id}/edit - Editar usuario
-/heimdall/users/{id}/delete - Eliminar usuario
-
-/heimdall/roles        - Gestión roles
-/heimdall/roles/create - Crear rol
-/heimdall/roles/{id}/edit - Editar rol
-
-/heimdall/permissions  - Gestión permisos
-/heimdall/permissions/create - Crear permiso
-
-/heimdall/modules      - Gestión módulos
-/heimdall/profile      - Perfil usuario
-
-/heimdall/messages     - Mensajería
-```
-
-### 6.2 API Routes
-```
-/api/auth/signin       - Login JWT
-/api/auth/signout      - Logout
-/api/auth/me          - Usuario actual
-
-/api/users            - CRUD usuarios
-/api/roles            - CRUD roles
-/api/permissions      - CRUD permisos
-/api/modules          - CRUD módulos
-/api/messages         - Mensajería
-```
-
----
-
-## 7. Autenticación y Seguridad
-
-### 7.1 Sistema de Auth
-- **JWT:** `tymon/jwt-auth` para API REST
-- **Session:** Laravel tradicional para web
-- **Roles/Permisos:** `caffeinated/shinobi`
-
-### 7.2 Flujo de Login
-1. Usuario envía credentials (email/password)
-2. AuthService.signIn() valida y genera JWT token
-3. Mantiene sesión Laravel para compatibilidad
-4. Retorna: token, roles, permisos, perfil
-
-### 7.3 Validación de Acceso
-- JWT token en header `Authorization: Bearer {token}`
-- Validación de roles y permisos por middleware
-- Protección de rutas por guards
-
----
-
-## 8. Pendientes y Mejoras Identificadas
-
-### 8.1 Modelos Pendientes
-- [ ] Residents - Residentes/Unidades
-- [ ] Properties - Propiedades/Unidades Habitacionales
-- [ ] Expenses - Gastos/Cxp
-- [ ] Income - Ingresos
-- [ ] Areas - Áreas Comunes
-- [ ] Reservations - Reservas de áreas
-- [ ] Visitors - Visitantes
-- [ ] Vehicles - Vehículos
-- [ ] Payments - Pagos
-- [ ] Announcements - Avisos/Comunicados
-
-### 8.2 Servicios Pendientes
-- [ ] ExpenseService - Gestión de gastos
-- [ ] IncomeService - Gestión de ingresos
-- [ ] AreaService - Gestión de áreas comunes
-- [ ] ReservationService - Reservas
-- [ ] VisitorService - Control de visitantes
-- [ ] VehicleService - Gestión de vehículos
-- [ ] PaymentService - Gestión de pagos
-- [ ] NotificationService - Notificaciones
-
-### 8.3 Módulos Pendientes
-- [ ] Finanzas - Contabilidad del condominio
-- [ ] Áreas - Reservas de áreas comunes
-- [ ] Seguridad - Control de acceso y visitantes
-- [ ] Comunicación - Avisos y announcements
-
----
-
-## 9. Consideraciones para Conversión Python
-
-### 9.1 Recomendaciones Técnicas
-1. **ORM:** SQLAlchemy o Django ORM
-2. **Auth:** Django JWT o Python-Jose
-3. **API:** FastAPI o Django REST Framework
-4. **Frontend:** Separar en React/Vue (no blade)
-
-### 9.2 Estructura Sugerida Python
-```
+```text
 condo-py/
-├── app/
-│   ├── models/          # Modelos SQLAlchemy
-│   ├── services/        # Servicios de negocio
-│   ├── controllers/     # Endpoints API
-│   ├── schemas/        # Pydantic models
-│   └── auth/           # JWT handling
-├── modules/            # Módulos plugables
-├── database/           # Migraciones
-└── requirements.txt
+├── README.md
+├── Makefile
+├── docker-compose.yml
+├── docker/
+├── documentation/
+├── dbs/
+└── src/
+    ├── app.py
+    ├── alembic/
+    ├── requirements.txt
+    ├── chalicelib/
+    │   ├── api/
+    │   │   ├── buildings/
+    │   │   ├── buildings_types/
+    │   │   ├── condominiums/
+    │   │   ├── residents/
+    │   │   ├── unittys_types/
+    │   │   ├── unitys/
+    │   │   └── users/
+    │   └── dddpy/
+    │       ├── core_buildings/
+    │       ├── core_buildings_types/
+    │       ├── core_condominiums/
+    │       ├── core_unittys_types/
+    │       ├── core_unitys/
+    │       ├── users/
+    │       ├── users_residents/
+    │       └── shared/
+    └── tests/
+        ├── core_buildings/
+        ├── core_buildings_types/
+        ├── core_condominiums/
+        ├── core_unittys_types/
+        ├── core_unitys/
+        ├── users/
+        └── users_residents/
 ```
 
 ---
 
-## 10. Diagrama de Relaciones (Simplificado)
+## 4. Módulos actuales en `dddpy`
 
+Estos son los módulos reales detectados en el código fuente.
+
+| Módulo | Propósito actual | API expuesta | Estado |
+|---|---|---|---|
+| `core_condominiums` | Gestión base del condominio | Sí | Activo |
+| `core_buildings` | Gestión de edificios/bloques | Sí | Activo |
+| `core_buildings_types` | Catálogo de tipos de edificio | Sí | Activo |
+| `core_unitys` | Gestión de unidades | Sí | Activo |
+| `core_unittys_types` | Catálogo de tipos de unidad | Sí | Activo |
+| `users` | Gestión de usuarios | Sí | Activo |
+| `users_residents` | Relación / gestión de residentes | Sí | Activo |
+| `shared` | utilidades transversales | No aplica | Activo |
+
+### Observaciones de arquitectura
+- Los módulos siguen una **plantilla consistente**, útil para replicar nuevos desarrollos.
+- La separación actual es principalmente por **entidad/tablas**, no todavía por bounded context maduro.
+- Existe convención de **comandos y queries separados**, aunque el CQRS todavía es liviano.
+
+---
+
+## 5. Patrón de módulo que BULMA debe seguir
+
+Cada módulo en `src/chalicelib/dddpy/{modulo}` sigue esta estructura:
+
+```text
+{modulo}/
+├── domain/
+│   ├── {modulo}.py
+│   ├── {modulo}_exception.py
+│   ├── {modulo}_repository.py
+│   └── {modulo}_success.py
+├── infrastructure/
+│   ├── {modulo}.py
+│   ├── {modulo}_cmd_repository.py
+│   └── {modulo}_query_repository.py
+└── usecase/
+    ├── {modulo}_cmd_schema.py
+    ├── {modulo}_cmd_usecase.py
+    ├── {modulo}_factory.py
+    ├── {modulo}_query_schema.py
+    ├── {modulo}_query_usecase.py
+    └── {modulo}_usecase.py
 ```
-┌─────────────────┐       ┌──────────────────┐
-│    Companies    │       │    Occupations    │
-└────────┬────────┘       └────────┬─────────┘
-         │                        │
-         │ 1:N                    │ 1:N
-         ▼                        ▼
-┌──────────────────────────────────────┐
-│              Users                    │
-│  (id, name, email, password, ...)    │
-└──────────────┬───────────────────────┘
-              │
-              │ N:M (shinobi)
-    ┌─────────┴─────────┐
-    │                    │
-    ▼                    ▼
-┌─────────┐       ┌──────────────┐
-│  Roles  │       │  Permissions │
-└─────────┘       └──────────────┘
-    │
-    │ N:M
-    ▼
-┌──────────────────┐
-│   Modules        │
-└──────────────────┘
+
+Y normalmente existe una ruta HTTP asociada en:
+
+```text
+src/chalicelib/api/{ruta_modulo}/routes_{ruta_modulo}.py
 ```
 
 ---
 
-*Documento generado automáticamente del código fuente Laravel*
-*Para la próxima iteración en Python*
+## 6. Responsabilidad de cada capa
+
+### `api/`
+Responsable de:
+- declarar rutas Chalice
+- recibir request HTTP
+- validar payload con schemas
+- invocar casos de uso
+- transformar respuesta a `Response`
+
+No debería contener:
+- reglas de negocio complejas
+- acceso directo a base de datos
+- lógica transaccional relevante
+
+### `domain/`
+Responsable de:
+- entidades del negocio
+- contratos de repositorio
+- excepciones de dominio
+- mensajes semánticos de éxito
+
+**Importante:**
+Aunque hoy algunos módulos mezclan dominio con infraestructura, **los nuevos módulos no deben repetir ese error**. El dominio debe ser independiente del ORM y de Chalice.
+
+### `infrastructure/`
+Responsable de:
+- modelos SQLAlchemy
+- implementación de repositorios
+- persistencia
+- mapeo entre DB y dominio
+
+### `usecase/`
+Responsable de:
+- orquestar casos de uso
+- coordinar repositorios
+- separar comandos y consultas
+- devolver respuestas consistentes a la capa API
+
+### `shared/`
+Responsable de piezas transversales como:
+- logging
+- manejo de sesiones DB
+- decorators
+- schemas de respuesta
+- utilidades comunes
+
+---
+
+## 7. Flujo actual por request
+
+El flujo operativo típico es este:
+
+```text
+HTTP Request
+  → api/routes_*.py
+  → schema Pydantic
+  → *UseCase
+  → repository interface
+  → repository implementation
+  → SQLAlchemy model / DB
+  → respuesta serializada
+```
+
+Ejemplo real simplificado:
+
+```text
+GET /users
+  → chalicelib/api/users/routes_users.py
+  → UsersUseCase().get_all()
+  → UsersQueryUseCase
+  → UsersQueryRepositoryImpl
+  → DBUsers
+  → Users
+  → Response
+```
+
+---
+
+## 8. Diagnóstico arquitectónico actual
+
+La arquitectura es útil, pero debe entenderse con precisión para no propagar defectos.
+
+### Fortalezas
+- estructura modular consistente
+- separación básica entre API / use case / repository / ORM
+- convención repetible entre módulos
+- tests ya existentes por módulo
+- buena base para estandarizar desarrollo futuro
+
+### Debilidades actuales
+- algunas entidades de `domain/` importan modelos de `infrastructure/`
+- el dominio es todavía **anémico**: tiene pocos comportamientos de negocio
+- hay `Exception(...)` genéricas en repositorios
+- hay `session.commit()` duplicado dentro de repositorios y `session_scope()`
+- la separación CQRS existe a nivel de archivos, pero aún no como lectura/escritura verdaderamente especializadas
+- hay detalles operativos por endurecer en seguridad y middleware
+
+### Conclusión práctica
+Para BULMA, la consigna es clara:
+
+> **replicar la convención estructural actual, pero corrigiendo las malas prácticas detectadas.**
+
+No copiar defectos. Copiar el patrón útil.
+
+---
+
+## 9. Reglas para desarrollar nuevos módulos
+
+### Regla 1 — Mantener el mismo esqueleto
+Todo nuevo módulo debe crear:
+- `domain/`
+- `infrastructure/`
+- `usecase/`
+- su ruta correspondiente en `api/`
+- su suite de tests en `src/tests/`
+
+### Regla 2 — El dominio no depende de infraestructura
+No hacer esto en nuevos módulos:
+- importar modelos SQLAlchemy dentro de `domain/`
+- usar clases DB como tipo del dominio
+
+Preferir:
+- entidades puras
+- mappers en infraestructura
+- repositorios que traduzcan DB ↔ dominio
+
+### Regla 3 — Excepciones específicas
+No usar:
+- `raise Exception("...")`
+
+Usar:
+- excepciones semánticas del módulo
+- con mensaje claro y `status_code` coherente
+
+### Regla 4 — Un solo control transaccional
+Evitar commits duplicados.
+La estrategia recomendada es:
+- `session_scope()` maneja commit/rollback
+- repositorios solo modifican entidades y hacen `flush/refresh` si hace falta
+
+### Regla 5 — Validación en schemas, reglas en dominio
+- Pydantic valida formato y shape del request
+- el dominio protege invariantes de negocio
+
+### Regla 6 — Queries y Commands separados cuando aporten valor
+Mantener separación:
+- `*_cmd_usecase.py`
+- `*_query_usecase.py`
+- `*_cmd_repository.py`
+- `*_query_repository.py`
+
+Pero sin sobrediseñar. Si no hay complejidad real, no inventar CQRS teatral.
+
+### Regla 7 — Tests obligatorios por módulo
+Cada nuevo módulo debe incluir mínimo:
+- tests de entidad
+- tests de excepciones
+- tests de serialización / `to_dict()`
+- tests de casos de uso clave
+
+---
+
+## 10. Contrato mínimo para un nuevo módulo
+
+Cuando BULMA cree un módulo nuevo, debe entregar como mínimo:
+
+### Dominio
+- entidad principal
+- excepciones del módulo
+- interfaz de repositorio
+- mensajes de éxito
+
+### Aplicación / casos de uso
+- schema de creación
+- schema de actualización o query si aplica
+- command use case
+- query use case
+- fachada unificada del módulo
+- factory de dependencias
+
+### Infraestructura
+- modelo SQLAlchemy
+- repositorio de escritura
+- repositorio de lectura
+- mapper si el dominio es puro
+
+### API
+- ruta health del módulo
+- CRUD o endpoints definidos
+- responses homogéneas
+
+### Testing
+- carpeta del módulo en `src/tests/`
+- pruebas mínimas del comportamiento principal
+
+---
+
+## 11. Módulo de referencia práctica: `users`
+
+El módulo `users` sirve hoy como referencia estructural porque contiene el patrón completo:
+
+- `domain/users.py`
+- `domain/users_repository.py`
+- `domain/users_exception.py`
+- `domain/users_success.py`
+- `infrastructure/users.py`
+- `infrastructure/users_cmd_repository.py`
+- `infrastructure/users_query_repository.py`
+- `usecase/users_cmd_schema.py`
+- `usecase/users_cmd_usecase.py`
+- `usecase/users_query_usecase.py`
+- `usecase/users_factory.py`
+- `usecase/users_usecase.py`
+- `api/users/routes_users.py`
+- `tests/users/test_users.py`
+
+### Qué copiar de `users`
+- convención de nombres
+- separación de archivos
+- factory + usecase unificado
+- esquema de pruebas
+
+### Qué no copiar de `users`
+- dependencia del dominio respecto a infraestructura
+- errores genéricos en repositorios
+- diseño de dominio demasiado anémico
+
+---
+
+## 12. Guía rápida para BULMA al crear un módulo nuevo
+
+Secuencia recomendada:
+
+1. definir nombre del módulo y lenguaje ubicuo
+2. crear entidad y excepciones de dominio
+3. definir contratos de repositorio
+4. modelar SQLAlchemy en infraestructura
+5. implementar repositorios cmd/query
+6. crear schemas Pydantic
+7. construir use cases
+8. exponer rutas Chalice
+9. agregar tests
+10. validar consistencia con módulos existentes
+
+---
+
+## 13. Módulos candidatos futuros
+
+Posibles siguientes capacidades del sistema:
+- finanzas
+- pagos
+- áreas comunes
+- reservas
+- visitantes
+- vehículos
+- anuncios/comunicaciones
+- seguridad / control de acceso
+
+Recomendación arquitectónica:
+antes de seguir multiplicando módulos por tabla, conviene evolucionar hacia grupos de negocio más claros, por ejemplo:
+- `identity`
+- `property_structure`
+- `residency`
+- `billing`
+- `communications`
+- `security`
+
+---
+
+## 14. Calidad actual del proyecto
+
+Estado observado durante la revisión:
+- estructura modular consistente: **sí**
+- tests pasando: **sí**
+- patrón reutilizable para nuevos módulos: **sí**
+- DDD puro: **no todavía**
+- base apta para refactor progresivo: **sí**
+
+Resumen brutalmente honesto:
+
+> `condo-py` ya tiene tablero, piezas y aperturas.
+> Ahora toca dejar de modelar solo tablas y empezar a modelar negocio.
+
+---
+
+## 15. Criterio rector para futuros cambios
+
+Toda nueva contribución debe respetar esta prioridad:
+
+1. **claridad del dominio**
+2. **consistencia estructural**
+3. **bajo acoplamiento**
+4. **pruebas mínimas obligatorias**
+5. **sin referencias heredadas de stacks anteriores**
+
+Este proyecto ya no debe documentarse ni diseñarse como migración desde otra plataforma. La fuente de verdad es el código Python actual.
+
+---
+
+## 16. Referencias internas útiles
+
+- `src/app.py`
+- `src/chalicelib/api/`
+- `src/chalicelib/dddpy/`
+- `src/tests/`
+- `documentation/architecture.md`
+- `documentation/docker.md`
+
+---
+
+**README actualizado para el estado real de `condo-py`, enfocado en desarrollo modular con la arquitectura vigente.**
