@@ -1,8 +1,8 @@
 .DEFAULT_GOAL := help
 
 ## GENERAL ##
-OWNER               = backend-corps
-SERVICE_NAME        = zatanna-routing
+OWNER               = saenz-corps
+SERVICE_NAME        = condo
 USERNAME_LOCAL      ?= "$(shell whoami)"
 UID_LOCAL           ?= "$(shell id -u)"
 GID_LOCAL           ?= "$(shell id -g)"
@@ -25,7 +25,7 @@ IMAGE_DEV           = ${PROJECT_NAME}:${TAG_DEV}
 
 ## CUSTOM ##
 COMMAND             ?= pip install -r ./requirements.txt
-PROJECT_DOMAIN      = zatana-routing.test
+PROJECT_DOMAIN      = condo.test
 
 
 build: ## make build
