@@ -1,0 +1,10 @@
+version: '2'
+services:
+  backend:
+    image: ${IMAGE_DEV}
+    container_name: ${CONTAINER_NAME}
+
+networks:
+  default:
+    external: true
+    name: ${DOCKER_NETWORK}

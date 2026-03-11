@@ -1,0 +1,11 @@
+version: '2'
+services:
+  backend:
+    environment:
+      EXCLUDE_PORTS: 443
+      VIRTUAL_HOST: ${PROJECT_DOMAIN}
+    volumes:
+      - ./src:/app
+      - $HOME/.aws:/root/.aws
+    labels:
+      - lb.hook=true

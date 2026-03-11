@@ -1,0 +1,10 @@
+alembic
+boto3
+botocore
+chalice
+pydantic
+SQLAlchemy
+dotenv
+pytz
+pymysql
+requests
