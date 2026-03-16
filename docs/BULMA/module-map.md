@@ -39,7 +39,7 @@
 
 Legacy modules were removed because they were not the desired architecture base.
 Do not reconstruct them by imitation.
-Use `example/` as the reference structure and `api/campaigns/` as the route-pattern reference.
+Use `example/` as the reference structure and `api/example/` as the route-pattern reference.
 
 Important modeling rule:
 - `Repository` = aggregate contract of the module
@@ -79,7 +79,7 @@ Owns:
 - factory wiring
 - facade returning `ResponseSuccessSchema`
 
-### `api/campaigns/`
+### `api/example/`
 Owns:
 - request parsing
 - route exposure

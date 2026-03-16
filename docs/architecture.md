@@ -50,8 +50,8 @@ La base que hoy debe tomarse como referencia es:
 ```text
 src/
 ├── api/
-│   └── campaigns/
-│       └── routes_campaigns.py
+│   └── example/
+│       └── routes_example.py
 └── library/
     └── dddpy/
         ├── shared/
@@ -75,7 +75,7 @@ src/
 
 - `shared/` define piezas comunes reutilizables.
 - `example/` representa la **plantilla arquitectónica actual** para futuros módulos.
-- `api/campaigns/` muestra el patrón de borde limpio con `@api_handler`.
+- `api/example/` muestra el patrón de borde limpio con `@api_handler`.
 - Los módulos viejos no deben usarse como patrón si contradicen esta base.
 
 ---
@@ -499,3 +499,4 @@ La nueva arquitectura de `condo-py` debe entenderse así:
 - y cada módulo nuevo debe entrar al tablero siguiendo ese orden.
 
 > **La arquitectura correcta no es la que acumula carpetas. Es la que deja claro quién parsea, quién decide, quién persiste, quién responde y quién captura el error.**
+*

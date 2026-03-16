@@ -5,7 +5,7 @@
 When in doubt, use:
 - `src/library/dddpy/shared/` as cross-cutting base
 - `src/library/dddpy/example/` as reference module
-- `src/api/campaigns/` as clean-route reference
+- `src/api/example/` as clean-route reference
 
 Do not use deleted/legacy modules as architecture source of truth.
 
