@@ -13,15 +13,19 @@ from library.dddpy.core_condominiums.infrastructure import (
     CondominiumCmdRepositoryImpl,
     CondominiumQueryRepositoryImpl,
 )
-from library.dddpy.core_condominiums.usecase import (
-    CreateCondominiumSchema,
-    UpdateCondominiumSchema,
-    CondominiumResponseSchema,
-    CondominiumCmdUseCase,
-    CondominiumQueryUseCase,
-    CondominiumUseCase,
-    create_condominium_repository,
-    create_condominium_usecase,
+from library.dddpy.core_condominiums.usecase.condominiums_usecase import CondominiumUseCase
+from library.dddpy.core_condominiums.usecase.condominiums_factory import create_condominium_usecase
+
+# Command schemas
+from library.dddpy.core_condominiums.usecase.cmd import (
+    CreateCondominiumCmdSchema,
+    UpdateCondominiumCmdSchema,
+)
+
+# Query schemas
+from library.dddpy.core_condominiums.usecase.query import (
+    CondominiumQuerySchema,
+    CondominiumListQuerySchema,
 )
 
 __all__ = [
@@ -38,12 +42,12 @@ __all__ = [
     "CondominiumCmdRepositoryImpl",
     "CondominiumQueryRepositoryImpl",
     # Use Case
-    "CreateCondominiumSchema",
-    "UpdateCondominiumSchema",
-    "CondominiumResponseSchema",
-    "CondominiumCmdUseCase",
-    "CondominiumQueryUseCase",
     "CondominiumUseCase",
-    "create_condominium_repository",
     "create_condominium_usecase",
+    # Command Schemas
+    "CreateCondominiumCmdSchema",
+    "UpdateCondominiumCmdSchema",
+    # Query Schemas
+    "CondominiumQuerySchema",
+    "CondominiumListQuerySchema",
 ]

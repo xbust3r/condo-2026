@@ -25,7 +25,7 @@ IMAGE_DEV           = ${PROJECT_NAME}:${TAG_DEV}
 
 ## CUSTOM ##
 COMMAND             ?= pip install -r ./requirements.txt
-PROJECT_DOMAIN      = aehub.test
+PROJECT_DOMAIN      = condopy.test
 
 BALANCER_CONTAINER  = balancer
 BALANCER_IP         = "$(shell docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' ${BALANCER_CONTAINER})"

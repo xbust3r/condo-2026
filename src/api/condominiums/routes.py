@@ -1,11 +1,7 @@
 # FastAPI Router for Condominiums
 from fastapi import APIRouter, HTTPException, status
-from typing import List
-from library.dddpy.core_condominiums.usecase import (
-    CreateCondominiumSchema,
-    UpdateCondominiumSchema,
-    create_condominium_usecase,
-)
+from library.dddpy.core_condominiums.usecase.cmd import CreateCondominiumCmdSchema, UpdateCondominiumCmdSchema
+from library.dddpy.core_condominiums.usecase import create_condominium_usecase
 from library.dddpy.core_condominiums.domain import CondominiumNotFoundException, CondominiumAlreadyExistsException
 from library.dddpy.shared.schemas.response_schema import ResponseSchema
 
@@ -13,7 +9,7 @@ router = APIRouter(prefix="/condominiums", tags=["condominiums"])
 
 
 @router.post("", response_model=ResponseSchema)
-def create_condominium(schema: CreateCondominiumSchema):
+def create_condominium(schema: CreateCondominiumCmdSchema):
     usecase = create_condominium_usecase()
     try:
         condominium = usecase.create(schema)
@@ -42,7 +38,7 @@ def get_condominium(condominium_id: int):
 
 
 @router.put("/{condominium_id}", response_model=ResponseSchema)
-def update_condominium(condominium_id: int, schema: UpdateCondominiumSchema):
+def update_condominium(condominium_id: int, schema: UpdateCondominiumCmdSchema):
     usecase = create_condominium_usecase()
     try:
         condominium = usecase.update(condominium_id, schema)

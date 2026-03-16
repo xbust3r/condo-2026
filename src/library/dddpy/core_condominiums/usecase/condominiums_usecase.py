@@ -2,12 +2,9 @@
 from typing import List, Optional
 from library.dddpy.core_condominiums.domain.condominiums import Condominium
 from library.dddpy.core_condominiums.domain.condominiums_repository import CondominiumRepository
-from library.dddpy.core_condominiums.usecase.condominiums_cmd_schema import (
-    CreateCondominiumSchema,
-    UpdateCondominiumSchema,
-)
-from library.dddpy.core_condominiums.usecase.condominiums_cmd_usecase import CondominiumCmdUseCase
-from library.dddpy.core_condominiums.usecase.condominiums_query_usecase import CondominiumQueryUseCase
+from library.dddpy.core_condominiums.usecase.cmd import CreateCondominiumCmdSchema, UpdateCondominiumCmdSchema
+from library.dddpy.core_condominiums.usecase.cmd import CondominiumCmdUseCase
+from library.dddpy.core_condominiums.usecase.query import CondominiumQueryUseCase
 
 
 class CondominiumUseCase:
@@ -17,15 +14,17 @@ class CondominiumUseCase:
         self.cmd_use_case = CondominiumCmdUseCase(repository)
         self.query_use_case = CondominiumQueryUseCase(repository)
 
-    def create(self, schema: CreateCondominiumSchema) -> Condominium:
+    # Command operations
+    def create(self, schema: CreateCondominiumCmdSchema) -> Condominium:
         return self.cmd_use_case.create(schema)
 
-    def update(self, id: int, schema: UpdateCondominiumSchema) -> Condominium:
+    def update(self, id: int, schema: UpdateCondominiumCmdSchema) -> Condominium:
         return self.cmd_use_case.update(id, schema)
 
     def delete(self, id: int) -> bool:
         return self.cmd_use_case.delete(id)
 
+    # Query operations
     def get_all(self) -> List[Condominium]:
         return self.query_use_case.get_all()
 

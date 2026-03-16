@@ -4,6 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from library.dddpy.shared.schemas.response_schema import ResponseSchema
 import os
+from mangum import Mangum
 
 # Import routers
 from api.condominiums.routes import router as condominiums_router
@@ -43,6 +44,7 @@ async def global_exception_handler(request: Request, exc: Exception):
     )
 
 
+
 # Health check
 @app.get("/health")
 def health_check():
@@ -57,9 +59,3 @@ app.include_router(unittys_types_router)
 app.include_router(unitys_router)
 app.include_router(users_router)
 app.include_router(residents_router)
-
-
-if __name__ == "__main__":
-    import uvicorn
-    port = int(os.environ.get("PORT", 8000))
-    uvicorn.run(app, host="0.0.0.0", port=port)

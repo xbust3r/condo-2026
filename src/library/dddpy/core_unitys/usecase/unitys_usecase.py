@@ -1,69 +1,49 @@
-# Unitys Schemas and Use Cases
-from pydantic import BaseModel, Field, ConfigDict
-from typing import Optional, List
-from library.dddpy.core_unitys.domain.unitys import Unitys, UnitysRepository
-from library.dddpy.core_unitys.infrastructure.unitys import UnitysCmdRepositoryImpl
+from typing import List, Optional
+from library.dddpy.core_unitys.domain.unitys import Unitys
+from library.dddpy.core_unitys.domain.unitys_repository import UnitysRepository
+from library.dddpy.core_unitys.usecase.cmd import CreateUnitysCmdSchema, UpdateUnitysCmdSchema
 
-
-class CreateUnitysSchema(BaseModel):
-    model_config = ConfigDict(from_attributes=True)
-    
-    name: str = Field(..., max_length=255)
-    code: str = Field(..., max_length=50)
-    description: Optional[str] = None
-    size: Optional[float] = Field(None, ge=0)
-    percentage: Optional[float] = Field(None, ge=0, le=100)
-    type: Optional[str] = Field(None, max_length=100)
-    floor: Optional[int] = Field(None, ge=0)
-    unit: Optional[str] = Field(None, max_length=50)
-    building_id: int
-    unity_type_id: Optional[int] = None
-    status: int = Field(default=1, ge=0, le=2)
-
-
-class UpdateUnitysSchema(BaseModel):
-    model_config = ConfigDict(from_attributes=True)
-    
-    name: Optional[str] = Field(None, max_length=255)
-    code: Optional[str] = Field(None, max_length=50)
-    description: Optional[str] = None
-    size: Optional[float] = Field(None, ge=0)
-    percentage: Optional[float] = Field(None, ge=0, le=100)
-    type: Optional[str] = Field(None, max_length=100)
-    floor: Optional[int] = Field(None, ge=0)
-    unit: Optional[str] = Field(None, max_length=50)
-    building_id: Optional[int] = None
-    unity_type_id: Optional[int] = None
-    status: Optional[int] = Field(None, ge=0, le=2)
-
-
-class UnitysUseCase:
-    """Facade for Unitys"""
-    
-    def __init__(self, repository: UnitysRepository = None):
-        self.repository = repository or UnitysCmdRepositoryImpl()
-
-    def create(self, schema: CreateUnitysSchema) -> Unitys:
+class UnitysCmdUseCase:
+    def __init__(self, repository: UnitysRepository):
+        self.repository = repository
+    def create(self, schema: CreateUnitysCmdSchema) -> Unitys:
         return self.repository.create(schema.model_dump())
-
-    def update(self, id: int, schema: UpdateUnitysSchema) -> Unitys:
+    def update(self, id: int, schema: UpdateUnitysCmdSchema) -> Unitys:
         return self.repository.update(id, schema.model_dump(exclude_unset=True))
-
     def delete(self, id: int) -> bool:
         return self.repository.delete(id)
 
+class UnitysQueryUseCase:
+    def __init__(self, repository: UnitysRepository):
+        self.repository = repository
     def get_all(self) -> List[Unitys]:
         return self.repository.all()
-
-    def get_by_id(self, id: int) -> Unitys:
+    def get_by_id(self, id: int) -> Optional[Unitys]:
         return self.repository.get_by_id(id)
-
-    def get_by_code(self, code: str) -> Unitys:
+    def get_by_code(self, code: str) -> Optional[Unitys]:
         return self.repository.get_by_code(code)
-
     def get_by_building(self, building_id: int) -> List[Unitys]:
         return self.repository.get_by_building(building_id)
 
+class UnitysUseCase:
+    def __init__(self, repository: UnitysRepository):
+        self.cmd_use_case = UnitysCmdUseCase(repository)
+        self.query_use_case = UnitysQueryUseCase(repository)
+    def create(self, schema: CreateUnitysCmdSchema) -> Unitys:
+        return self.cmd_use_case.create(schema)
+    def update(self, id: int, schema: UpdateUnitysCmdSchema) -> Unitys:
+        return self.cmd_use_case.update(id, schema)
+    def delete(self, id: int) -> bool:
+        return self.cmd_use_case.delete(id)
+    def get_all(self) -> List[Unitys]:
+        return self.query_use_case.get_all()
+    def get_by_id(self, id: int) -> Optional[Unitys]:
+        return self.query_use_case.get_by_id(id)
+    def get_by_code(self, code: str) -> Optional[Unitys]:
+        return self.query_use_case.get_by_code(code)
+    def get_by_building(self, building_id: int) -> List[Unitys]:
+        return self.query_use_case.get_by_building(building_id)
 
-def create_unitys_usecase() -> UnitysUseCase:
-    return UnitysUseCase()
+def create_unitys_usecase():
+    from library.dddpy.core_unitys.infrastructure.unitys import UnitysCmdRepositoryImpl
+    return UnitysUseCase(UnitysCmdRepositoryImpl())

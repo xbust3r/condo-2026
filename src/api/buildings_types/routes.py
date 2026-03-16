@@ -1,10 +1,7 @@
 # FastAPI Router for Buildings Types
 from fastapi import APIRouter, HTTPException, status
-from library.dddpy.core_buildings_types.usecase import (
-    CreateBuildingsTypesSchema,
-    UpdateBuildingsTypesSchema,
-    create_buildings_types_usecase,
-)
+from library.dddpy.core_buildings_types.usecase.cmd import CreateBuildingsTypesCmdSchema, UpdateBuildingsTypesCmdSchema
+from library.dddpy.core_buildings_types.usecase import create_buildings_types_usecase
 from library.dddpy.core_buildings_types.domain import BuildingsTypesNotFoundException
 from library.dddpy.shared.schemas.response_schema import ResponseSchema
 
@@ -12,7 +9,7 @@ router = APIRouter(prefix="/buildings-types", tags=["buildings-types"])
 
 
 @router.post("", response_model=ResponseSchema)
-def create_building_type(schema: CreateBuildingsTypesSchema):
+def create_building_type(schema: CreateBuildingsTypesCmdSchema):
     usecase = create_buildings_types_usecase()
     building_type = usecase.create(schema)
     return ResponseSchema(success=True, message="Building type created", data=building_type.to_dict())
@@ -36,7 +33,7 @@ def get_building_type(type_id: int):
 
 
 @router.put("/{type_id}", response_model=ResponseSchema)
-def update_building_type(type_id: int, schema: UpdateBuildingsTypesSchema):
+def update_building_type(type_id: int, schema: UpdateBuildingsTypesCmdSchema):
     usecase = create_buildings_types_usecase()
     try:
         building_type = usecase.update(type_id, schema)
