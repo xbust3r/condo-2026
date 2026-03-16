@@ -51,6 +51,7 @@ Minimize ambiguity and preserve architecture while implementing changes.
 - place in use case if sequencing/process
 - add/update semantic exception if needed
 - avoid generic exceptions
+- add/update logs around critical checkpoints and failures
 - document rationale if non-trivial
 
 ## Checklist: response contract change

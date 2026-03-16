@@ -54,6 +54,7 @@ Allowed:
 - mappers
 - persistence details
 - session manager usage
+- module-level logger usage
 
 Forbidden:
 - business policy ownership
@@ -142,4 +143,16 @@ Do not invent ad-hoc response shapes per module without explicit architecture de
 - Domain owns meaning.
 - Shared owns cross-cutting primitives.
 - Naming debt is documented debt, not auto-fix territory.
-- `campaigns/` is the current reference module unless a newer official base is documented.
+- `example/` is the current reference module unless a newer official base is documented.
+sitories with use cases
+- Do not scatter wiring in random files or routers
+
+## Architecture axioms
+
+- Framework is edge, not core.
+- Mapper owns DB ↔ domain translation.
+- Use case owns orchestration.
+- Domain owns meaning.
+- Shared owns cross-cutting primitives.
+- Naming debt is documented debt, not auto-fix territory.
+- `example/` is the current reference module unless a newer official base is documented.

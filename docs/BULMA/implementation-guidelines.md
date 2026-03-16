@@ -4,7 +4,7 @@
 
 When in doubt, use:
 - `src/library/dddpy/shared/` as cross-cutting base
-- `src/library/dddpy/campaigns/` as reference module
+- `src/library/dddpy/example/` as reference module
 
 Do not use deleted/legacy modules as architecture source of truth.
 
@@ -105,6 +105,23 @@ Goal:
 
 Use shared schemas from `shared/schemas/response_schema.py`.
 Do not create one-off response wrappers unless explicit architecture decision requires it.
+
+## Logger guideline
+
+Use shared logger from `shared/logging/logging.py`.
+
+Expected usage zones:
+- main/app bootstrap
+- API / route layer
+- module internal flow
+
+Logger should help answer:
+- where the request entered
+- what step failed
+- what repository/use case was executing
+- whether error was controlled or unexpected
+
+Avoid noisy useless logs. Prefer traceable and meaningful logs.
 
 ## Documentation guideline
 

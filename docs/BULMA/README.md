@@ -11,11 +11,11 @@ Dar a una agente como BULMA instrucciones compactas para modificar `condo-py` si
 Antes de crear o modificar módulos:
 
 - revisar `src/library/dddpy/shared/`
-- revisar `src/library/dddpy/campaigns/`
+- revisar `src/library/dddpy/example/`
 
 Regla:
 - `shared/` = primitives compartidos
-- `campaigns/` = patrón de módulo actual
+- `example/` = patrón de módulo actual
 
 ## Orden de lectura obligatorio
 
@@ -45,3 +45,5 @@ Regla:
 - Mapper traduce DB ↔ domain.
 - DomainException unifica errores semánticos.
 - Response schemas unifican la forma de salida.
+da.
+- Logger da trazabilidad en main, API y módulo.

@@ -98,3 +98,16 @@ class DomainException(Exception):
 ```
 
 All module semantic exceptions should derive from it.
+
+## Logging contract
+
+Logger should exist in:
+- main/app bootstrap
+- API / entrypoints
+- internal module critical path
+
+Purpose:
+- trace normal flow
+- map controlled errors
+- map unexpected errors
+- simplify debugging across layers

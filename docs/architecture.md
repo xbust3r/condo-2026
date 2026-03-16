@@ -68,7 +68,7 @@ src/library/dddpy/
 ## 3.1 Qué significa esto
 
 - `shared/` define las piezas comunes que todos los módulos pueden reutilizar.
-- `campaigns/` representa la **plantilla arquitectónica actual** para crear futuros módulos.
+- `example/` representa la **plantilla arquitectónica actual** para crear futuros módulos.
 - Los módulos viejos no deben usarse como patrón de diseño si contradicen esta base.
 
 ---
@@ -370,7 +370,7 @@ Hoy `campaigns/` debe considerarse la referencia práctica de cómo construir m�
 
 ### Lo que todavía debe cuidarse
 
-Aunque `campaigns/` es la base patrón, no significa que esté libre de evolución futura.
+Aunque `example/` es la base patrón, no significa que esté libre de evolución futura.
 Se documenta como patrón porque hoy expresa mejor la estructura deseada que los módulos descartados.
 
 ---
@@ -403,6 +403,26 @@ El camino sano para `condo-py` es:
 
 1. **usar `campaigns/` como patrón base real**,
 2. **crear módulos nuevos respetando la jerarquía domain/usecase/infrastructure/shared**,
+3. **mantener mapper, exceptions y response schemas como contratos explícitos**,
+4. **evitar refactors cosméticos mezclados con construcción funcional**,
+5. **documentar para humanos y para BULMA al mismo tiempo**.
+
+---
+
+## 11. Resumen ejecutivo
+
+La nueva arquitectura de `condo-py` debe entenderse así:
+
+- `shared/` define las piezas comunes del reino,
+- `campaigns/` marca el patrón base,
+- el mapper traduce,
+- `DomainException` unifica errores semánticos,
+- los response schemas unifican la forma de salida,
+- y cada módulo nuevo debe entrar al tablero siguiendo ese orden.
+
+> **La arquitectura correcta no es la que acumula carpetas. Es la que deja claro quién manda, quién traduce, quién persiste y quién responde.**
+la que deja claro quién manda, quién traduce, quién persiste y quién responde.**
+o la jerarquía domain/usecase/infrastructure/shared**,
 3. **mantener mapper, exceptions y response schemas como contratos explícitos**,
 4. **evitar refactors cosméticos mezclados con construcción funcional**,
 5. **documentar para humanos y para BULMA al mismo tiempo**.

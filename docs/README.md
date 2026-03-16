@@ -11,7 +11,7 @@ Este directorio separa tres niveles del tablero:
 La referencia arquitectónica vigente es:
 
 - `src/library/dddpy/shared/` → base transversal compartida
-- `src/library/dddpy/campaigns/` → módulo patrón para nuevas implementaciones
+- `src/library/dddpy/example/` → módulo patrón para nuevas implementaciones
 
 Los módulos viejos no deben tomarse como fuente doctrinal si contradicen esta base.
 
