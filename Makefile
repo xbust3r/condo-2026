@@ -1,8 +1,8 @@
 .DEFAULT_GOAL := help
 
 ## GENERAL ##
-OWNER               = saenz-corps
-SERVICE_NAME        = condo
+OWNER               = backend-corps
+SERVICE_NAME        = condo-py
 USERNAME_LOCAL      ?= "$(shell whoami)"
 UID_LOCAL           ?= "$(shell id -u)"
 GID_LOCAL           ?= "$(shell id -g)"
@@ -15,7 +15,7 @@ TAG_DEV             = dev
 ## DEPLOY ##
 ENV                 ?= dev
 CYBORG_BUCKET       ?= project-cyborg.${ENV}
-DEPLOY_REGION       ?= us-east-1
+DEPLOY_REGION       ?= sa-east-1
 
 ## RESULT VARS ##
 PROJECT_NAME        = ${OWNER}-${ENV}-${SERVICE_NAME}
@@ -25,7 +25,10 @@ IMAGE_DEV           = ${PROJECT_NAME}:${TAG_DEV}
 
 ## CUSTOM ##
 COMMAND             ?= pip install -r ./requirements.txt
-PROJECT_DOMAIN      = condo.test
+PROJECT_DOMAIN      = aehub.test
+
+BALANCER_CONTAINER  = balancer
+BALANCER_IP         = "$(shell docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' ${BALANCER_CONTAINER})"
 
 
 build: ## make build
@@ -49,6 +52,8 @@ up: ## start up the container
 	CONTAINER_NAME=${CONTAINER_NAME} \
 	DOCKER_NETWORK=${DOCKER_NETWORK} \
 	PROJECT_DOMAIN=${PROJECT_DOMAIN} \
+	BALANCER_IP=${BALANCER_IP} \
+	AWS_REGION=${DEPLOY_REGION} \
 	docker-compose -p ${SERVICE_NAME} up -d backend
 	@make status
 	@make add_local_domain HOST_NAME=${PROJECT_DOMAIN}
@@ -59,6 +64,8 @@ stop: ## stop the container
 	CONTAINER_NAME=${CONTAINER_NAME} \
 	DOCKER_NETWORK=${DOCKER_NETWORK} \
 	PROJECT_DOMAIN=${PROJECT_DOMAIN} \
+	BALANCER_IP=${BALANCER_IP} \
+	AWS_REGION=${DEPLOY_REGION} \
 	docker-compose -p ${SERVICE_NAME} stop
 	@make status
 
@@ -68,6 +75,14 @@ command: ## run command
 				-v $$PWD/src:/app \
 				-v $$HOME/.ssh:/home/${USERNAME_LOCAL}/.ssh \
 				-v $$HOME/.aws:/home/${USERNAME_LOCAL}/.aws \
+				-e AWS_DEFAULT_REGION=${DEPLOY_REGION} \
+				${IMAGE_CLI} ${COMMAND}
+
+alembic: ## run alembic command (e.g., make alembic COMMAND="upgrade head")
+	@docker run --rm -u ${UID_LOCAL}:${GID_LOCAL} -t \
+				--net $(DOCKER_NETWORK) \
+				-v $$PWD:/app \
+				-w /app \
 				-e AWS_DEFAULT_REGION=${DEPLOY_REGION} \
 				${IMAGE_CLI} ${COMMAND}
 
@@ -87,35 +102,27 @@ status:
 
 ## Deploy ##
 sync-config:
-	aws s3 sync s3://${CYBORG_BUCKET}/config/lambda/${OWNER}/${ENV}/${SERVICE_NAME}/ src/.chalice/
+	aws s3 cp s3://${CYBORG_BUCKET}/config/app/${OWNER}/${ENV}/${SERVICE_NAME}/.env src/
 
 push-config:
-	@if [ -f src/.chalice/config.json ]; then \
-		aws s3 sync src/.chalice s3://${CYBORG_BUCKET}/config/lambda/${OWNER}/${ENV}/${SERVICE_NAME}/ --exclude="*" --include="config.json"; \
-		echo "src/.chalice/config.json uploaded successfully."; \
-	else \
-		echo "src/.chalice/config.json does not exist, skipping upload."; \
-	fi
-	@if [ -f src/.chalice/policy.json ]; then \
-		aws s3 sync src/.chalice s3://${CYBORG_BUCKET}/config/lambda/${OWNER}/${ENV}/${SERVICE_NAME}/ --exclude="*" --include="policy.json"; \
-		echo "src/.chalice/policy.json uploaded successfully."; \
-	else \
-		echo "src/.chalice/policy.json does not exist, skipping upload."; \
-	fi
-	@if [ -f src/.env ]; then \
-		aws s3 sync src/.chalice s3://${CYBORG_BUCKET}/config/lambda/${OWNER}/${ENV}/${SERVICE_NAME}/ --exclude="*" --include=".env"; \
-		echo "src/.env uploaded successfully."; \
-	else \
-		echo "src/.env does not exist, skipping upload."; \
-	fi
-install:
-	@make build
+	aws s3 cp src/.env s3://${CYBORG_BUCKET}/config/app/${OWNER}/${ENV}/${SERVICE_NAME}/
+
+sync-env2yml:
+	aws s3 cp s3://${CYBORG_BUCKET}/env2yml.py ./
+
+sam-build:
+	sam build \
+	--template-file ./sam/template.yml
 
 publish:
-	@make command COMMAND="chalice deploy --stage=${ENV}"
-
-deploy:
-	@make sync-config install publish
+	sam deploy \
+		--stack-name "${SERVICE_NAME}-${ENV}" \
+		--s3-bucket ${CYBORG_BUCKET} \
+		--s3-prefix "stacks/${SERVICE_NAME}-${ENV}" \
+		--region ${DEPLOY_REGION} \
+		--capabilities CAPABILITY_IAM \
+		--parameter-overrides ServiceName="${SERVICE_NAME}-${ENV}" \
+		--no-fail-on-empty-changeset
 
 add_local_domain:
 	@if [ -z "${HOST_NAME}" ]; then (echo "Please set the ip in to 'HOST_NAME' variable. e.g. HOST_NAME=local.sample.test" && exit 1); fi
@@ -140,3 +147,8 @@ verify_network:
 	@if [ -z $$(docker network ls | grep ${DOCKER_NETWORK} | awk '{print $$2}') ]; then\
 	    (docker network create ${DOCKER_NETWORK});\
 	fi
+
+help:
+	@printf "\033[31m%-16s %-59s %s\033[0m\n" "Target" "Help" "Usage"; \
+	printf "\033[31m%-16s %-59s %s\033[0m\n" "------" "----" "-----"; \
+	grep -hE '^\S+:.*## .*$$' $(MAKEFILE_LIST) | sed -e 's/:.*##\s*/:/' | sort | awk 'BEGIN {FS = ":"}; {printf "\033[32m%-16s\033[0m %-58s \033[34m%s\033[0m\n", $$1, $$2, $$3}'

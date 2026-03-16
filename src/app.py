@@ -1,52 +1,65 @@
-from chalice import Chalice, Response
+# FastAPI Main Application
+from fastapi import FastAPI, Request
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+from library.dddpy.shared.schemas.response_schema import ResponseSchema
 import os
 
-from chalicelib.api.lead.routes_lead import lead_routes
-from chalicelib.api.routing.routes_routing import routing_routes
-from chalicelib.api.condominiums.routes_condominiums import condominiums_routes
-from chalicelib.api.buildings.routes_buildings import buildings_routes
-from chalicelib.api.buildings_types.routes_buildings_types import buildings_types_routes
-from chalicelib.api.unitys.routes_unitys import unitys_routes
-from chalicelib.api.unittys_types.routes_unittys_types import unittys_types_routes
-from chalicelib.api.users.routes_users import users_routes
-from chalicelib.api.residents.routes_residents import residents_routes
+# Import routers
+from api.condominiums.routes import router as condominiums_router
+from api.buildings_types.routes import router as buildings_types_router
+from api.buildings.routes import router as buildings_router
+from api.unittys_types.routes import router as unittys_types_router
+from api.unitys.routes import router as unitys_router
+from api.users.routes import router as users_router
+from api.residents.routes import router as residents_router
 
-from chalicelib.dddpy.shared.logging.logging import Logger
+app = FastAPI(
+    title="Condo-Py API",
+    description="Backend for Condominium Management System",
+    version="1.0.0",
+)
 
-app = Chalice(app_name='zatanna-routing')
-logger = Logger('app')
+# CORS middleware
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
-# Verificar cabeceras y agregar cabeceras globales
-@app.middleware('http')
-def verify_and_add_headers(event, get_response):
-    request_headers = event.headers or {}
-    api_user = request_headers.get('API_USER')
-    api_key = request_headers.get('API_KEY')
-    expected_user = os.environ.get('API_USER')
-    expected_key = os.environ.get('API_KEY')
 
-    if api_user != expected_user or api_key != expected_key:
-        logger.error(f"Unauthorized access attempt. User: {api_user}, Key: {api_key}")
-        return Response(status_code=500, body={"error": "KEYS NOT AUTORIZED"})
+# Exception handlers
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception):
+    return JSONResponse(
+        status_code=500,
+        content=ResponseSchema(
+            success=False,
+            message="Internal server error",
+            errors=[str(exc)]
+        ).model_dump()
+    )
 
-    try:
-        response = get_response(event)
-        response.headers['API_USER'] = expected_user
-        response.headers['API_KEY'] = expected_key
-        return response
-    except Exception as e:
-        logger.error(f"Unhandled exception: {str(e)}")
-        raise e
 
-app.register_blueprint(routing_routes)
-app.register_blueprint(condominiums_routes)
-app.register_blueprint(buildings_routes)
-app.register_blueprint(buildings_types_routes)
-app.register_blueprint(unitys_routes)
-app.register_blueprint(unittys_types_routes)
-app.register_blueprint(users_routes)
-app.register_blueprint(residents_routes)
+# Health check
+@app.get("/health")
+def health_check():
+    return ResponseSchema(success=True, message="API is running", data={"status": "healthy"})
 
-@app.route('/')
-def index():
-    return {'hello': 'world'}
+
+# Include routers
+app.include_router(condominiums_router)
+app.include_router(buildings_types_router)
+app.include_router(buildings_router)
+app.include_router(unittys_types_router)
+app.include_router(unitys_router)
+app.include_router(users_router)
+app.include_router(residents_router)
+
+
+if __name__ == "__main__":
+    import uvicorn
+    port = int(os.environ.get("PORT", 8000))
+    uvicorn.run(app, host="0.0.0.0", port=port)

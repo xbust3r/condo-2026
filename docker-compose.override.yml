@@ -1,9 +1,10 @@
-version: '2'
+version: '3'
 services:
   backend:
     environment:
       EXCLUDE_PORTS: 443
       VIRTUAL_HOST: ${PROJECT_DOMAIN}
+      AWS_REGION: ${AWS_REGION}
     volumes:
       - ./src:/app
       - $HOME/.aws:/root/.aws

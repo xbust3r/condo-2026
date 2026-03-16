@@ -1,1 +1,0 @@
-# Core Buildings Types tests
