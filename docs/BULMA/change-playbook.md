@@ -4,20 +4,38 @@
 
 Minimize ambiguity and preserve architecture while implementing changes.
 
+## Checklist: new module creation
+
+- inspect `shared/` for reusable primitives
+- inspect `campaigns/` as reference module
+- create domain entity
+- create domain exceptions
+- make domain exceptions inherit from shared `DomainException`
+- create repository contracts in domain
+- create DB model in infrastructure
+- create mapper in infrastructure
+- create concrete repositories in infrastructure
+- create command/query schemas in usecase
+- create command/query use cases
+- create module factory
+- define success/error response usage
+- update docs
+
 ## Checklist: endpoint change
 
-- identify target router
+- identify target router/entrypoint
 - identify target module
 - inspect existing use case
 - inspect domain entity and exceptions
 - inspect repository + mapper
 - modify smallest correct layer set
-- preserve response schema
+- preserve shared response schema
+- keep framework logic at edge
 - update docs if behavior changed
 
 ## Checklist: persistence/model change
 
-- inspect ORM model
+- inspect DB model
 - inspect mapper
 - inspect repository methods
 - inspect domain entity fields/behavior
@@ -31,8 +49,18 @@ Minimize ambiguity and preserve architecture while implementing changes.
 - decide if rule is semantic or orchestration
 - place in domain if semantic
 - place in use case if sequencing/process
-- add/update tests when available
+- add/update semantic exception if needed
+- avoid generic exceptions
 - document rationale if non-trivial
+
+## Checklist: response contract change
+
+- inspect shared response schemas
+- confirm if change is project-wide or module-local
+- avoid ad-hoc shape drift
+- standardize success message wording
+- standardize controlled error handling
+- document change in architecture docs
 
 ## Checklist: documentation change
 
@@ -46,8 +74,10 @@ Minimize ambiguity and preserve architecture while implementing changes.
 If a task seems to require:
 - naming normalization,
 - module consolidation,
-- replacing `users` with `core_users`,
-- replacing `usecase` with `application`,
+- replacing baseline `campaigns/` pattern,
+- moving mapper outside infrastructure,
+- bypassing shared response schemas,
+- bypassing shared `DomainException`,
 - large DDD refactor,
 
 then stop treating it as a small feature.

@@ -2,32 +2,26 @@
 
 > **Proyecto:** `condo-py`
 >
-> **Tipo de sistema:** backend CRUD modular para gestión de condominios
+> **Base actual de referencia:** `src/library/dddpy/shared/` + `src/library/dddpy/campaigns/`
 >
-> **Entrypoint principal:** FastAPI
+> **Estilo arquitectónico:** DDD pragmático con separación `domain / infrastructure / usecase / shared`
 >
-> **Persistencia:** SQLAlchemy + MySQL
->
-> **Validación:** Pydantic
->
-> **Migraciones:** Alembic
+> **Objetivo:** que cada módulo nuevo siga un patrón estable, explícito y repetible
 
 ---
 
-## 1. Propósito del sistema
+## 1. Propósito de esta documentación
 
-`condo-py` es un backend orientado a gestionar recursos del dominio inmobiliario/condominial, principalmente:
+Esta documentación ya no parte de los módulos viejos que fueron descartados.
+Parte de la **nueva base deseada** del proyecto:
 
-- condominios,
-- edificios,
-- tipos de edificio,
-- unidades,
-- tipos de unidad,
-- usuarios,
-- relaciones de residentes.
+- `shared/` como núcleo transversal,
+- `campaigns/` como módulo patrón,
+- y una separación estricta entre semántica, orquestación y persistencia.
 
-No debe pensarse como “un FastAPI con tablas”.
-Debe pensarse como un sistema modular donde la API es solo la puerta de entrada y la semántica debe vivir en capas internas.
+La idea central es simple:
+
+> **un módulo nuevo no debe inventar su estructura; debe seguir el patrón base oficial.**
 
 ---
 
@@ -35,300 +29,371 @@ Debe pensarse como un sistema modular donde la API es solo la puerta de entrada 
 
 La tesis correcta del proyecto es esta:
 
-> **FastAPI entra y sale; el dominio y los casos de uso deben conservar el control semántico.**
+> **el dominio expresa significado, el use case coordina, la infraestructura implementa y shared define las piezas comunes del reino.**
 
 En términos prácticos:
 
-- `api/` recibe y adapta requests.
-- `usecase/` coordina casos de uso.
-- `domain/` representa entidades y reglas de negocio.
-- `infrastructure/` contiene ORM, repositorios concretos y mappers.
-- `shared/` concentra piezas transversales realmente compartidas.
+- `domain/` contiene entidades, contratos y excepciones de negocio.
+- `usecase/` contiene schemas, orquestación y factories.
+- `infrastructure/` contiene DB models, mappers y repositorios concretos.
+- `shared/` contiene respuesta estándar, excepciones base, logging y session managers.
 
-Si el framework empieza a gobernar el modelo, el tablero se rompe.
+Si una capa invade a otra, el diseño se degrada aunque el código “funcione”.
 
 ---
 
-## 3. Estructura real del proyecto
+## 3. Base estructural actual
+
+La base que hoy debe tomarse como referencia es:
 
 ```text
-condo-py/
-├── docs/
-├── src/
-│   ├── app.py
-│   ├── main.py
-│   ├── api/
-│   │   ├── condominiums/
-│   │   ├── buildings/
-│   │   ├── buildings_types/
-│   │   ├── unitys/
-│   │   ├── unittys_types/
-│   │   ├── users/
-│   │   └── residents/
-│   ├── library/
-│   │   └── dddpy/
-│   │       ├── shared/
-│   │       ├── core_condominiums/
-│   │       ├── core_buildings/
-│   │       ├── core_buildings_types/
-│   │       ├── core_unitys/
-│   │       ├── core_unittys_types/
-│   │       ├── core_users/
-│   │       ├── core_users_residents/
-│   │       ├── users/
-│   │       └── users_residents/
-│   ├── alembic/
-│   ├── requirements.txt
-│   └── .env
-└── docker-compose.yml
+src/library/dddpy/
+├── shared/
+│   ├── decorators/
+│   │   ├── api_handler.py
+│   │   └── domain_exception.py
+│   ├── schemas/
+│   │   └── response_schema.py
+│   ├── logging/
+│   ├── mysql/
+│   ├── postgresql/
+│   ├── constants/
+│   └── utils/
+└── campaigns/
+    ├── domain/
+    ├── infrastructure/
+    └── usecase/
 ```
 
-### Observación importante
+## 3.1 Qué significa esto
 
-La estructura muestra una intención DDD, pero también evidencia deuda:
-
-- naming inconsistente (`unitys`, `unittys`, `users` vs `core_users`),
-- coexistencia de módulos aparentemente duplicados,
-- mezcla de naming histórico con naming más reciente.
-
-La documentación debe reconocer esto.
-No conviene fingir una pureza que el código aún no tiene.
+- `shared/` define las piezas comunes que todos los módulos pueden reutilizar.
+- `campaigns/` representa la **plantilla arquitectónica actual** para crear futuros módulos.
+- Los módulos viejos no deben usarse como patrón de diseño si contradicen esta base.
 
 ---
 
-## 4. Capas y responsabilidades
+## 4. Estructura oficial esperada de un módulo
 
-## 4.1 `api/` — entrypoints HTTP
+Todo módulo nuevo debería aproximarse a esta forma:
 
-Responsable de:
+```text
+module/
+├── domain/
+│   ├── entity.py
+│   ├── module_exception.py
+│   ├── module_repository.py
+│   ├── module_cmd_repository.py
+│   └── module_query_repository.py
+├── infrastructure/
+│   ├── dbmodule.py
+│   ├── module_mapper.py
+│   ├── module_cmd_repository.py
+│   └── module_query_repository.py
+└── usecase/
+    ├── module_cmd_schema.py
+    ├── module_cmd_usecase.py
+    ├── module_query_usecase.py
+    ├── module_usecase.py        # opcional si existe fachada combinada
+    └── module_factory.py
+```
 
-- declarar rutas FastAPI,
-- recibir payloads,
-- invocar casos de uso,
-- traducir excepciones a respuestas HTTP,
-- envolver resultados en `ResponseSchema`.
+### Regla táctica
 
-No debe:
+Si un módulo no deja claro:
 
-- implementar reglas de negocio,
-- consultar SQLAlchemy directamente,
-- decidir semántica del dominio,
-- duplicar lógica de validación semántica que debería vivir más adentro.
+- qué es entidad,
+- qué es excepción,
+- qué es contrato,
+- qué es mapper,
+- qué es repositorio concreto,
+- y qué es orquestación,
 
-Ejemplo real: `src/api/condominiums/routes.py` crea el use case, llama métodos como `create`, `get_all`, `update`, y adapta errores a `HTTPException`.
-
----
-
-## 4.2 `usecase/` — application layer
-
-Responsable de:
-
-- coordinar pasos,
-- separar operaciones de command/query cuando aporta claridad,
-- trabajar contra contratos de repositorio,
-- definir la secuencia del caso de uso.
-
-En el proyecto existe un **CQRS liviano** en varios módulos:
-
-- `..._cmd_usecase.py`
-- `..._query_usecase.py`
-- `..._usecase.py` como fachada combinada
-
-Eso es válido siempre que siga siendo pragmático y no ceremonial.
-
-No debe:
-
-- absorber toda la semántica del negocio,
-- convertirse en un “god service”,
-- mezclar detalles HTTP o SQLAlchemy crudos.
+entonces aún no está bien modelado.
 
 ---
 
-## 4.3 `domain/` — modelo de negocio
+## 5. Responsabilidad por capa
+
+## 5.1 `domain/`
 
 Responsable de:
 
-- representar entidades,
-- expresar estados válidos,
-- contener comportamiento semántico,
-- definir excepciones de dominio,
-- exponer contratos de repositorio.
+- entidades de dominio,
+- semántica de negocio,
+- contratos abstractos de repositorio,
+- excepciones de dominio.
 
-Ejemplo: `Condominium` ya tiene comportamiento básico como `activate`, `deactivate` y `update`.
-Eso es una señal correcta: la entidad no debería ser solo un saco de atributos.
+Ejemplo real:
 
-Aun así, el dominio actual sigue siendo relativamente delgado.
-Todavía hay espacio para fortalecer:
+- `campaigns.py`
+- `campaigns_exception.py`
+- `campaigns_repository.py`
+- `campaigns_cmd_repository.py`
+- `campaigns_query_repository.py`
 
-- invariantes,
-- value objects,
-- reglas de transición,
-- validaciones semánticas.
+### Regla de pureza
 
-No debe conocer:
+El dominio **no** debe importar:
 
-- clases `DB*`,
+- modelos DB,
 - sesiones SQLAlchemy,
-- detalles de FastAPI,
-- detalles de transporte externo.
+- detalles HTTP,
+- decorators del framework,
+- respuestas técnicas.
+
+### Excepciones de dominio
+
+Las excepciones concretas del módulo deben vivir en `domain/*_exception.py`.
+
+Ejemplo actual:
+
+- `CampaignNotFound`
+- `RepeatedCampaignMediaCode`
+
+Y deben heredar de la base compartida:
+
+- `shared/decorators/domain_exception.py`
+
+Eso permite un contrato común de error semántico:
+
+```python
+class DomainException(Exception):
+    def __init__(self, message: str, status_code: int = 500):
+        ...
+```
+
+### Qué aporta esto
+
+- errores de negocio consistentes,
+- status code controlado,
+- mejor traducción en el borde,
+- menos uso de excepciones genéricas.
 
 ---
 
-## 4.4 `infrastructure/` — persistencia y detalles técnicos
+## 5.2 `usecase/`
+
+Responsable de:
+
+- orquestar casos de uso,
+- recibir schemas de entrada,
+- coordinar repositorios,
+- separar command/query cuando aporte claridad,
+- exponer factories para ensamblar dependencias.
+
+Ejemplos reales en `campaigns/`:
+
+- `campaigns_cmd_schema.py`
+- `campaigns_cmd_usecase.py`
+- `campaigns_query_usecase.py`
+- `campaigns_factory.py`
+
+### Regla de diseño
+
+Use case:
+- coordina,
+- no modela persistencia,
+- no debe absorber toda la semántica del negocio,
+- no debe contaminarse con detalles HTTP.
+
+### Factories
+
+Las factories viven en `usecase/` y sirven para ensamblar el caso de uso con su implementación concreta.
+
+Ejemplo:
+
+- `campaign_cmd_usecase_factory()`
+- `campaign_query_usecase_factory()`
+
+Eso deja explícito el wiring y evita dispersarlo en cualquier parte del sistema.
+
+---
+
+## 5.3 `infrastructure/`
 
 Responsable de:
 
 - modelos ORM,
 - repositorios concretos,
-- mappers DB ↔ dominio,
-- detalles de sesión/persistencia.
+- mappers,
+- interacción con base de datos,
+- detalles técnicos de persistencia.
 
-Ejemplo correcto: `condominiums_mapper.py` traduce entre `DBCondominiums` y `Condominium`.
-Esa es la frontera sana: infraestructura conoce al dominio; el dominio no debe obedecer al ORM.
+Ejemplos reales en `campaigns/`:
 
-No debe:
+- `dbcampaigns.py`
+- `campaign_mapper.py`
+- `campaigns_cmd_repository.py`
+- `campaigns_query_repository.py`
 
-- gobernar reglas de negocio,
-- decidir transiciones semánticas,
-- filtrar acoplamientos técnicos hacia `domain/`.
+### Regla del mapper
+
+El mapper vive en infraestructura y es la frontera oficial entre DB y dominio.
+
+Ejemplo actual:
+
+- `CampaignMapper.to_domain(db_campaign)`
+- `CampaignMapper.to_infrastructure(campaign)`
+
+### Qué significa esto
+
+- el dominio no hace `from_db()`;
+- el ORM no gobierna a la entidad;
+- la traducción de representación queda encapsulada.
+
+### Regla de oro del mapper
+
+El mapper:
+- **traduce**,
+- **no decide negocio**,
+- **no inventa validaciones semánticas**,
+- **no reemplaza al dominio**.
 
 ---
 
-## 4.5 `shared/` — cross-cutting disciplinado
+## 5.4 `shared/`
 
 Responsable de:
 
-- base de datos compartida,
-- esquemas comunes como `ResponseSchema`,
+- excepciones base,
+- response schemas comunes,
 - logging,
-- constantes,
-- utilidades realmente transversales.
+- session managers,
+- constantes y utilidades realmente transversales.
 
-No debe convertirse en:
+Piezas clave actuales:
 
-- basurero genérico,
-- carpeta “misc”,
-- punto donde se deposita cualquier cosa que no encaja.
+- `shared/decorators/domain_exception.py`
+- `shared/decorators/api_handler.py`
+- `shared/schemas/response_schema.py`
+- `shared/logging/`
+- `shared/mysql/`
+- `shared/postgresql/`
 
-`shared/` debe ser pequeño y austero.
-Cuando crece sin control, el reino cae por el flanco interno.
+### Regla disciplinaria
+
+`shared/` no debe ser un basurero.
+Solo deben entrar piezas que tengan sentido transversal para múltiples módulos.
 
 ---
 
-## 5. Flujo principal de una request
+## 6. Contrato de respuestas
 
-El flujo sano de una operación HTTP es:
+La base actual define dos esquemas compartidos:
+
+```python
+class ResponseErrorSchema(BaseModel):
+    success: bool = False
+    message: str
+
+class ResponseSuccessSchema(BaseModel):
+    success: bool = True
+    message: str
+    data: Optional[Any] = None
+```
+
+## 6.1 Qué significan
+
+- `ResponseSuccessSchema` = respuesta estandarizada de éxito.
+- `ResponseErrorSchema` = respuesta estandarizada de error controlado.
+
+## 6.2 Regla de uso
+
+Las respuestas del sistema no deben reinventar estructura en cada módulo.
+La forma debe mantenerse consistente.
+
+## 6.3 Success messages
+
+Los mensajes de éxito deben ser:
+
+- claros,
+- estables,
+- semánticos,
+- y consistentes entre módulos.
+
+Ejemplos sanos:
+
+- `Campaign created successfully`
+- `Campaign updated successfully`
+- `Campaign deleted successfully`
+
+Lo importante no es el texto exacto, sino evitar:
+
+- mensajes arbitrarios distintos para la misma operación,
+- mensajes vacíos,
+- mensajes técnicos innecesarios,
+- mezcla de éxito de negocio con detalle interno.
+
+---
+
+## 7. Flujo arquitectónico recomendado
+
+El flujo correcto de una operación es:
 
 ```text
-HTTP Request
-  → FastAPI Router (`api/`)
-  → Pydantic schema de entrada
-  → UseCase (`usecase/`)
-  → Repository contract (`domain/`)
-  → Repository implementation (`infrastructure/`)
-  → SQLAlchemy model / mapper
-  → MySQL
-  → Domain entity / response wrapper
-  → HTTP Response
+Request
+  → schema de entrada
+  → use case
+  → contrato de repositorio en domain
+  → implementación concreta en infrastructure
+  → mapper DB ↔ domain
+  → entidad de dominio
+  → response schema compartido
 ```
 
-### Lectura táctica del flujo
+### Lectura táctica
 
-- **Router** adapta.
-- **UseCase** coordina.
-- **Domain** decide significado.
-- **Infrastructure** ejecuta detalle técnico.
-
-Si una sola capa intenta hacer las cuatro cosas, ya sacrificaste demasiadas piezas en una sola jugada.
-
----
-
-## 6. Módulos funcionales actuales
-
-Los módulos principales documentados y visibles en el proyecto son:
-
-- `core_condominiums`
-- `core_buildings`
-- `core_buildings_types`
-- `core_unitys`
-- `core_unittys_types`
-- `users`
-- `users_residents`
-
-También aparecen:
-
-- `core_users`
-- `core_users_residents`
-
-Esto debe interpretarse como una **inconsistencia estructural pendiente de aclaración o consolidación**. La documentación no debe ocultarlo y los cambios futuros deben manejarlo con cuidado.
+- `schema` valida forma,
+- `use case` coordina,
+- `domain` expresa significado,
+- `repository impl` ejecuta,
+- `mapper` traduce,
+- `shared` estandariza respuesta y manejo transversal.
 
 ---
 
-## 7. Contratos y respuestas
+## 8. Módulo patrón: `campaigns`
 
-El proyecto usa un wrapper común de respuesta:
+Hoy `campaigns/` debe considerarse la referencia práctica de cómo construir módulos nuevos.
 
-```json
-{
-  "success": true,
-  "message": "Operation successful",
-  "data": {},
-  "errors": null
-}
-```
+### Lo que demuestra correctamente
 
-Ese contrato ayuda a estandarizar la salida HTTP.
-Sin embargo, la estandarización de forma no reemplaza la semántica del dominio.
+- entidad de dominio separada,
+- excepciones del módulo,
+- contratos abstractos de repositorio,
+- repositorios concretos separados por intención,
+- mapper explícito,
+- schemas de entrada,
+- use cases command/query,
+- factory de ensamblaje.
 
-Pydantic valida estructura.
-El negocio debe validarse en `domain/` y `usecase/`.
+### Lo que todavía debe cuidarse
 
----
-
-## 8. Decisiones arquitectónicas vigentes
-
-### 8.1 FastAPI es borde, no núcleo
-El framework organiza rutas y middlewares, pero no debe gobernar la lógica central.
-
-### 8.2 `usecase/` representa la capa de aplicación
-Aunque el naming histórico use `usecase` en lugar de `application`, la responsabilidad es la misma: coordinar casos de uso.
-
-### 8.3 Los mappers deben absorber la traducción DB ↔ dominio
-Las entidades no deben importar el ORM.
-
-### 8.4 CQRS solo si aporta claridad
-Separar command/query está bien cuando ayuda a comprender o aislar operaciones. Si solo duplica archivos, se vuelve teatro enterprise.
-
-### 8.5 La deuda de naming es real
-No debe corregirse accidentalmente durante una feature. Si se quiere refactor serio de nombres, debe hacerse como iniciativa explícita.
+Aunque `campaigns/` es la base patrón, no significa que esté libre de evolución futura.
+Se documenta como patrón porque hoy expresa mejor la estructura deseada que los módulos descartados.
 
 ---
 
-## 9. Deuda y contradicciones actuales
+## 9. Decisiones arquitectónicas vigentes
 
-La arquitectura tiene buenas intenciones, pero todavía presenta frentes en rojo:
+### 9.1 El mapper siempre vive en infraestructura
+Nunca en domain. Nunca mezclado con el DB model. Nunca en el router.
 
-### 9.1 Naming inconsistente
-- `unitys`
-- `unittys_types`
-- `users` vs `core_users`
-- `residents` expuesto por API pero `users_residents` en módulos
+### 9.2 Las excepciones de negocio heredan de `DomainException`
+Si una falla expresa semántica del negocio, debe representarse con una excepción semántica propia.
 
-Esto impacta:
+### 9.3 Los repositorios abstractos viven en domain
+La implementación concreta vive en infrastructure.
 
-- legibilidad,
-- onboarding,
-- predicción de imports,
-- diseño futuro.
+### 9.4 Las factories viven en usecase
+El wiring no debe quedar repartido de forma accidental.
 
-### 9.2 Dominio aún delgado
-Las entidades tienen comportamiento básico, pero todavía no gobiernan suficientes invariantes del negocio.
+### 9.5 Los response schemas compartidos viven en `shared`
+No se redefine la estructura de éxito/error por capricho en cada módulo.
 
-### 9.3 Riesgo de duplicidad conceptual
-La convivencia de módulos `core_*` y módulos no `core_*` exige una decisión futura: consolidar, documentar mejor, o eliminar duplicidad real.
-
-### 9.4 DDD declarado vs DDD efectivo
-El proyecto ya tiene separación por capas, pero todavía debe fortalecerse para que DDD no sea solo estructura de carpetas.
+### 9.6 `shared/` define piezas comunes, no reglas de negocio específicas
+Si algo solo le sirve a un módulo, probablemente no pertenece a `shared/`.
 
 ---
 
@@ -336,25 +401,23 @@ El proyecto ya tiene separación por capas, pero todavía debe fortalecerse para
 
 El camino sano para `condo-py` es:
 
-1. **preservar fronteras**,
-2. **hacer explícitas las responsabilidades**,
-3. **enriquecer el dominio gradualmente**,
-4. **evitar refactors cosméticos mezclados con features**,
-5. **usar documentación humana y documentación para IA en paralelo**.
-
-La evolución correcta no es “mover archivos para que se vea bonito”.
-Es lograr que el sistema siga teniendo sentido aunque cambie el borde técnico.
+1. **usar `campaigns/` como patrón base real**,
+2. **crear módulos nuevos respetando la jerarquía domain/usecase/infrastructure/shared**,
+3. **mantener mapper, exceptions y response schemas como contratos explícitos**,
+4. **evitar refactors cosméticos mezclados con construcción funcional**,
+5. **documentar para humanos y para BULMA al mismo tiempo**.
 
 ---
 
 ## 11. Resumen ejecutivo
 
-`condo-py` ya tiene una base modular respetable.
-La jugada correcta ahora no es reinventarlo todo, sino:
+La nueva arquitectura de `condo-py` debe entenderse así:
 
-- clarificar la arquitectura real,
-- blindar las fronteras,
-- no esconder la deuda,
-- y dar instrucciones precisas para humanos y agentes.
+- `shared/` define las piezas comunes del reino,
+- `campaigns/` marca el patrón base,
+- el mapper traduce,
+- `DomainException` unifica errores semánticos,
+- los response schemas unifican la forma de salida,
+- y cada módulo nuevo debe entrar al tablero siguiendo ese orden.
 
-> **Una arquitectura madura no es la que presume DDD. Es la que permite extender el sistema sin romper la semántica ni convertir cada feature en una guerra civil.**
+> **La arquitectura correcta no es la que acumula carpetas. Es la que deja claro quién manda, quién traduce, quién persiste y quién responde.**

@@ -2,17 +2,26 @@
 
 Este directorio separa tres niveles del tablero:
 
-1. **Arquitectura operativa del proyecto** — cómo está organizado `condo-py` hoy.
+1. **Arquitectura operativa del proyecto** — cómo debe organizarse el código hoy.
 2. **Observaciones para humanos** — explicaciones pedagógicas sobre decisiones, deudas y fronteras.
 3. **Reglas tácticas para BULMA** — instrucciones compactas para una agente de IA que vaya a modificar el proyecto.
+
+## Base actual del proyecto
+
+La referencia arquitectónica vigente es:
+
+- `src/library/dddpy/shared/` → base transversal compartida
+- `src/library/dddpy/campaigns/` → módulo patrón para nuevas implementaciones
+
+Los módulos viejos no deben tomarse como fuente doctrinal si contradicen esta base.
 
 ## Orden recomendado de lectura
 
 ### Para humanos
 1. `architecture.md`
 2. `docker.md`
-3. `models/` (inventario funcional de tablas)
-4. `observations/README.md`
+3. `observations/README.md`
+4. `models/` (si aplica como inventario de tablas)
 
 ### Para agentes de IA
 1. `BULMA/README.md`
@@ -26,37 +35,37 @@ Este directorio separa tres niveles del tablero:
 
 ```text
 docs/
-├── README.md                  # índice general
-├── architecture.md            # arquitectura actual del proyecto
-├── docker.md                  # operación local y contenedores
-├── models/                    # inventario de tablas / recursos
-├── observations/              # explicación humana y pedagógica
+├── README.md
+├── architecture.md
+├── docker.md
+├── models/
+├── observations/
 │   ├── README.md
 │   ├── architecture-observations.md
 │   ├── domain-vs-application.md
 │   ├── recommendations-explained.md
 │   └── junior-guide.md
-├── BULMA/                     # instrucciones optimizadas para IA
+├── BULMA/
 │   ├── README.md
 │   ├── architecture-rules.md
 │   ├── module-map.md
 │   ├── implementation-guidelines.md
 │   ├── anti-patterns.md
 │   └── change-playbook.md
-└── new-standard/              # base teórica de referencia; no tocar
+└── new-standard/
 ```
 
 ## Regla importante
 
-`docs/new-standard/` es la **base doctrinal** tomada como referencia.
-No es la documentación operativa del proyecto.
-No debe editarse al documentar `condo-py`, salvo que la tarea sea explícitamente actualizar esa base.
+`docs/new-standard/` es la base doctrinal de referencia.
+No debe editarse durante documentación operativa normal del proyecto.
 
 ## Qué pretende esta documentación
 
-- Aterrizar la teoría DDD a la realidad de `condo-py`.
-- Explicar qué partes del diseño ya están bien.
-- Dejar visibles las inconsistencias actuales sin maquillarlas.
-- Dar una guía clara para humanos y para agentes de IA.
+- Aterrizar la teoría DDD a la base real actual.
+- Hacer explícito el patrón módulo basado en `campaigns`.
+- Dejar claro el uso de mapper, exceptions compartidas y response schemas.
+- Dar una guía útil tanto para humanos como para BULMA.
 
-La arquitectura no debe depender de memoria tribal. Debe poder leerse como un mapa de guerra.
+La arquitectura no debe depender de memoria tribal.
+Debe leerse como un mapa de guerra reproducible.

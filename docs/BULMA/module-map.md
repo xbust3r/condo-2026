@@ -1,67 +1,100 @@
 # Module Map for BULMA
 
-## Entry points
+## Current baseline modules
 
-- `src/app.py` → FastAPI application setup
-- `src/api/condominiums/routes.py`
-- `src/api/buildings/routes.py`
-- `src/api/buildings_types/routes.py`
-- `src/api/unitys/routes.py`
-- `src/api/unittys_types/routes.py`
-- `src/api/users/routes.py`
-- `src/api/residents/routes.py`
+### Shared base
 
-## Main DDD modules in active documentation
+- `src/library/dddpy/shared/decorators/domain_exception.py`
+- `src/library/dddpy/shared/decorators/api_handler.py`
+- `src/library/dddpy/shared/schemas/response_schema.py`
+- `src/library/dddpy/shared/logging/`
+- `src/library/dddpy/shared/mysql/`
+- `src/library/dddpy/shared/postgresql/`
+- `src/library/dddpy/shared/constants/`
+- `src/library/dddpy/shared/utils/`
 
-- `core_condominiums`
-- `core_buildings`
-- `core_buildings_types`
-- `core_unitys`
-- `core_unittys_types`
-- `users`
-- `users_residents`
+### Reference business module
 
-## Additional modules detected in source tree
-
-- `core_users`
-- `core_users_residents`
+- `src/library/dddpy/campaigns/domain/campaigns.py`
+- `src/library/dddpy/campaigns/domain/campaigns_exception.py`
+- `src/library/dddpy/campaigns/domain/campaigns_repository.py`
+- `src/library/dddpy/campaigns/domain/campaigns_cmd_repository.py`
+- `src/library/dddpy/campaigns/domain/campaigns_query_repository.py`
+- `src/library/dddpy/campaigns/infrastructure/dbcampaigns.py`
+- `src/library/dddpy/campaigns/infrastructure/campaign_mapper.py`
+- `src/library/dddpy/campaigns/infrastructure/campaigns_cmd_repository.py`
+- `src/library/dddpy/campaigns/infrastructure/campaigns_query_repository.py`
+- `src/library/dddpy/campaigns/usecase/campaigns_cmd_schema.py`
+- `src/library/dddpy/campaigns/usecase/campaigns_cmd_usecase.py`
+- `src/library/dddpy/campaigns/usecase/campaigns_query_usecase.py`
+- `src/library/dddpy/campaigns/usecase/campaigns_usecase.py`
+- `src/library/dddpy/campaigns/usecase/campaigns_factory.py`
 
 ## Important warning
 
-Source tree contains naming duplication / inconsistency.
-Do not normalize names opportunistically.
-If task does not explicitly request naming refactor:
-- preserve current import paths,
-- preserve public route names,
-- document inconsistency instead of renaming.
+Legacy modules were removed because they were not the desired architecture base.
+Do not reconstruct them by imitation.
+Use `campaigns/` as the reference structure.
 
-## Typical module internal structure
+## Structural meaning
 
-```text
-module/
-├── domain/
-├── infrastructure/
-└── usecase/
-```
+### `shared/`
+Owns:
+- common exceptions
+- common response schemas
+- common decorators
+- logging
+- session managers
+- reusable utilities
 
-Possible split under `usecase/`:
-- `cmd/`
-- `query/`
-- facade `*_usecase.py`
-- factory `*_factory.py`
+### `campaigns/domain/`
+Owns:
+- domain entity
+- domain exceptions
+- repository contracts
+
+### `campaigns/infrastructure/`
+Owns:
+- DB model
+- mapper
+- concrete repositories
+
+### `campaigns/usecase/`
+Owns:
+- command/query schemas
+- command/query use cases
+- factory wiring
+- optional facade
 
 ## Response contract
 
-Common response wrapper lives in:
+Shared response schemas live in:
 - `src/library/dddpy/shared/schemas/response_schema.py`
 
-Expected shape:
+Current shapes:
 
-```json
-{
-  "success": true,
-  "message": "Operation successful",
-  "data": {},
-  "errors": null
-}
+```python
+class ResponseErrorSchema(BaseModel):
+    success: bool = False
+    message: str
+
+class ResponseSuccessSchema(BaseModel):
+    success: bool = True
+    message: str
+    data: Optional[Any] = None
 ```
+
+## Error contract
+
+Shared base exception lives in:
+- `src/library/dddpy/shared/decorators/domain_exception.py`
+
+Current base:
+
+```python
+class DomainException(Exception):
+    def __init__(self, message: str, status_code: int = 500):
+        ...
+```
+
+All module semantic exceptions should derive from it.
