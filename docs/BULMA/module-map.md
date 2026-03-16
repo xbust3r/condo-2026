@@ -41,6 +41,13 @@ Legacy modules were removed because they were not the desired architecture base.
 Do not reconstruct them by imitation.
 Use `example/` as the reference structure and `api/campaigns/` as the route-pattern reference.
 
+Important modeling rule:
+- `Repository` = aggregate contract of the module
+- `CmdRepository` = write-oriented contract
+- `QueryRepository` = read-oriented contract
+
+This is intentional and reflects the project vision for modules with complex or custom logic.
+
 ## Structural meaning
 
 ### `shared/`

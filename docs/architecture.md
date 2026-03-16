@@ -165,6 +165,41 @@ Responsable de:
 - contratos abstractos de repositorio,
 - excepciones de dominio.
 
+### Repositorio agregado del módulo
+
+En esta arquitectura se mantienen **tres contratos** en `domain/`:
+
+- `Repository`
+- `CmdRepository`
+- `QueryRepository`
+
+Y esto es **intencional**.
+
+#### Significado de cada uno
+
+- `CmdRepository` representa operaciones claramente orientadas a escritura.
+- `QueryRepository` representa operaciones claramente orientadas a lectura.
+- `Repository` representa el **repositorio agregado del módulo**.
+
+Ese contrato agregado no existe por decoración.
+Existe para sistemas más complejos donde la lógica del módulo:
+
+- no encaja limpiamente en CRUD,
+- combina lectura + decisión + escritura,
+- depende de procesos custom,
+- o usa la base de datos como soporte y no como centro del diseño.
+
+#### Regla estratégica
+
+Cuando una capacidad del módulo no cabe con naturalidad en `cmd` o `query`, el developer no debe deformar el diseño solo para forzar CQRS.
+En ese caso, el punto de abstracción amplio es `Repository` como contrato agregado del módulo.
+
+#### Qué NO significa
+
+No significa que toda lógica compleja deba ir a repository.
+La orquestación sigue viviendo en `usecase/`.
+Pero `Repository` deja explícito que el módulo puede tener capacidades más amplias que la simple división lectura/escritura.
+
 Ejemplos del template `example/`:
 
 - `example_entity.py`

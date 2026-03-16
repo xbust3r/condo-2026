@@ -72,6 +72,15 @@ Do not:
 Abstract contracts:
 - live in `domain/`
 - define expected behavior using domain entities or domain data objects
+- may exist in three forms:
+  - aggregate `Repository`
+  - `CmdRepository`
+  - `QueryRepository`
+
+Aggregate repository meaning:
+- use `Repository` when the module needs a broader abstraction than pure read/write split
+- use it for module-level capabilities that do not fit cleanly into only cmd or only query
+- do not treat it as decorative duplication
 
 Concrete implementations:
 - live in `infrastructure/`

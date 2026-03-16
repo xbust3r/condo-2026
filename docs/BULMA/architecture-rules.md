@@ -43,6 +43,7 @@ Allowed:
 - module-specific domain exceptions
 - domain data objects
 - repository contracts
+- aggregate repository contract
 - business semantics
 - invariants
 - state transitions
@@ -151,6 +152,23 @@ route
 ```
 
 Do not invent ad-hoc success/error shapes per module without explicit architecture decision.
+
+## Factory rules
+
+- Factory lives in `usecase/`
+- Factory wires concrete repositories with use cases
+- Do not scatter wiring in random files or routers
+
+## Architecture axioms
+
+- Framework is edge, not core.
+- Mapper owns DB ↔ domain translation.
+- Use case owns orchestration and success response.
+- Domain owns meaning and semantic errors.
+- Shared owns cross-cutting primitives and API error adaptation.
+- Naming debt is documented debt, not auto-fix territory.
+- `example/` is the current reference module unless a newer official base is documented.
+ shapes per module without explicit architecture decision.
 
 ## Factory rules
 

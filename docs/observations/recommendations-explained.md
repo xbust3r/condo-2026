@@ -135,6 +135,22 @@ Porque el dominio debe expresar qué necesita, no cómo se persiste.
 - mejor reemplazabilidad,
 - diseño más limpio.
 
+### Aclaración arquitectónica importante
+En este proyecto se mantiene deliberadamente esta tríada:
+- `Repository`
+- `CmdRepository`
+- `QueryRepository`
+
+`Repository` no es redundancia decorativa.
+Se entiende como el **repositorio agregado del módulo**.
+
+Eso significa que existe para modelar capacidades que:
+- no encajan limpiamente en solo cmd o query,
+- combinan varias intenciones,
+- o aparecen en sistemas donde la lógica custom pesa más que la DB como pieza central.
+
+La existencia del contrato agregado comunica la visión del proyecto: el módulo puede tener semántica y capacidades más amplias que un CRUD estrecho.
+
 ---
 
 ## 9. Mantener factories en `usecase`
