@@ -2,13 +2,13 @@ from abc import ABC, abstractmethod
 from typing import Optional, List
 
 from chalicelib.dddpy.example.domain.example_entity import ExampleEntity
-from chalicelib.dddpy.example.usecase.example_cmd_schema import CreateExampleSchema, UpdateExampleSchema
+from chalicelib.dddpy.example.domain.example_data import CreateExampleData, UpdateExampleData
 
 
 class ExampleRepository(ABC):
 
     @abstractmethod
-    def create(self, example: CreateExampleSchema) -> ExampleEntity:
+    def create(self, data: CreateExampleData) -> ExampleEntity:
         pass
 
     @abstractmethod
@@ -24,7 +24,7 @@ class ExampleRepository(ABC):
         pass
 
     @abstractmethod
-    def update(self, id: int, example: UpdateExampleSchema) -> Optional[ExampleEntity]:
+    def update(self, id: int, data: UpdateExampleData) -> Optional[ExampleEntity]:
         pass
 
     @abstractmethod

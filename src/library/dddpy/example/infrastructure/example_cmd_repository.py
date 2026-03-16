@@ -1,8 +1,8 @@
 from typing import Optional
 
 from chalicelib.dddpy.example.domain.example_entity import ExampleEntity
+from chalicelib.dddpy.example.domain.example_data import CreateExampleData, UpdateExampleData
 from chalicelib.dddpy.example.domain.example_cmd_repository import ExampleCmdRepository
-from chalicelib.dddpy.example.usecase.example_cmd_schema import CreateExampleSchema, UpdateExampleSchema
 from chalicelib.dddpy.example.infrastructure.dbexample import DBExample
 from chalicelib.dddpy.example.infrastructure.example_mapper import ExampleMapper
 from chalicelib.dddpy.shared.postgresql.session_manager import session_scope
@@ -17,13 +17,13 @@ class ExampleCmdRepositoryImpl(ExampleCmdRepository):
     def __init__(self):
         logger.info("ExampleCmdRepositoryImpl initialized")
 
-    def create(self, example: CreateExampleSchema) -> ExampleEntity:
-        logger.info(f"Creating example with code={example.code}")
+    def create(self, data: CreateExampleData) -> ExampleEntity:
+        logger.info(f"Creating example with code={data.code}")
         with session_scope() as session:
             db_example = DBExample(
-                code=example.code,
-                name=example.name,
-                description=example.description,
+                code=data.code,
+                name=data.name,
+                description=data.description,
             )
             session.add(db_example)
             session.flush()
@@ -31,17 +31,17 @@ class ExampleCmdRepositoryImpl(ExampleCmdRepository):
             logger.info(f"Example created with id={db_example.id}")
             return ExampleMapper.to_domain(db_example)
 
-    def update(self, id: int, example: UpdateExampleSchema) -> Optional[ExampleEntity]:
+    def update(self, id: int, data: UpdateExampleData) -> Optional[ExampleEntity]:
         logger.info(f"Updating example id={id}")
         with session_scope() as session:
             db_example = session.query(DBExample).filter(DBExample.id == id).first()
             if not db_example:
                 logger.warning(f"Example not found for update id={id}")
                 return None
-            if example.name is not None:
-                db_example.name = example.name
-            if example.description is not None:
-                db_example.description = example.description
+            if data.name is not None:
+                db_example.name = data.name
+            if data.description is not None:
+                db_example.description = data.description
             session.flush()
             session.refresh(db_example)
             logger.info(f"Example updated id={id}")
