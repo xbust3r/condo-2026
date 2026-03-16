@@ -4,7 +4,6 @@ from typing import List
 from library.dddpy.core_condominiums.usecase import (
     CreateCondominiumSchema,
     UpdateCondominiumSchema,
-    CondominiumUseCase,
     create_condominium_usecase,
 )
 from library.dddpy.core_condominiums.domain import CondominiumNotFoundException, CondominiumAlreadyExistsException
@@ -14,8 +13,8 @@ router = APIRouter(prefix="/condominiums", tags=["condominiums"])
 
 
 @router.post("", response_model=ResponseSchema)
-def create_condominium(schema: CreateCondominiumSchema, usecase: CondominiumUseCase = None):
-    usecase = usecase or create_condominium_usecase()
+def create_condominium(schema: CreateCondominiumSchema):
+    usecase = create_condominium_usecase()
     try:
         condominium = usecase.create(schema)
         return ResponseSchema(success=True, message="Condominium created", data=condominium.to_dict())
@@ -26,15 +25,15 @@ def create_condominium(schema: CreateCondominiumSchema, usecase: CondominiumUseC
 
 
 @router.get("", response_model=ResponseSchema)
-def get_all_condominiums(usecase: CondominiumUseCase = None):
-    usecase = usecase or create_condominium_usecase()
+def get_all_condominiums():
+    usecase = create_condominium_usecase()
     condominiums = usecase.get_all()
     return ResponseSchema(success=True, data=[c.to_dict() for c in condominiums])
 
 
 @router.get("/{condominium_id}", response_model=ResponseSchema)
-def get_condominium(condominium_id: int, usecase: CondominiumUseCase = None):
-    usecase = usecase or create_condominium_usecase()
+def get_condominium(condominium_id: int):
+    usecase = create_condominium_usecase()
     try:
         condominium = usecase.get_by_id(condominium_id)
         return ResponseSchema(success=True, data=condominium.to_dict())
@@ -43,8 +42,8 @@ def get_condominium(condominium_id: int, usecase: CondominiumUseCase = None):
 
 
 @router.put("/{condominium_id}", response_model=ResponseSchema)
-def update_condominium(condominium_id: int, schema: UpdateCondominiumSchema, usecase: CondominiumUseCase = None):
-    usecase = usecase or create_condominium_usecase()
+def update_condominium(condominium_id: int, schema: UpdateCondominiumSchema):
+    usecase = create_condominium_usecase()
     try:
         condominium = usecase.update(condominium_id, schema)
         return ResponseSchema(success=True, message="Condominium updated", data=condominium.to_dict())
@@ -55,8 +54,8 @@ def update_condominium(condominium_id: int, schema: UpdateCondominiumSchema, use
 
 
 @router.delete("/{condominium_id}", response_model=ResponseSchema)
-def delete_condominium(condominium_id: int, usecase: CondominiumUseCase = None):
-    usecase = usecase or create_condominium_usecase()
+def delete_condominium(condominium_id: int):
+    usecase = create_condominium_usecase()
     try:
         usecase.delete(condominium_id)
         return ResponseSchema(success=True, message="Condominium deleted")
