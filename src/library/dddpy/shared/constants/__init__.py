@@ -1,21 +1,3 @@
-from library.dddpy.shared.constants.status_constants import (
-    CondominiumStatus,
-    BuildingStatus,
-    BuildingTypeStatus,
-    UnityStatus,
-    UnityTypeStatus,
-    UserStatus,
-    ResidentStatus,
-    ResidentType,
-)
+from chalicelib.dddpy.shared.constants.status_constants import LeadStatus, RoutingLogStatus
 
-__all__ = [
-    "CondominiumStatus",
-    "BuildingStatus",
-    "BuildingTypeStatus",
-    "UnityStatus",
-    "UnityTypeStatus",
-    "UserStatus",
-    "ResidentStatus",
-    "ResidentType",
-]
+__all__ = ["LeadStatus", "RoutingLogStatus"]

@@ -1,46 +1,36 @@
-# Status constants for all modules
+"""
+Constantes de estado del sistema.
+
+Este módulo define los estados explícitos para Leads y Routing Logs,
+eliminando números mágicos del código.
+"""
+
 from enum import IntEnum
 
 
-class CondominiumStatus(IntEnum):
-    ACTIVE = 1
-    INACTIVE = 0
+class LeadStatus(IntEnum):
+    """
+    Estados posibles de un Lead.
+    
+    - PENDING_ROUTING (9): Lead recién registrado, aún no ha sido procesado por routing
+    - SUCCESS (1): Lead procesado exitosamente
+    - FAILURE (3): Lead falló en el procesamiento
+    """
+    PENDING_ROUTING = 9
+    SUCCESS = 1
+    FAILURE = 3
 
 
-class BuildingStatus(IntEnum):
-    ACTIVE = 1
-    INACTIVE = 0
-
-
-class BuildingTypeStatus(IntEnum):
-    ACTIVE = 1
-    INACTIVE = 0
-
-
-class UnityStatus(IntEnum):
-    ACTIVE = 1
-    INACTIVE = 0
-
-
-class UnityTypeStatus(IntEnum):
-    ACTIVE = 1
-    INACTIVE = 0
-
-
-class UserStatus(IntEnum):
-    ACTIVE = 1
-    INACTIVE = 0
-    SUSPENDED = 2
-
-
-class ResidentStatus(IntEnum):
-    ACTIVE = 1
-    INACTIVE = 0
-    HISTORICAL = 2
-
-
-class ResidentType(IntEnum):
-    OWNER = 1
-    TENANT = 2
-    FAMILY = 3
-    EMPLOYEE = 4
+class RoutingLogStatus(IntEnum):
+    """
+    Estados del log de ejecución de routing.
+    
+    - STARTED (0): Ejecución iniciada
+    - SUCCESS (1): Ejecución exitosa
+    - ERROR (3): Error en la ejecución o envío
+    - PROVIDER_ERROR (5): Respuesta no exitosa del proveedor externo
+    """
+    STARTED = 0
+    SUCCESS = 1
+    ERROR = 3
+    PROVIDER_ERROR = 5

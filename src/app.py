@@ -7,13 +7,7 @@ import os
 from mangum import Mangum
 
 # Import routers
-from api.condominiums.routes import router as condominiums_router
-from api.buildings_types.routes import router as buildings_types_router
-from api.buildings.routes import router as buildings_router
-from api.unittys_types.routes import router as unittys_types_router
-from api.unitys.routes import router as unitys_router
-from api.users.routes import router as users_router
-from api.residents.routes import router as residents_router
+
 
 app = FastAPI(
     title="Condo-Py API",
@@ -51,11 +45,4 @@ def health_check():
     return ResponseSchema(success=True, message="API is running", data={"status": "healthy"})
 
 
-# Include routers
-app.include_router(condominiums_router)
-app.include_router(buildings_types_router)
-app.include_router(buildings_router)
-app.include_router(unittys_types_router)
-app.include_router(unitys_router)
-app.include_router(users_router)
-app.include_router(residents_router)
+
