@@ -142,8 +142,8 @@ Ejemplo deseado:
 @api_handler
 def create_campaign() -> Response:
     request = campaign_routes.current_request
-    data = CreateCampaignSchema.parse_obj(request.json_body)
-    response = CampaignUseCase().create(data)
+    data = CreateExampleSchema.parse_obj(request.json_body)
+    response = ExampleUseCase().create(data)
     return response.dict()
 ```
 

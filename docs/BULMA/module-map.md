@@ -33,7 +33,7 @@
 
 ### Reference API module
 
-- `src/api/campaigns/routes_campaigns.py`
+- `src/api/example/routes_example.py`
 
 ## Important warning
 
