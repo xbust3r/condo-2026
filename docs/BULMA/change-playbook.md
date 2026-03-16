@@ -7,16 +7,20 @@ Minimize ambiguity and preserve architecture while implementing changes.
 ## Checklist: new module creation
 
 - inspect `shared/` for reusable primitives
-- inspect `campaigns/` as reference module
+- inspect `example/` as reference module
+- inspect `api/example/` as route-pattern reference when HTTP is needed
 - create domain entity
+- create domain data objects if needed
 - create domain exceptions
 - make domain exceptions inherit from shared `DomainException`
-- create repository contracts in domain
-- create DB model in infrastructure
+- create aggregate repository contract in domain when the module needs broader capabilities
+- create cmd/query repository contracts in domain
+- create DB model in infrastructure when persistence exists
 - create mapper in infrastructure
 - create concrete repositories in infrastructure
 - create command/query schemas in usecase
 - create command/query use cases
+- create module facade/use case
 - create module factory
 - define success/error response usage
 - update docs
@@ -31,6 +35,7 @@ Minimize ambiguity and preserve architecture while implementing changes.
 - modify smallest correct layer set
 - preserve shared response schema
 - keep framework logic at edge
+- use `@api_handler` when following clean-route pattern
 - update docs if behavior changed
 
 ## Checklist: persistence/model change
@@ -41,6 +46,7 @@ Minimize ambiguity and preserve architecture while implementing changes.
 - inspect domain entity fields/behavior
 - inspect affected schemas
 - inspect migration impact
+- ensure logging remains traceable
 - document contract change
 
 ## Checklist: business rule change
@@ -75,10 +81,12 @@ Minimize ambiguity and preserve architecture while implementing changes.
 If a task seems to require:
 - naming normalization,
 - module consolidation,
-- replacing baseline `campaigns/` pattern,
+- replacing baseline `example/` pattern,
+- replacing clean-route `api/example/` pattern,
 - moving mapper outside infrastructure,
 - bypassing shared response schemas,
 - bypassing shared `DomainException`,
+- bypassing `@api_handler` without explicit architectural reason,
 - large DDD refactor,
 
 then stop treating it as a small feature.

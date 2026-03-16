@@ -12,6 +12,7 @@ La referencia arquitectónica vigente es:
 
 - `src/library/dddpy/shared/` → base transversal compartida
 - `src/library/dddpy/example/` → módulo patrón para nuevas implementaciones
+- `src/api/example/` → referencia del patrón de route limpio con `@api_handler`
 
 Los módulos viejos no deben tomarse como fuente doctrinal si contradicen esta base.
 
@@ -19,8 +20,8 @@ Los módulos viejos no deben tomarse como fuente doctrinal si contradicen esta b
 
 ### Para humanos
 1. `architecture.md`
-2. `docker.md`
-3. `observations/README.md`
+2. `observations/README.md`
+3. `docker.md`
 4. `models/` (si aplica como inventario de tablas)
 
 ### Para agentes de IA
@@ -63,8 +64,8 @@ No debe editarse durante documentación operativa normal del proyecto.
 ## Qué pretende esta documentación
 
 - Aterrizar la teoría DDD a la base real actual.
-- Hacer explícito el patrón módulo basado en `campaigns`.
-- Dejar claro el uso de mapper, exceptions compartidas y response schemas.
+- Hacer explícito el patrón de módulo basado en `example`.
+- Dejar claro el uso de mapper, exceptions compartidas, response schemas y `@api_handler`.
 - Dar una guía útil tanto para humanos como para BULMA.
 
 La arquitectura no debe depender de memoria tribal.

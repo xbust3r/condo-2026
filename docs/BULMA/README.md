@@ -12,10 +12,12 @@ Antes de crear o modificar módulos:
 
 - revisar `src/library/dddpy/shared/`
 - revisar `src/library/dddpy/example/`
+- revisar `src/api/example/`
 
 Regla:
 - `shared/` = primitives compartidos
 - `example/` = patrón de módulo actual
+- `api/example/` = patrón de route limpio actual
 
 ## Orden de lectura obligatorio
 
@@ -30,7 +32,7 @@ Regla:
 - `docs/new-standard/` = referencia doctrinal, **no editar**.
 - `docs/observations/` = documentación humana.
 - `docs/BULMA/` = reglas operativas compactas.
-- Usar `campaigns/` como patrón salvo nueva instrucción explícita.
+- Usar `example/` como patrón salvo nueva instrucción explícita.
 - Preservar naming actual salvo task explícita de refactor.
 - No inventar módulos nuevos si uno existente ya cubre la responsabilidad.
 - No mezclar feature + refactor cosmético grande en una sola entrega.
@@ -45,5 +47,5 @@ Regla:
 - Mapper traduce DB ↔ domain.
 - DomainException unifica errores semánticos.
 - Response schemas unifican la forma de salida.
-da.
+- `@api_handler` centraliza el camino de error en API.
 - Logger da trazabilidad en main, API y módulo.

@@ -2,7 +2,7 @@
 
 > **Proyecto:** `condo-py`
 >
-> **Base actual de referencia:** `src/library/dddpy/shared/` + `src/library/dddpy/example/` + `src/api/campaigns/`
+> **Base actual de referencia:** `src/library/dddpy/shared/` + `src/library/dddpy/example/` + `src/api/example/`
 >
 > **Estilo arquitectónico:** DDD pragmático con separación `api / domain / usecase / infrastructure / shared`
 >
@@ -138,10 +138,10 @@ Responsable de:
 Ejemplo deseado:
 
 ```python
-@campaign_routes.route(f"{PREFIX}", methods=["POST"], cors=True)
+@example_routes.route(f"{PREFIX}", methods=["POST"], cors=True)
 @api_handler
-def create_campaign() -> Response:
-    request = campaign_routes.current_request
+def create_example() -> Response:
+    request = example_routes.current_request
     data = CreateExampleSchema.parse_obj(request.json_body)
     response = ExampleUseCase().create(data)
     return response.dict()
@@ -500,3 +500,4 @@ La nueva arquitectura de `condo-py` debe entenderse así:
 
 > **La arquitectura correcta no es la que acumula carpetas. Es la que deja claro quién parsea, quién decide, quién persiste, quién responde y quién captura el error.**
 *
+

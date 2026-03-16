@@ -2,20 +2,15 @@
 
 ## 1. Qué tipo de sistema es este
 
-`condo-py` es un backend modular para gestión de entidades condominiales.
-No es un framework interno, no es una plataforma horizontal, y no debería evolucionar como un contenedor indiscriminado de lógica administrativa.
+`condo-py` no debe leerse hoy como un backend CRUD tradicional ni como una colección de módulos legacy.
+La arquitectura activa del proyecto está pivotando hacia una base más explícita y reusable formada por:
 
-Su centro actual gira alrededor de:
-
-- condominios,
-- edificios,
-- tipos,
-- unidades,
-- usuarios,
-- relaciones de residentes.
+- `shared/` como capa transversal,
+- `example/` como módulo plantilla,
+- `api/example/` como demostración del borde limpio con decorador.
 
 ### ¿Por qué esto importa?
-Porque si el equipo olvida la misión del sistema, empieza a meter cualquier responsabilidad nueva y el proyecto se vuelve un laberinto de CRUDs sin semántica.
+Porque el objetivo actual ya no es solo “tener endpoints que funcionen”, sino dejar una base doctrinal que otros developers y agentes puedan copiar sin reintroducir caos.
 
 ---
 
@@ -23,124 +18,108 @@ Porque si el equipo olvida la misión del sistema, empieza a meter cualquier res
 
 El proyecto ya muestra varias decisiones correctas:
 
-- separación por módulos,
-- entrypoints HTTP claramente identificables,
-- capa `usecase/` para orquestación,
-- `domain/` separado de `infrastructure/`,
-- uso de mappers en al menos parte del flujo,
-- respuesta HTTP estandarizada con `ResponseSchema`.
+- separación clara entre `domain`, `usecase`, `infrastructure` y `shared`,
+- mapper explícito en infraestructura,
+- `DomainException` como contrato semántico de error,
+- `ResponseSuccessSchema` / `ResponseErrorSchema` como contrato común,
+- `@api_handler` como adaptación transversal de errores en API,
+- logger compartido para trazabilidad,
+- presencia de `example/` como plantilla reusable.
 
 ### ¿Por qué eso vale?
-Porque no estás partiendo de un caos plano.
-Hay intención arquitectónica.
-Y eso significa que todavía puede ganarse la partida sin destruir el tablero.
+Porque no estás documentando teoría vacía.
+Ya hay una línea de diseño real que puede replicarse.
 
 ---
 
-## 3. Qué problemas importantes siguen visibles
+## 3. Qué decisiones arquitectónicas son centrales
 
-## 3.1 Naming inconsistente
-El proyecto mezcla nombres como:
+## 3.1 La API debe quedar limpia
+La función de route no debe volverse un pequeño framework de manejo de errores.
+Su trabajo es:
 
-- `unitys`
-- `unittys_types`
-- `users`
-- `core_users`
-- `users_residents`
-- `core_users_residents`
+- parsear schema,
+- llamar use case,
+- devolver `response.dict()`.
 
-### ¿Por qué es un problema?
-Porque el naming inconsistente no solo se ve feo. También:
-
-- dificulta navegar el código,
-- vuelve incierto dónde vive cada responsabilidad,
-- induce a crear más duplicidad,
-- complica la documentación y el onboarding.
-
-### Recomendación
-No corregir esto “de pasada” durante features normales. Si se va a arreglar, que sea una iniciativa intencional y bien acotada.
+El resto del camino de error le pertenece a `@api_handler`.
 
 ---
 
-## 3.2 Dominio todavía delgado
-Hay entidades con algo de comportamiento, pero en general el dominio aún no gobierna suficientes reglas.
+## 3.2 El camino de éxito sale del use case
+En esta arquitectura, el use case/fachada devuelve `ResponseSuccessSchema` deliberadamente.
 
 ### ¿Por qué importa?
-Porque si las entidades solo cargan datos, la semántica termina dispersa en use cases, routers o repositorios.
-Y cuando la semántica se dispersa, nadie sabe realmente quién manda.
-
-### Recomendación
-Enriquecer el dominio gradualmente con:
-
-- invariantes,
-- transiciones de estado,
-- validaciones de negocio,
-- value objects cuando añadan semántica real.
+Porque esta decisión simplifica el borde HTTP y deja consistente el contrato de éxito.
+No es una impureza accidental. Es una convención del proyecto.
 
 ---
 
-## 3.3 Riesgo de DDD ceremonial
-La estructura de carpetas sugiere DDD, pero una estructura bonita no garantiza arquitectura sana.
-
-### ¿Por qué es un riesgo?
-Porque puedes terminar con:
-
-- muchas carpetas,
-- muchos archivos,
-- poca claridad real,
-- y cero autoridad del dominio.
-
-### Recomendación
-Medir el éxito no por cantidad de capas, sino por la calidad de las fronteras y por cuánto sobrevive el diseño a cambios futuros.
-
----
-
-## 3.4 Shared puede volverse basurero
-`shared/` es útil, pero siempre está a una mala decisión de convertirse en el cementerio imperial de todo lo incómodo.
+## 3.3 El camino de error sale del dominio
+Las fallas semánticas se expresan como `DomainException` o derivadas.
 
 ### ¿Por qué importa?
-Porque cuando una pieza no encaja y siempre la mandas a `shared/`, dejas de diseñar.
-Solo escondes el problema.
-
-### Recomendación
-Aceptar en `shared/` solo piezas realmente transversales:
-
-- db/session,
-- logging,
-- response schemas,
-- constantes compartidas,
-- utilidades reutilizables de verdad.
+Porque así el sistema habla en términos de negocio cuando falla, y `@api_handler` puede traducir eso a `ResponseErrorSchema` con `status_code` correcto.
 
 ---
 
-## 4. Qué está razonablemente bien planteado
+## 3.4 Existen tres contratos de repositorio a propósito
+La arquitectura mantiene:
 
-### 4.1 FastAPI como entrypoint
-Los routers están actuando como borde HTTP y eso es correcto.
+- `Repository`
+- `CmdRepository`
+- `QueryRepository`
 
-### 4.2 Use cases como capa de aplicación
-La idea de separar command/query y exponer una fachada es defendible cuando mantiene claridad.
+### ¿Por qué esto importa?
+Porque el proyecto no está diseñado solo para CRUD estrecho.
+`Repository` existe como **repositorio agregado del módulo** para casos donde la capacidad del módulo no cabe limpiamente en solo lectura o solo escritura.
 
-### 4.3 Mappers en infraestructura
-Mover traducciones DB ↔ dominio a infraestructura es una señal de madurez arquitectónica.
+Eso comunica una visión importante: la DB puede ser soporte, no siempre centro del diseño.
+
+---
+
+## 4. Qué riesgos siguen existiendo
+
+## 4.1 Shared puede volverse basurero
+Sigue siendo un riesgo clásico. `shared/` debe contener piezas transversales, no atajos para ownership confuso.
+
+## 4.2 Los módulos futuros podrían copiar la forma y olvidar la intención
+Tener carpetas correctas no basta.
+Si alguien copia `example/` pero ignora:
+
+- el rol de `DomainException`,
+- el rol de `@api_handler`,
+- el contrato del `Repository` agregado,
+- o la responsabilidad del use case,
+
+entonces el diseño vuelve a degradarse.
+
+## 4.3 La disciplina de logging debe mantenerse
+El logger ya está mejor planteado, pero su valor depende de que los developers lo usen para trazabilidad real, no para ruido.
 
 ---
 
 ## 5. Qué sigue faltando
 
-Todavía faltan pasos importantes para que el proyecto deje de parecer “DDD por carpetas” y se convierta en DDD útil:
+Todavía pueden mejorarse cosas, pero ya no en el nivel de “arquitectura rota”, sino de refinamiento:
 
-- más semántica en entidades,
-- mejor definición de agregados y límites,
-- aclarar la historia entre módulos `core_*` y no `core_*`,
-- formalizar mejor las reglas para nuevas features.
+- reforzar la disciplina de uso del repositorio agregado,
+- extender el patrón limpio a nuevos módulos reales,
+- mantener documentación y código sincronizados,
+- seguir evitando que legacy vuelva a colonizar la base nueva.
 
 ---
 
 ## 6. Lección final
 
-El valor del proyecto no está en que tenga carpetas llamadas `domain`.
-El valor está en que cada capa sepa cuál es su reino y no invada el ajeno.
+El valor del proyecto ya no está en tener nombres bonitos de carpetas.
+El valor está en esta secuencia clara:
 
-La arquitectura sana no se mide por ceremonia.
-Se mide por control del tablero.
+- el dominio expresa semántica,
+- el use case orquesta y devuelve el éxito,
+- la infraestructura implementa,
+- `shared` estandariza,
+- la API queda limpia,
+- y el decorador captura el error.
+
+Eso sí es control del tablero.
