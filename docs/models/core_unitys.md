@@ -19,6 +19,7 @@ Representa las unidades inmobiliarias individuales, como apartamentos, casas o l
 | Campo | Tipo | Descripción |
 |-------|------|-------------|
 | id | BIGINT | PK |
+| uuid | CHAR(36) / UUID | Identificador único universal de la unidad |
 | name | VARCHAR(255) | Nombre descriptivo de la unidad |
 | code | VARCHAR(50) | Código de la unidad |
 | description | TEXT | Notas adicionales |
@@ -29,6 +30,8 @@ Representa las unidades inmobiliarias individuales, como apartamentos, casas o l
 | unit | VARCHAR(50) | Número de unidad (ej. Apto 101) |
 | building_id | BIGINT | FK → [[core_buildings]] |
 | unity_type_id | BIGINT | FK → [[core_unittys_types]] |
+| created_at | DATETIME / TIMESTAMP | Fecha de creación del registro |
+| updated_at | DATETIME / TIMESTAMP | Fecha de última actualización del registro |
 
 ---
 

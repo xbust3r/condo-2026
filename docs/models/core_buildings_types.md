@@ -19,9 +19,12 @@ Catálogo de los diferentes tipos de edificios disponibles en el sistema (ej. To
 | Campo | Tipo | Descripción |
 |-------|------|-------------|
 | id | BIGINT | PK |
+| uuid | CHAR(36) / UUID | Identificador único universal del tipo de edificio |
 | name | VARCHAR(255) | Nombre del tipo de edificio |
 | code | VARCHAR(50) | Código interno |
 | description | TEXT | Descripción detallada |
+| created_at | DATETIME / TIMESTAMP | Fecha de creación del registro |
+| updated_at | DATETIME / TIMESTAMP | Fecha de última actualización del registro |
 
 ---
 

@@ -19,6 +19,7 @@ Almacena la información de todos los usuarios registrados en el sistema de cond
 | Campo | Tipo | Descripción |
 |-------|------|-------------|
 | id | BIGINT | PK |
+| uuid | CHAR(36) / UUID | Identificador único universal del usuario |
 | first_name | VARCHAR(255) | Nombre(s) del usuario |
 | last_name | VARCHAR(255) | Apellido(s) del usuario |
 | email | VARCHAR(255) | Correo electrónico |
@@ -26,6 +27,8 @@ Almacena la información de todos los usuarios registrados en el sistema de cond
 | doc_identity | VARCHAR(50) | Documento de identidad |
 | phone | VARCHAR(20) | Teléfono de contacto |
 | status | VARCHAR(50) | Estado (activo, inactivo, suspendido) |
+| created_at | DATETIME / TIMESTAMP | Fecha de creación del registro |
+| updated_at | DATETIME / TIMESTAMP | Fecha de última actualización del registro |
 
 ---
 
