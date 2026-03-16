@@ -1,38 +1,41 @@
-# Logging utility
 import logging
-import sys
+from typing import Optional, Any
 
 
 class Logger:
-    _loggers = {}
+    def __init__(self, logger_name: str):
+        self.logger_name = logger_name
+        self.inside_method: Optional[str] = None
+        self.logger = logging.getLogger(self.logger_name)
+        self.logger.setLevel(logging.INFO)
 
-    def __init__(self, name: str):
-        self.name = name
-        if name not in Logger._loggers:
-            logger = logging.getLogger(name)
-            logger.setLevel(logging.INFO)
-            
-            if not logger.handlers:
-                handler = logging.StreamHandler(sys.stdout)
-                handler.setLevel(logging.INFO)
-                formatter = logging.Formatter(
-                    '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-                )
-                handler.setFormatter(formatter)
-                logger.addHandler(handler)
-            
-            Logger._loggers[name] = logger
-        
-        self._logger = Logger._loggers[name]
+    def add_inside_method(self, method_name: Optional[str]):
+        self.inside_method = method_name
+        return self
 
-    def info(self, message: str):
-        self._logger.info(message)
+    def clear_inside_method(self):
+        self.inside_method = None
+        return self
 
-    def error(self, message: str):
-        self._logger.error(message)
+    def _build_message(self, data: Any) -> str:
+        method = self.inside_method or "-"
+        return f"{self.logger_name} - {method} - {data}"
 
-    def warning(self, message: str):
-        self._logger.warning(message)
+    def log(self, level: str, data: Any):
+        log_function = getattr(self.logger, level)
+        return log_function(self._build_message(data))
 
-    def debug(self, message: str):
-        self._logger.debug(message)
+    def info(self, data: Any):
+        return self.log("info", data)
+
+    def debug(self, data: Any):
+        return self.log("debug", data)
+
+    def warning(self, data: Any):
+        return self.log("warning", data)
+
+    def error(self, data: Any):
+        return self.log("error", data)
+
+    def critical(self, data: Any):
+        return self.log("critical", data)
