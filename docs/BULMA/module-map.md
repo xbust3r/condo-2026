@@ -7,34 +7,39 @@
 - `src/library/dddpy/shared/decorators/domain_exception.py`
 - `src/library/dddpy/shared/decorators/api_handler.py`
 - `src/library/dddpy/shared/schemas/response_schema.py`
-- `src/library/dddpy/shared/logging/`
+- `src/library/dddpy/shared/logging/logging.py`
 - `src/library/dddpy/shared/mysql/`
 - `src/library/dddpy/shared/postgresql/`
 - `src/library/dddpy/shared/constants/`
 - `src/library/dddpy/shared/utils/`
 
-### Reference business module
+### Reference template module
 
-- `src/library/dddpy/campaigns/domain/campaigns.py`
-- `src/library/dddpy/campaigns/domain/campaigns_exception.py`
-- `src/library/dddpy/campaigns/domain/campaigns_repository.py`
-- `src/library/dddpy/campaigns/domain/campaigns_cmd_repository.py`
-- `src/library/dddpy/campaigns/domain/campaigns_query_repository.py`
-- `src/library/dddpy/campaigns/infrastructure/dbcampaigns.py`
-- `src/library/dddpy/campaigns/infrastructure/campaign_mapper.py`
-- `src/library/dddpy/campaigns/infrastructure/campaigns_cmd_repository.py`
-- `src/library/dddpy/campaigns/infrastructure/campaigns_query_repository.py`
-- `src/library/dddpy/campaigns/usecase/campaigns_cmd_schema.py`
-- `src/library/dddpy/campaigns/usecase/campaigns_cmd_usecase.py`
-- `src/library/dddpy/campaigns/usecase/campaigns_query_usecase.py`
-- `src/library/dddpy/campaigns/usecase/campaigns_usecase.py`
-- `src/library/dddpy/campaigns/usecase/campaigns_factory.py`
+- `src/library/dddpy/example/domain/example_entity.py`
+- `src/library/dddpy/example/domain/example_data.py`
+- `src/library/dddpy/example/domain/example_exception.py`
+- `src/library/dddpy/example/domain/example_repository.py`
+- `src/library/dddpy/example/domain/example_cmd_repository.py`
+- `src/library/dddpy/example/domain/example_query_repository.py`
+- `src/library/dddpy/example/infrastructure/dbexample.py`
+- `src/library/dddpy/example/infrastructure/example_mapper.py`
+- `src/library/dddpy/example/infrastructure/example_cmd_repository.py`
+- `src/library/dddpy/example/infrastructure/example_query_repository.py`
+- `src/library/dddpy/example/usecase/example_cmd_schema.py`
+- `src/library/dddpy/example/usecase/example_cmd_usecase.py`
+- `src/library/dddpy/example/usecase/example_query_usecase.py`
+- `src/library/dddpy/example/usecase/example_usecase.py`
+- `src/library/dddpy/example/usecase/example_factory.py`
+
+### Reference API module
+
+- `src/api/campaigns/routes_campaigns.py`
 
 ## Important warning
 
 Legacy modules were removed because they were not the desired architecture base.
 Do not reconstruct them by imitation.
-Use `campaigns/` as the reference structure.
+Use `example/` as the reference structure and `api/campaigns/` as the route-pattern reference.
 
 ## Structural meaning
 
@@ -47,24 +52,33 @@ Owns:
 - session managers
 - reusable utilities
 
-### `campaigns/domain/`
+### `example/domain/`
 Owns:
 - domain entity
+- domain data objects
 - domain exceptions
 - repository contracts
 
-### `campaigns/infrastructure/`
+### `example/infrastructure/`
 Owns:
 - DB model
 - mapper
 - concrete repositories
 
-### `campaigns/usecase/`
+### `example/usecase/`
 Owns:
 - command/query schemas
 - command/query use cases
 - factory wiring
-- optional facade
+- facade returning `ResponseSuccessSchema`
+
+### `api/campaigns/`
+Owns:
+- request parsing
+- route exposure
+- use case invocation
+- returning `response.dict()`
+- relying on `@api_handler` for errors
 
 ## Response contract
 
@@ -98,6 +112,22 @@ class DomainException(Exception):
 ```
 
 All module semantic exceptions should derive from it.
+
+## Decorator contract
+
+Shared API decorator lives in:
+- `src/library/dddpy/shared/decorators/api_handler.py`
+
+Official route flow:
+
+```text
+route
+  → parse schema
+  → use case
+  → ResponseSuccessSchema
+  → response.dict()
+  → @api_handler handles DomainException / ValidationError / 500
+```
 
 ## Logging contract
 

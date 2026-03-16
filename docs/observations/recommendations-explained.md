@@ -1,13 +1,13 @@
 # Recomendaciones para `condo-py` explicadas en lenguaje humano
 
-Este archivo resume recomendaciones arquitectónicas vigentes para el proyecto tomando como base la nueva estructura `shared/` + `campaigns/`.
+Este archivo resume recomendaciones arquitectónicas vigentes para el proyecto tomando como base la estructura `shared/` + `example/` + `api/`.
 
 ---
 
-## 1. Tratar `campaigns` como módulo patrón
+## 1. Tratar `example` como módulo patrón
 
 ### Recomendación
-Usar `src/library/dddpy/campaigns/` como referencia práctica para construir módulos nuevos.
+Usar `src/library/dddpy/example/` como referencia práctica para construir módulos nuevos.
 
 ### Por qué
 Porque ahora mismo es la estructura base más cercana al estándar deseado.
@@ -33,13 +33,6 @@ Porque el dominio no debe depender del ORM para existir.
 - mejor testabilidad,
 - menos acoplamiento técnico.
 
-### Ejemplo real
-`CampaignMapper` expone:
-- `to_domain(...)`
-- `to_infrastructure(...)`
-
-Eso deja clara la frontera entre representación técnica y semántica.
-
 ---
 
 ## 3. Usar `DomainException` como base común de errores semánticos
@@ -56,12 +49,7 @@ Porque así el sistema tiene una base compartida para:
 ### Beneficio
 - menos `Exception` genérica,
 - menos `ValueError` accidental,
-- semántica de error más clara,
-- mejor integración con decorators o handlers compartidos.
-
-### Ejemplo real
-- `CampaignNotFound`
-- `RepeatedCampaignMediaCode`
+- mejor integración con `@api_handler`.
 
 ---
 
@@ -90,35 +78,51 @@ Porque la estructura de éxito/error no debe cambiar caprichosamente entre módu
 
 ### Beneficio
 - consistencia en respuestas,
-- menos ambigüedad para frontend o consumidores,
-- menos esfuerzo mental al navegar el sistema.
+- menos ambigüedad para consumidores,
+- mejor predictibilidad.
 
 ---
 
-## 6. Mantener success messages consistentes
+## 6. Dejar la API limpia con `@api_handler`
 
 ### Recomendación
-Los mensajes de éxito deben seguir una convención estable y semántica.
+Las rutas deben limitarse a:
+- obtener request,
+- parsear schema,
+- llamar use case,
+- devolver `response.dict()`.
 
 ### Por qué
-Porque si cada módulo responde con estilos distintos, el sistema pierde coherencia.
+Porque el manejo de errores ya está centralizado en `@api_handler`.
 
 ### Beneficio
-- mejor UX técnica,
-- mejor predictibilidad,
-- menos ruido en respuestas.
-
-### Criterio sugerido
-Preferir mensajes como:
-- `Campaign created successfully`
-- `Campaign updated successfully`
-- `Campaign deleted successfully`
-
-No por liturgia, sino por disciplina.
+- menos repetición,
+- rutas más legibles,
+- menor mezcla de responsabilidades,
+- mejor trazabilidad.
 
 ---
 
-## 7. Mantener repositorios abstractos en `domain` y repositorios concretos en `infrastructure`
+## 7. Permitir que el use case devuelva `ResponseSuccessSchema`
+
+### Recomendación
+En este proyecto, el camino de éxito debe salir del use case/fachada como `ResponseSuccessSchema`.
+
+### Por qué
+Porque así la API solo adapta la request y entrega el resultado, mientras el contrato de éxito sigue uniforme.
+
+### Beneficio
+- borde más limpio,
+- contrato estable,
+- menos lógica repetida en routes.
+
+### Aclaración importante
+Esto no es una impureza accidental.
+Es una decisión deliberada del proyecto.
+
+---
+
+## 8. Mantener repositorios abstractos en `domain` y repositorios concretos en `infrastructure`
 
 ### Recomendación
 Los contratos deben vivir en el dominio y la implementación técnica en infraestructura.
@@ -133,7 +137,7 @@ Porque el dominio debe expresar qué necesita, no cómo se persiste.
 
 ---
 
-## 8. Mantener factories en `usecase`
+## 9. Mantener factories en `usecase`
 
 ### Recomendación
 El ensamblaje de repositorios concretos con use cases debe centralizarse en factories del módulo.
@@ -148,7 +152,7 @@ Porque el wiring disperso es deuda silenciosa.
 
 ---
 
-## 9. Proteger `shared/`
+## 10. Proteger `shared/`
 
 ### Recomendación
 `shared/` debe contener solo piezas realmente transversales.
@@ -163,7 +167,7 @@ Porque si todo termina en `shared/`, ya no existe frontera real.
 
 ---
 
-## 10. Escribir también para agentes de IA
+## 11. Escribir también para agentes de IA
 
 ### Recomendación
 Mantener `docs/BULMA/` actualizado cada vez que cambie el patrón base del proyecto.
@@ -178,16 +182,16 @@ Porque la IA necesita instrucciones compactas, no solo documentación narrativa.
 
 ---
 
-## 11. Regla final
+## 12. Regla final
 
 Cada módulo nuevo debería poder responder claramente estas preguntas:
 
 1. ¿Dónde vive la entidad?
 2. ¿Dónde viven las exceptions?
-3. ¿Dónde viven los contratos?
-4. ¿Dónde vive el mapper?
-5. ¿Dónde viven los repositorios concretos?
-6. ¿Dónde vive la factory?
-7. ¿Qué response schema usa?
+3. ¿Dónde vive el mapper?
+4. ¿Dónde vive el éxito estructurado?
+5. ¿Dónde vive el error estructurado?
+6. ¿Qué hace la API y qué no hace?
+7. ¿Qué resuelve `@api_handler`?
 
 Si eso no está claro, el módulo todavía no está listo para entrar al reino.

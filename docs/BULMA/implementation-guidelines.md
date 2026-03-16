@@ -5,6 +5,7 @@
 When in doubt, use:
 - `src/library/dddpy/shared/` as cross-cutting base
 - `src/library/dddpy/example/` as reference module
+- `src/api/campaigns/` as clean-route reference
 
 Do not use deleted/legacy modules as architecture source of truth.
 
@@ -13,29 +14,33 @@ Do not use deleted/legacy modules as architecture source of truth.
 Create the smallest correct baseline:
 
 1. `domain/entity`
-2. `domain/module_exception.py`
-3. `domain/module_repository.py`
-4. `domain/module_cmd_repository.py`
-5. `domain/module_query_repository.py`
-6. `infrastructure/dbmodule.py`
-7. `infrastructure/module_mapper.py`
-8. `infrastructure/module_cmd_repository.py`
-9. `infrastructure/module_query_repository.py`
-10. `usecase/module_cmd_schema.py`
-11. `usecase/module_cmd_usecase.py`
-12. `usecase/module_query_usecase.py`
-13. `usecase/module_factory.py`
-14. optional `usecase/module_usecase.py` facade
+2. `domain/module_data.py` when create/update data objects are useful
+3. `domain/module_exception.py`
+4. `domain/module_repository.py`
+5. `domain/module_cmd_repository.py`
+6. `domain/module_query_repository.py`
+7. `infrastructure/dbmodule.py`
+8. `infrastructure/module_mapper.py`
+9. `infrastructure/module_cmd_repository.py`
+10. `infrastructure/module_query_repository.py`
+11. `usecase/module_cmd_schema.py`
+12. `usecase/module_cmd_usecase.py`
+13. `usecase/module_query_usecase.py`
+14. `usecase/module_factory.py`
+15. `usecase/module_usecase.py` facade
+16. `api/module/routes_*.py` if exposing HTTP entrypoints
 
 ## When adding or modifying an endpoint
 
 1. Update corresponding router/entrypoint only for adaptation concerns
-2. Reuse existing schema/use case if possible
-3. If new application behavior is needed, implement in module `usecase/`
-4. If new business rule is needed, implement in `domain/`
-5. If persistence translation changes, update mapper/repository in `infrastructure/`
-6. Preserve shared response schema format
-7. Update docs if behavior or structure changed
+2. Parse schema in route layer
+3. Reuse existing use case if possible
+4. Route should call use case and return `response.dict()`
+5. Route should rely on `@api_handler` for centralized error handling
+6. If new business rule is needed, implement in `domain/`
+7. If persistence translation changes, update mapper/repository in `infrastructure/`
+8. Preserve shared response schema format
+9. Update docs if behavior or structure changed
 
 ## Domain exception guideline
 
@@ -66,7 +71,7 @@ Do not:
 
 Abstract contracts:
 - live in `domain/`
-- define expected behavior
+- define expected behavior using domain entities or domain data objects
 
 Concrete implementations:
 - live in `infrastructure/`
@@ -77,34 +82,48 @@ Concrete implementations:
 
 Use case may coordinate:
 - input schema handling
+- translation from schema to domain data objects
 - precondition checks
 - repository calls
-- returning domain entity/result
-- selecting success path
+- returning `ResponseSuccessSchema`
+- raising semantic exceptions
+- logging meaningful checkpoints
 
 Use case should not:
-- embed HTTP response shape logic when shared contract already exists
 - expose raw ORM objects to entrypoint layer
 - become dumping ground for every rule
-
-## Success message guideline
-
-Success responses should use stable semantic messages.
-Preferred pattern:
-- `<Entity> created successfully`
-- `<Entity> updated successfully`
-- `<Entity> deleted successfully`
-- `<Entity> fetched successfully` when useful
-
-Goal:
-- consistency
-- low ambiguity
-- predictable API behavior
+- return arbitrary dicts when shared success schema exists
 
 ## Response schema guideline
 
 Use shared schemas from `shared/schemas/response_schema.py`.
+
+Success path:
+- use case/facade returns `ResponseSuccessSchema`
+
+Error path:
+- raise `DomainException` derivatives
+- `@api_handler` converts them to `ResponseErrorSchema`
+
 Do not create one-off response wrappers unless explicit architecture decision requires it.
+
+## API handler guideline
+
+Use `@api_handler` on clean API routes.
+
+Expected route shape:
+
+```python
+@blueprint.route("/resource", methods=["POST"], cors=True)
+@api_handler
+def create_resource():
+    request = blueprint.current_request
+    data = CreateResourceSchema.parse_obj(request.json_body)
+    response = ResourceUseCase().create(data)
+    return response.dict()
+```
+
+Do not duplicate error handling in every route when decorator already owns it.
 
 ## Logger guideline
 
@@ -125,7 +144,7 @@ Avoid noisy useless logs. Prefer traceable and meaningful logs.
 
 ## Documentation guideline
 
-If you alter architecture, module responsibilities, or baseline pattern:
+If you alter architecture, module responsibilities, route pattern, or baseline pattern:
 - update `docs/architecture.md`
 - update `docs/observations/` for human explanation when relevant
 - update `docs/BULMA/` if agent guidance changed
