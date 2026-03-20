@@ -13,6 +13,7 @@ La referencia arquitectónica vigente es:
 - `src/library/dddpy/shared/` → base transversal compartida
 - `src/library/dddpy/example/` → módulo patrón para nuevas implementaciones
 - `src/api/example/` → referencia del patrón de route limpio con `@api_handler`
+- `src/app.py` → borde FastAPI actual del servicio
 
 Los módulos viejos no deben tomarse como fuente doctrinal si contradicen esta base.
 

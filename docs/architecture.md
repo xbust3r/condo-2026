@@ -139,12 +139,10 @@ Responsable de:
 Ejemplo deseado:
 
 ```python
-@example_routes.route(f"{PREFIX}", methods=["POST"], cors=True)
+@example_routes.post("")
 @api_handler
-def create_example() -> Response:
-    request = example_routes.current_request
-    data = CreateExampleSchema.parse_obj(request.json_body)
-    response = ExampleUseCase().create(data)
+def create_example(request: CreateExampleSchema) -> dict:
+    response = ExampleUseCase().create(request)
     return response.dict()
 ```
 
@@ -411,7 +409,7 @@ Este es el flujo oficial del proyecto:
 
 ```text
 API route
-  → parse schema
+  → parse schema en FastAPI
   → use case
   → ResponseSuccessSchema
   → response.dict()
@@ -423,11 +421,17 @@ API route
 El decorador:
 
 - loguea inicio de request,
-- intenta capturar contexto útil,
+- intenta capturar contexto útil cuando la route recibe `Request`,
 - ejecuta la función de la ruta,
 - convierte `DomainException` en `ResponseErrorSchema` con `status_code`,
 - convierte `ValidationError` en 400,
 - convierte errores inesperados en 500.
+
+### Regla de framework
+
+La implementación vigente de `@api_handler` es **FastAPI-native**.
+No debe depender de `chalice`, `Blueprint`, `current_request` ni respuestas específicas de otro framework.
+Si cambia el framework del borde, se adapta el decorador transversal sin contaminar `domain/` ni `usecase/`.
 
 ## 7.2 Qué logra este patrón
 

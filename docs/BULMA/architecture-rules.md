@@ -150,12 +150,17 @@ Official route flow:
 
 ```text
 route
-  → parse schema
+  → parse schema in FastAPI
   → use case
   → ResponseSuccessSchema
   → response.dict()
   → @api_handler handles DomainException / ValidationError / 500
 ```
+
+Framework rule:
+- current baseline is FastAPI at the edge
+- `@api_handler` must remain framework-compatible with FastAPI
+- do not reintroduce `chalice`, `Blueprint`, `current_request`, or cross-framework response objects into the shared decorator
 
 Do not invent ad-hoc success/error shapes per module without explicit architecture decision.
 

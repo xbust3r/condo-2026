@@ -126,14 +126,17 @@ Use `@api_handler` on clean API routes.
 Expected route shape:
 
 ```python
-@blueprint.route("/resource", methods=["POST"], cors=True)
+@router.post("/resource")
 @api_handler
-def create_resource():
-    request = blueprint.current_request
-    data = CreateResourceSchema.parse_obj(request.json_body)
-    response = ResourceUseCase().create(data)
+def create_resource(request: CreateResourceSchema):
+    response = ResourceUseCase().create(request)
     return response.dict()
 ```
+
+Current framework note:
+- `@api_handler` is FastAPI-native in the current project baseline
+- do not use `chalice`, `Blueprint`, `current_request`, or framework-specific response objects from another stack
+- if request metadata logging is needed, declare `Request` in the route signature and let the decorator consume it
 
 Do not duplicate error handling in every route when decorator already owns it.
 
