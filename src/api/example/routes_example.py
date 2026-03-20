@@ -1,82 +1,75 @@
-from chalice import Blueprint, Response
+from fastapi import APIRouter
 
-from chalicelib.dddpy.shared.logging.logging import Logger
-from chalicelib.dddpy.example.usecase.example_usecase import ExampleUseCase
-from chalicelib.dddpy.example.usecase.example_cmd_schema import CreateExampleSchema, UpdateExampleSchema
-from chalicelib.dddpy.shared.decorators.api_handler import api_handler
+from library.dddpy.shared.logging.logging import Logger
+from library.dddpy.example.usecase.example_usecase import ExampleUseCase
+from library.dddpy.example.usecase.example_cmd_schema import CreateExampleSchema, UpdateExampleSchema
+from library.dddpy.shared.decorators.api_handler import api_handler
 
 
 logger = Logger("ACA Routes - Example")
 
 PREFIX = "/example"
 
-example_routes = Blueprint(__name__)
+example_routes = APIRouter(prefix=PREFIX)
 
 logger.info(f"Registering {PREFIX} routes")
 
 
-@example_routes.route(f"{PREFIX}/health", methods=["GET"])
+@example_routes.get("/health")
 @api_handler
-def health_check() -> Response:
-    return Response(status_code=200, body={"status": "healthy"})
+def health_check() -> dict:
+    return {"status": "healthy"}
 
 
-@example_routes.route(f"{PREFIX}", methods=["GET"], cors=True)
+@example_routes.get("")
 @api_handler
-def list_examples() -> Response:
+def list_examples() -> dict:
     logger.add_inside_method("list_examples Route")
     logger.info("Listing all examples")
     response = ExampleUseCase().list_all()
     return response.dict()
 
 
-@example_routes.route(f"{PREFIX}/{{id}}", methods=["GET"], cors=True)
+@example_routes.get("/{id}")
 @api_handler
-def get_example(id: str) -> Response:
+def get_example(id: int) -> dict:
     logger.add_inside_method("get_example Route")
     logger.info(f"Getting example with ID: {id}")
-    example_id = int(id)
-    response = ExampleUseCase().get_by_id(example_id)
+    response = ExampleUseCase().get_by_id(id)
     return response.dict()
 
 
-@example_routes.route(f"{PREFIX}/code/{{code}}", methods=["GET"], cors=True)
+@example_routes.get("/code/{code}")
 @api_handler
-def get_example_by_code(code: str) -> Response:
+def get_example_by_code(code: str) -> dict:
     logger.add_inside_method("get_example_by_code Route")
     logger.info(f"Getting example with code: {code}")
     response = ExampleUseCase().get_by_code(code)
     return response.dict()
 
 
-@example_routes.route(f"{PREFIX}", methods=["POST"], cors=True)
+@example_routes.post("")
 @api_handler
-def create_example() -> Response:
+def create_example(request: CreateExampleSchema) -> dict:
     logger.add_inside_method("create_example Route")
     logger.info("Creating new example")
-    request = example_routes.current_request
-    data = CreateExampleSchema.parse_obj(request.json_body)
-    response = ExampleUseCase().create(data)
+    response = ExampleUseCase().create(request)
     return response.dict()
 
 
-@example_routes.route(f"{PREFIX}/{{id}}", methods=["PUT"], cors=True)
+@example_routes.put("/{id}")
 @api_handler
-def update_example(id: str) -> Response:
+def update_example(id: int, request: UpdateExampleSchema) -> dict:
     logger.add_inside_method("update_example Route")
     logger.info(f"Updating example with ID: {id}")
-    request = example_routes.current_request
-    example_id = int(id)
-    data = UpdateExampleSchema.parse_obj(request.json_body)
-    response = ExampleUseCase().update(example_id, data)
+    response = ExampleUseCase().update(id, request)
     return response.dict()
 
 
-@example_routes.route(f"{PREFIX}/{{id}}", methods=["DELETE"], cors=True)
+@example_routes.delete("/{id}")
 @api_handler
-def delete_example(id: str) -> Response:
+def delete_example(id: int) -> dict:
     logger.add_inside_method("delete_example Route")
     logger.info(f"Deleting example with ID: {id}")
-    example_id = int(id)
-    response = ExampleUseCase().delete(example_id)
+    response = ExampleUseCase().delete(id)
     return response.dict()
