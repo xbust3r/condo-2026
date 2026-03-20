@@ -66,6 +66,8 @@ Minimize ambiguity and preserve architecture while implementing changes.
 - confirm if change is project-wide or module-local
 - avoid ad-hoc shape drift
 - standardize success message wording
+- if wording is reused, centralize it in `domain/*_success.py`
+- make use case consume the centralized success catalog
 - standardize controlled error handling
 - document change in architecture docs
 

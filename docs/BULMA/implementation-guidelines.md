@@ -16,19 +16,20 @@ Create the smallest correct baseline:
 1. `domain/entity`
 2. `domain/module_data.py` when create/update data objects are useful
 3. `domain/module_exception.py`
-4. `domain/module_repository.py`
-5. `domain/module_cmd_repository.py`
-6. `domain/module_query_repository.py`
-7. `infrastructure/dbmodule.py`
-8. `infrastructure/module_mapper.py`
-9. `infrastructure/module_cmd_repository.py`
-10. `infrastructure/module_query_repository.py`
-11. `usecase/module_cmd_schema.py`
-12. `usecase/module_cmd_usecase.py`
-13. `usecase/module_query_usecase.py`
-14. `usecase/module_factory.py`
-15. `usecase/module_usecase.py` facade
-16. `api/module/routes_*.py` if exposing HTTP entrypoints
+4. `domain/module_success.py` when the module has reusable success messages
+5. `domain/module_repository.py`
+6. `domain/module_cmd_repository.py`
+7. `domain/module_query_repository.py`
+8. `infrastructure/dbmodule.py`
+9. `infrastructure/module_mapper.py`
+10. `infrastructure/module_cmd_repository.py`
+11. `infrastructure/module_query_repository.py`
+12. `usecase/module_cmd_schema.py`
+13. `usecase/module_cmd_usecase.py`
+14. `usecase/module_query_usecase.py`
+15. `usecase/module_factory.py`
+16. `usecase/module_usecase.py` facade
+17. `api/module/routes_*.py` if exposing HTTP entrypoints
 
 ## When adding or modifying an endpoint
 
@@ -109,6 +110,8 @@ Use shared schemas from `shared/schemas/response_schema.py`.
 
 Success path:
 - use case/facade returns `ResponseSuccessSchema`
+- when success wording is stable, centralize it in `domain/*_success.py`
+- consume that catalog from the use case instead of scattering hardcoded literals
 
 Error path:
 - raise `DomainException` derivatives

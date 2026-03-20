@@ -90,6 +90,7 @@ module/
 │   ├── entity.py
 │   ├── module_data.py            # opcional si se separan data objects de dominio
 │   ├── module_exception.py
+│   ├── module_success.py         # catálogo semántico de mensajes de éxito del módulo
 │   ├── module_repository.py
 │   ├── module_cmd_repository.py
 │   └── module_query_repository.py
@@ -163,7 +164,8 @@ Responsable de:
 - entidades de dominio,
 - data objects de dominio cuando aplique,
 - contratos abstractos de repositorio,
-- excepciones de dominio.
+- excepciones de dominio,
+- catálogos semánticos del módulo cuando expresen lenguaje estable del negocio o de su contrato de éxito.
 
 ### Repositorio agregado del módulo
 
@@ -205,6 +207,7 @@ Ejemplos del template `example/`:
 - `example_entity.py`
 - `example_data.py`
 - `example_exception.py`
+- `example_success.py`
 - `example_repository.py`
 - `example_cmd_repository.py`
 - `example_query_repository.py`
@@ -238,6 +241,27 @@ class DomainException(Exception):
 - errores semánticos consistentes,
 - status code controlado,
 - integración directa con `@api_handler`.
+
+### Catálogo de mensajes de éxito del módulo
+
+Cuando un módulo tenga mensajes de éxito estables y reutilizables, deben centralizarse en `domain/*_success.py`.
+
+Ejemplo:
+
+- `example/domain/example_success.py`
+
+Su función es actuar como **fuente única de verdad semántica** para el camino de éxito del módulo.
+Eso evita:
+
+- strings hardcodeados repetidos en múltiples métodos,
+- deriva de wording entre operaciones equivalentes,
+- inconsistencias entre respuesta funcional y logging.
+
+Regla táctica:
+
+- el `usecase` **consume** ese catálogo,
+- el `domain` **declara** ese lenguaje,
+- la API **no inventa** mensajes de éxito.
 
 ---
 
@@ -278,6 +302,8 @@ Se hace así para lograr:
 - API minimalista,
 - contrato uniforme de éxito,
 - separación clara entre éxito estructurado y error estructurado.
+
+Cuando exista un catálogo como `domain/*_success.py`, el `message` de `ResponseSuccessSchema` debe salir de allí y no de literales dispersos dentro del `usecase`.
 
 ### Factories
 
@@ -443,6 +469,7 @@ Hoy `example/` debe considerarse la referencia práctica de cómo construir mód
 
 - entidad de dominio separada,
 - exceptions del módulo,
+- catálogo centralizado de mensajes satisfactorios del módulo,
 - contratos abstractos de repositorio,
 - data objects de dominio,
 - repositorios concretos separados por intención,
@@ -465,13 +492,16 @@ Hoy `example/` debe considerarse la referencia práctica de cómo construir mód
 
 ### 10.4 Las factories viven en usecase
 
-### 10.5 `ResponseSuccessSchema` forma parte del contrato del camino de éxito
+### 10.5 Los mensajes de éxito reutilizables del módulo viven en `domain/*_success.py`
+El `usecase` debe consumirlos como fuente única de verdad semántica.
+
+### 10.6 `ResponseSuccessSchema` forma parte del contrato del camino de éxito
 No debe considerarse una casualidad del módulo.
 
-### 10.6 `@api_handler` es el punto transversal del camino de error
+### 10.7 `@api_handler` es el punto transversal del camino de error
 No debe duplicarse ese trabajo con `try/except` manual en cada route.
 
-### 10.7 `shared/` define piezas comunes, no reglas de negocio específicas
+### 10.8 `shared/` define piezas comunes, no reglas de negocio específicas
 
 ---
 
