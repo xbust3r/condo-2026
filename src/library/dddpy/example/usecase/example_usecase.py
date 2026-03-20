@@ -1,10 +1,11 @@
-from chalicelib.dddpy.example.usecase.example_cmd_usecase import ExampleCmdUseCase
-from chalicelib.dddpy.example.usecase.example_query_usecase import ExampleQueryUseCase
-from chalicelib.dddpy.example.usecase.example_factory import example_cmd_usecase_factory, example_query_usecase_factory
-from chalicelib.dddpy.example.usecase.example_cmd_schema import CreateExampleSchema, UpdateExampleSchema
-from chalicelib.dddpy.example.domain.example_exception import ExampleNotFound, RepeatedExampleCode
-from chalicelib.dddpy.shared.schemas.response_schema import ResponseSuccessSchema
-from chalicelib.dddpy.shared.logging.logging import Logger
+from library.dddpy.example.usecase.example_cmd_usecase import ExampleCmdUseCase
+from library.dddpy.example.usecase.example_query_usecase import ExampleQueryUseCase
+from library.dddpy.example.usecase.example_factory import example_cmd_usecase_factory, example_query_usecase_factory
+from library.dddpy.example.usecase.example_cmd_schema import CreateExampleSchema, UpdateExampleSchema
+from library.dddpy.example.domain.example_exception import ExampleNotFound, RepeatedExampleCode
+from library.dddpy.example.domain.example_success import ExampleSuccessMessage
+from library.dddpy.shared.schemas.response_schema import ResponseSuccessSchema
+from library.dddpy.shared.logging.logging import Logger
 
 
 logger = Logger("ExampleUseCase")
@@ -27,10 +28,10 @@ class ExampleUseCase:
         new_example = self.example_cmd_usecase.create(example_data)
         success = ResponseSuccessSchema(
             success=True,
-            message="Example created successfully",
+            message=ExampleSuccessMessage.CREATED,
             data=new_example.to_dict(),
         )
-        logger.info(f"Example created successfully: {success}")
+        logger.info(f"{success.message}: {success}")
         return success
 
     def get_by_id(self, id: int):
@@ -41,10 +42,10 @@ class ExampleUseCase:
             raise ExampleNotFound()
         success = ResponseSuccessSchema(
             success=True,
-            message="Example retrieved successfully",
+            message=ExampleSuccessMessage.RETRIEVED,
             data=example.to_dict(),
         )
-        logger.info(f"Example retrieved successfully by id={id}")
+        logger.info(f"{success.message} by id={id}")
         return success
 
     def get_by_code(self, code: str):
@@ -55,10 +56,10 @@ class ExampleUseCase:
             raise ExampleNotFound()
         success = ResponseSuccessSchema(
             success=True,
-            message="Example retrieved successfully",
+            message=ExampleSuccessMessage.RETRIEVED,
             data=example.to_dict(),
         )
-        logger.info(f"Example retrieved successfully by code={code}")
+        logger.info(f"{success.message} by code={code}")
         return success
 
     def update(self, id: int, example_data: UpdateExampleSchema):
@@ -70,10 +71,10 @@ class ExampleUseCase:
             raise ExampleNotFound()
         success = ResponseSuccessSchema(
             success=True,
-            message="Example updated successfully",
+            message=ExampleSuccessMessage.UPDATED,
             data=updated_example.to_dict(),
         )
-        logger.info(f"Example updated successfully: {success}")
+        logger.info(f"{success.message}: {success}")
         return success
 
     def delete(self, id: int):
@@ -85,10 +86,10 @@ class ExampleUseCase:
             raise ExampleNotFound()
         success = ResponseSuccessSchema(
             success=True,
-            message="Example deleted successfully",
+            message=ExampleSuccessMessage.DELETED,
             data={},
         )
-        logger.info(f"Example deleted successfully for id={id}")
+        logger.info(f"{success.message} for id={id}")
         return success
 
     def list_all(self):
@@ -96,8 +97,8 @@ class ExampleUseCase:
         examples = self.example_query_usecase.list_all()
         success = ResponseSuccessSchema(
             success=True,
-            message="Examples listed successfully",
+            message=ExampleSuccessMessage.LISTED,
             data=[example.to_dict() for example in examples],
         )
-        logger.info(f"Examples listed successfully: {len(examples)} examples")
+        logger.info(f"{success.message}: {len(examples)} examples")
         return success
