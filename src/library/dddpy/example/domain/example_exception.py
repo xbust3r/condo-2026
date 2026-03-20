@@ -1,4 +1,4 @@
-from chalicelib.dddpy.shared.decorators.domain_exception import DomainException
+from library.dddpy.shared.decorators.domain_exception import DomainException
 
 
 class ExampleNotFound(DomainException):

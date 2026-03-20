@@ -1,7 +1,7 @@
 from urllib.parse import urlparse
 import re
 
-from chalicelib.dddpy.shared.logging.logging import Logger
+from library.dddpy.shared.logging.logging import Logger
 
 
 logger = Logger("URLUtils")

@@ -1,8 +1,8 @@
 from abc import ABC, abstractmethod
 from typing import Optional
 
-from chalicelib.dddpy.example.domain.example_entity import ExampleEntity
-from chalicelib.dddpy.example.domain.example_data import CreateExampleData, UpdateExampleData
+from library.dddpy.example.domain.example_entity import ExampleEntity
+from library.dddpy.example.domain.example_data import CreateExampleData, UpdateExampleData
 
 
 class ExampleCmdRepository(ABC):

@@ -1,8 +1,8 @@
 """
 Example Mapper - Transforma entre DB y Domain.
 """
-from chalicelib.dddpy.example.infrastructure.dbexample import DBExample
-from chalicelib.dddpy.example.domain.example_entity import ExampleEntity
+from library.dddpy.example.infrastructure.dbexample import DBExample
+from library.dddpy.example.domain.example_entity import ExampleEntity
 
 
 class ExampleMapper:

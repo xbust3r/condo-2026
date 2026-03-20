@@ -1,10 +1,10 @@
 from typing import Optional
 
-from chalicelib.dddpy.example.usecase.example_cmd_schema import CreateExampleSchema, UpdateExampleSchema
-from chalicelib.dddpy.example.domain.example_cmd_repository import ExampleCmdRepository
-from chalicelib.dddpy.example.domain.example_entity import ExampleEntity
-from chalicelib.dddpy.example.domain.example_data import CreateExampleData, UpdateExampleData
-from chalicelib.dddpy.shared.logging.logging import Logger
+from library.dddpy.example.usecase.example_cmd_schema import CreateExampleSchema, UpdateExampleSchema
+from library.dddpy.example.domain.example_cmd_repository import ExampleCmdRepository
+from library.dddpy.example.domain.example_entity import ExampleEntity
+from library.dddpy.example.domain.example_data import CreateExampleData, UpdateExampleData
+from library.dddpy.shared.logging.logging import Logger
 
 
 logger = Logger("ExampleCmdUseCase")

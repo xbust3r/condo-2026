@@ -1,5 +1,5 @@
 from sqlalchemy import Column, Integer, String, DateTime, func, Index
-from chalicelib.dddpy.shared.postgresql.base import Base
+from library.dddpy.shared.postgresql.base import Base
 
 
 class DBExample(Base):

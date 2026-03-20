@@ -1,7 +1,7 @@
 import os
 from slugify import slugify
 
-from chalicelib.dddpy.shared.logging.logging import Logger
+from library.dddpy.shared.logging.logging import Logger
 
 
 logger = Logger("FileUploader")

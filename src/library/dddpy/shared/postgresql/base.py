@@ -4,7 +4,7 @@ import boto3
 from sqlalchemy import create_engine
 from sqlalchemy.orm import declarative_base, sessionmaker
 
-from chalicelib.dddpy.shared.logging.logging import Logger
+from library.dddpy.shared.logging.logging import Logger
 
 
 logger = Logger("PostgreSQLBase")

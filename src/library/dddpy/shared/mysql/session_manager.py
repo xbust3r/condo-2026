@@ -1,6 +1,6 @@
 # This file contains a context manager for handling database sessions.
 
-from chalicelib.dddpy.shared.mysql.base import SessionLocal
+from library.dddpy.shared.mysql.base import SessionLocal
 from contextlib import contextmanager
 
 # The session_scope function is a context manager that provides a transactional scope around a series of operations.

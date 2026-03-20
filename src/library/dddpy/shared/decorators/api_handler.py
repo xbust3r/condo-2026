@@ -3,9 +3,9 @@ from chalice import Response, Chalice, Blueprint # <--- Importamos Chalice y Blu
 from pydantic import ValidationError
 import traceback
 
-from chalicelib.dddpy.shared.logging.logging import Logger
-from chalicelib.dddpy.shared.schemas.response_schema import ResponseErrorSchema
-from chalicelib.dddpy.shared.decorators.domain_exception import DomainException
+from library.dddpy.shared.logging.logging import Logger
+from library.dddpy.shared.schemas.response_schema import ResponseErrorSchema
+from library.dddpy.shared.decorators.domain_exception import DomainException
 
 logger = Logger("Api Handler Decorator")
 

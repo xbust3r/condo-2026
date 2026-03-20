@@ -5,7 +5,7 @@ from contextlib import contextmanager
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-from chalicelib.dddpy.shared.logging.logging import Logger
+from library.dddpy.shared.logging.logging import Logger
 
 logger = Logger("session_manager")
 
