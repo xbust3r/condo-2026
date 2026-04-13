@@ -1,0 +1,19 @@
+from sqlalchemy import Column, BigInteger, String, Text, SmallInteger, Integer, DateTime, func
+from library.dddpy.shared.mysql.base import Base
+
+
+class DBBuildingType(Base):
+    __tablename__ = 'core_buildings_types'
+
+    id = Column(BigInteger, primary_key=True, autoincrement=True)
+    uuid = Column(String(36), nullable=False, unique=True)
+    condominium_id = Column(BigInteger, nullable=True, index=True)
+    code = Column(String(50), nullable=False)
+    name = Column(String(255), nullable=False)
+    description = Column(Text, nullable=True)
+    is_system = Column(SmallInteger, nullable=False, server_default='0')
+    sort_order = Column(Integer, nullable=False, server_default='0')
+    status = Column(Integer, nullable=False, server_default='1')
+    created_at = Column(DateTime, nullable=False, server_default=func.now())
+    updated_at = Column(DateTime, nullable=False, server_default=func.now(), onupdate=func.now())
+    deleted_at = Column(DateTime, nullable=True)

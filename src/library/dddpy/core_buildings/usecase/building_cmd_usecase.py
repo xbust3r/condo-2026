@@ -17,8 +17,41 @@ class BuildingCmdUseCase:
         self.repository = repository
         logger.info("BuildingCmdUseCase initialized")
 
+    def _validate_building_type(
+        self,
+        building_type_id: Optional[int],
+        condominium_id: int,
+    ) -> None:
+        """
+        Validate building_type_id against business rules.
+
+        Rules:
+        - Type must exist and not be soft-deleted
+        - Type must be active (status=1)
+        - Type must be global OR belong to the same condominium
+
+        Raises DomainException on failure. Silent pass if building_type_id is None.
+        """
+        if building_type_id is None:
+            return
+
+        # Import here to avoid circular dependency
+        from library.dddpy.core_buildings_types.usecase.building_type_usecase import (
+            BuildingTypeUseCase,
+        )
+        BuildingTypeUseCase().validate_for_building_assignment(
+            type_id=building_type_id,
+            condominium_id=condominium_id,
+        )
+
     def create(self, schema: CreateBuildingSchema) -> BuildingEntity:
-        logger.info(f"Delegating building creation for code={schema.code}, condominium_id={schema.condominium_id}")
+        logger.info(
+            f"Delegating building creation for code={schema.code}, "
+            f"condominium_id={schema.condominium_id}"
+        )
+        # Validate building_type_id before any DB write
+        self._validate_building_type(schema.building_type_id, schema.condominium_id)
+
         data = CreateBuildingData(
             condominium_id=schema.condominium_id,
             code=schema.code,
@@ -38,6 +71,18 @@ class BuildingCmdUseCase:
 
     def update(self, id: int, schema: UpdateBuildingSchema) -> Optional[BuildingEntity]:
         logger.info(f"Delegating building update for id={id}")
+
+        # When updating building_type_id, validate the new value.
+        # Get the current condominium_id so we can validate scope.
+        if schema.building_type_id is not None:
+            from library.dddpy.core_buildings.infrastructure.building_query_repository import (
+                BuildingQueryRepositoryImpl,
+            )
+            query_repo = BuildingQueryRepositoryImpl()
+            existing = query_repo.get_by_id(id)
+            if existing:
+                self._validate_building_type(schema.building_type_id, existing.condominium_id)
+
         data = UpdateBuildingData(
             name=schema.name,
             short_name=schema.short_name,
