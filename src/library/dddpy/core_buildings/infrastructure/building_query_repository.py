@@ -19,7 +19,10 @@ class BuildingQueryRepositoryImpl(BuildingQueryRepository):
     def get_by_id(self, id: int) -> Optional[BuildingEntity]:
         logger.info(f"Fetching building by id={id}")
         with session_scope() as session:
-            db_building = session.query(DBBuildings).filter(DBBuildings.id == id).first()
+            db_building = session.query(DBBuildings).filter(
+                DBBuildings.id == id,
+                DBBuildings.deleted_at.is_(None)
+            ).first()
             if not db_building:
                 logger.warning(f"Building not found by id={id}")
                 return None
@@ -28,7 +31,10 @@ class BuildingQueryRepositoryImpl(BuildingQueryRepository):
     def get_by_uuid(self, uuid: str) -> Optional[BuildingEntity]:
         logger.info(f"Fetching building by uuid={uuid}")
         with session_scope() as session:
-            db_building = session.query(DBBuildings).filter(DBBuildings.uuid == uuid).first()
+            db_building = session.query(DBBuildings).filter(
+                DBBuildings.uuid == uuid,
+                DBBuildings.deleted_at.is_(None)
+            ).first()
             if not db_building:
                 logger.warning(f"Building not found by uuid={uuid}")
                 return None
@@ -40,7 +46,8 @@ class BuildingQueryRepositoryImpl(BuildingQueryRepository):
             db_building = session.query(DBBuildings).filter(
                 and_(
                     DBBuildings.condominium_id == condominium_id,
-                    DBBuildings.code == code
+                    DBBuildings.code == code,
+                    DBBuildings.deleted_at.is_(None)
                 )
             ).first()
             if not db_building:

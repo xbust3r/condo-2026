@@ -22,24 +22,27 @@ depends_on: Union[str, Sequence[str], None] = None
 
 
 def upgrade() -> None:
-    # Use raw SQL to safely remove any existing global unique index on 'code'.
-    # IF EXISTS prevents errors on clean environments where the index doesn't exist.
-    # We try multiple common index name patterns since MySQL auto-generates names.
-    op.execute("""
-        ALTER TABLE core_buildings
-        DROP INDEX IF EXISTS `code`,
-        DROP INDEX IF EXISTS ix_core_buildings_code,
-        DROP INDEX IF EXISTS uq_core_buildings_code,
-        DROP INDEX IF EXISTS core_buildings_code_uq
-    """)
-
-    # Add the composite unique constraint
-    op.create_index(
-        'ix_core_buildings_condominium_code',
-        'core_buildings',
-        ['condominium_id', 'code'],
-        unique=True
+    # Only create composite index if it doesn't already exist.
+    # 002 already creates ix_core_buildings_condominium_code, so on a clean
+    # upgrade chain (001->002->003->004) this is a no-op.
+    # This migration serves as safety net for environments where 002
+    # didn't run cleanly and the composite index is missing.
+    result = op.get_bind().execute(
+        sa.text("""
+            SELECT COUNT(*)
+            FROM information_schema.STATISTICS
+            WHERE TABLE_SCHEMA = DATABASE()
+              AND TABLE_NAME = 'core_buildings'
+              AND INDEX_NAME = 'ix_core_buildings_condominium_code'
+        """)
     )
+    if result.scalar() == 0:
+        op.create_index(
+            'ix_core_buildings_condominium_code',
+            'core_buildings',
+            ['condominium_id', 'code'],
+            unique=True
+        )
 
 
 def downgrade() -> None:
