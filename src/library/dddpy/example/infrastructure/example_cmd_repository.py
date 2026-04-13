@@ -5,11 +5,12 @@ from library.dddpy.example.domain.example_data import CreateExampleData, UpdateE
 from library.dddpy.example.domain.example_cmd_repository import ExampleCmdRepository
 from library.dddpy.example.infrastructure.dbexample import DBExample
 from library.dddpy.example.infrastructure.example_mapper import ExampleMapper
-from library.dddpy.shared.postgresql.session_manager import session_scope
+from library.dddpy.shared.mysql.session_manager import session_scope
 from library.dddpy.shared.logging.logging import Logger
 
 
 logger = Logger("ExampleCmdRepository")
+
 
 
 class ExampleCmdRepositoryImpl(ExampleCmdRepository):

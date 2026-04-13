@@ -1,6 +1,110 @@
-# Main entry point for uvicorn
-from app import app
+# FastAPI Main Application
+# =============================================================================
+# condo-py — Sistema de Gestión para Condominios
+# =============================================================================
+#
+# ESTADO DE MÓDULOS DEL SISTEMA
+# ----------------------------
+#
+# PLANTILLA DE REFERENCIA (completos):
+#   ✅ shared/             — Componentes compartidos (decorators, schemas, logging, mysql, postgresql, utils, constants)
+#   ✅ example/            — Módulo patrón de referencia DDD (domain/infrastructure/usecase completo)
+#
+# MÓDULOS IMPLEMENTADOS EN PYTHON:
+#   ✅ core_condominiums/  — Gestión de condominios (domain + infrastructure + usecase + api/routes)
+#
+# MÓDULOS PENDIENTES DE IMPLEMENTAR (documentados en README.md pero sin código Python):
+#   ❌ core_buildings/         — Torres/edificios
+#   ❌ core_buildings_types/   — Tipos de edificio
+#   ❌ core_unitys/            — Unidades inmobiliarias
+#   ❌ core_unittys_types/     — Tipos de unidad
+#   ❌ users/                  — Usuarios del sistema
+#   ❌ users_residents/         — Residentes (tabla pivote)
+#
+# ESTRUCTURA DDD ESPERADA POR MÓDULO:
+#   {modulo}/
+#   ├── domain/
+#   │   ├── {modulo}_entity.py
+#   │   ├── {modulo}_data.py
+#   │   ├── {modulo}_exception.py
+#   │   ├── {modulo}_success.py
+#   │   ├── {modulo}_repository.py
+#   │   ├── {modulo}_cmd_repository.py
+#   │   └── {modulo}_query_repository.py
+#   ├── infrastructure/
+#   │   ├── db{modulo}.py
+#   │   ├── {modulo}_mapper.py
+#   │   ├── {modulo}_cmd_repository.py
+#   │   └── {modulo}_query_repository.py
+#   └── usecase/
+#       ├── {modulo}_cmd_schema.py
+#       ├── {modulo}_cmd_usecase.py
+#       ├── {modulo}_query_usecase.py
+#       ├── {modulo}_usecase.py
+#       └── {modulo}_factory.py
+#
+# API ROUTES esperadas:
+#   {modulo}_routes.py en api/{modulo}/
+#
+# =============================================================================
 
-if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=7415)
+from fastapi import FastAPI, Request
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+from library.dddpy.shared.schemas.response_schema import ResponseSchema
+import os
+from mangum import Mangum
+
+# Import routers
+from api.condominiums.routes_condominiums import condominium_routes
+from api.example.routes_example import example_routes
+
+
+app = FastAPI(
+    title="Condo-Py API",
+    description="Backend for Condominium Management System",
+    version="1.0.0",
+)
+
+# CORS middleware
+# ⚠️ CRÍTICO: allow_credentials=True NO es compatible con allow_origins=["*"]
+# según el estándar Fetch. En producción usar orígenes específicos, ej.:
+#   ALLOWED_ORIGINS = ["https://app.tudominio.com", "https://admin.tudominio.com"]
+# Si no necesitás credenciales (cookies/auth headers), cambiá allow_credentials a False.
+import os
+ALLOWED_ORIGINS = os.environ.get("CORS_ALLOWED_ORIGINS", "http://localhost:3000").split(",")
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=ALLOWED_ORIGINS,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+
+# Exception handlers
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception):
+    return JSONResponse(
+        status_code=500,
+        content=ResponseSchema(
+            success=False,
+            message="Internal server error",
+            errors=[str(exc)]
+        ).model_dump()
+    )
+
+
+
+# Health check
+@app.get("/health")
+def health_check():
+    return ResponseSchema(success=True, message="API is running", data={"status": "healthy"})
+
+
+# Include routers
+app.include_router(condominium_routes)
+app.include_router(example_routes)
+
+
+

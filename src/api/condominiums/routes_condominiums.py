@@ -1,3 +1,16 @@
+# =============================================================================
+# API Routes: core_condominiums
+# Módulo ✅ IMPLEMENTADO — Gestión de condominios
+#
+# Este módulo sigue el patrón DDD completo:
+#   domain/    → entidad, exceptions, repository contracts (cmd/query)
+#   infrastructure/ → DB model (SQLAlchemy), mapper, concrete repositories
+#   usecase/   → cmd/query schemas, cmd/query use cases, facade (usecase.py), factory
+#
+# Módulos aún pendientes: core_buildings, core_buildings_types, core_unitys,
+#                         core_unittys_types, users, users_residents
+# =============================================================================
+
 from fastapi import APIRouter
 
 from library.dddpy.core_condominiums.usecase.condominium_usecase import CondominiumUseCase
@@ -17,8 +30,10 @@ def health_check() -> dict:
 
 @condominium_routes.get("")
 @api_handler
-def list_condominiums() -> dict:
-    response = CondominiumUseCase().list_all()
+def list_condominiums(skip: int = 0, limit: int = 100) -> dict:
+    if limit > 500:
+        limit = 500  # Safety cap
+    response = CondominiumUseCase().list_all(skip=skip, limit=limit)
     return response.dict()
 
 

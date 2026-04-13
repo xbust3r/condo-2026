@@ -1,0 +1,1 @@
+# Condominiums API routes

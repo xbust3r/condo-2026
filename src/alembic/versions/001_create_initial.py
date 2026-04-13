@@ -6,22 +6,25 @@ Create Date: 2026-03-16
 
 """
 from typing import Sequence, Union
-
 from alembic import op
 import sqlalchemy as sa
 
-# revision identifiers, used by Alembic.
-revision: str = '001_create_initial'
-down_revision: Union[str, None] = None
-branch_labels: Union[str, Sequence[str], None] = None
-depends_on: Union[str, Sequence[str], None] = None
-
+# --- ESTAS VARIABLES SON CRÍTICAS ---
+# Alembic las usa para rastrear la migración. 
+# El valor de 'revision' debe coincidir con el prefijo del nombre del archivo si es posible.
+revision = '001_create_initial'
+down_revision = None
+branch_labels = None
+depends_on = None
+# ------------------------------------
 
 def upgrade() -> None:
     # Create core_condominiums
     op.create_table(
         'core_condominiums',
         sa.Column('id', sa.BigInteger(), autoincrement=True, nullable=False),
+        # Usamos String(36) y (UUID()) para compatibilidad total con MySQL
+        sa.Column('uuid', sa.String(36), nullable=False, server_default=sa.text('(UUID())')),
         sa.Column('name', sa.String(255), nullable=False),
         sa.Column('code', sa.String(50), nullable=False),
         sa.Column('description', sa.Text(), nullable=True),
@@ -31,13 +34,15 @@ def upgrade() -> None:
         sa.Column('created_at', sa.DateTime(), nullable=False, server_default=sa.text('CURRENT_TIMESTAMP')),
         sa.Column('updated_at', sa.DateTime(), nullable=False, server_default=sa.text('CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP')),
         sa.PrimaryKeyConstraint('id'),
-        sa.UniqueConstraint('code')
+        sa.UniqueConstraint('code'),
+        sa.UniqueConstraint('uuid')
     )
 
     # Create core_buildings_types
     op.create_table(
         'core_buildings_types',
         sa.Column('id', sa.BigInteger(), autoincrement=True, nullable=False),
+        sa.Column('uuid', sa.String(36), nullable=False, server_default=sa.text('(UUID())')),
         sa.Column('name', sa.String(255), nullable=False),
         sa.Column('code', sa.String(50), nullable=False),
         sa.Column('description', sa.Text(), nullable=True),
@@ -45,13 +50,15 @@ def upgrade() -> None:
         sa.Column('created_at', sa.DateTime(), nullable=False, server_default=sa.text('CURRENT_TIMESTAMP')),
         sa.Column('updated_at', sa.DateTime(), nullable=False, server_default=sa.text('CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP')),
         sa.PrimaryKeyConstraint('id'),
-        sa.UniqueConstraint('code')
+        sa.UniqueConstraint('code'),
+        sa.UniqueConstraint('uuid')
     )
 
     # Create core_buildings
     op.create_table(
         'core_buildings',
         sa.Column('id', sa.BigInteger(), autoincrement=True, nullable=False),
+        sa.Column('uuid', sa.String(36), nullable=False, server_default=sa.text('(UUID())')),
         sa.Column('name', sa.String(255), nullable=False),
         sa.Column('code', sa.String(50), nullable=False),
         sa.Column('description', sa.Text(), nullable=True),
@@ -65,6 +72,7 @@ def upgrade() -> None:
         sa.Column('updated_at', sa.DateTime(), nullable=False, server_default=sa.text('CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP')),
         sa.PrimaryKeyConstraint('id'),
         sa.UniqueConstraint('code'),
+        sa.UniqueConstraint('uuid'),
         sa.ForeignKeyConstraint(['condominium_id'], ['core_condominiums.id']),
         sa.ForeignKeyConstraint(['building_type_id'], ['core_buildings_types.id'])
     )
@@ -73,6 +81,7 @@ def upgrade() -> None:
     op.create_table(
         'core_unittys_types',
         sa.Column('id', sa.BigInteger(), autoincrement=True, nullable=False),
+        sa.Column('uuid', sa.String(36), nullable=False, server_default=sa.text('(UUID())')),
         sa.Column('name', sa.String(255), nullable=False),
         sa.Column('code', sa.String(50), nullable=False),
         sa.Column('description', sa.Text(), nullable=True),
@@ -80,13 +89,15 @@ def upgrade() -> None:
         sa.Column('created_at', sa.DateTime(), nullable=False, server_default=sa.text('CURRENT_TIMESTAMP')),
         sa.Column('updated_at', sa.DateTime(), nullable=False, server_default=sa.text('CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP')),
         sa.PrimaryKeyConstraint('id'),
-        sa.UniqueConstraint('code')
+        sa.UniqueConstraint('code'),
+        sa.UniqueConstraint('uuid')
     )
 
     # Create core_unitys
     op.create_table(
         'core_unitys',
         sa.Column('id', sa.BigInteger(), autoincrement=True, nullable=False),
+        sa.Column('uuid', sa.String(36), nullable=False, server_default=sa.text('(UUID())')),
         sa.Column('name', sa.String(255), nullable=False),
         sa.Column('code', sa.String(50), nullable=False),
         sa.Column('description', sa.Text(), nullable=True),
@@ -102,6 +113,7 @@ def upgrade() -> None:
         sa.Column('updated_at', sa.DateTime(), nullable=False, server_default=sa.text('CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP')),
         sa.PrimaryKeyConstraint('id'),
         sa.UniqueConstraint('code'),
+        sa.UniqueConstraint('uuid'),
         sa.ForeignKeyConstraint(['building_id'], ['core_buildings.id']),
         sa.ForeignKeyConstraint(['unity_type_id'], ['core_unittys_types.id'])
     )
@@ -110,6 +122,7 @@ def upgrade() -> None:
     op.create_table(
         'users',
         sa.Column('id', sa.BigInteger(), autoincrement=True, nullable=False),
+        sa.Column('uuid', sa.String(36), nullable=False, server_default=sa.text('(UUID())')),
         sa.Column('first_name', sa.String(255), nullable=False),
         sa.Column('last_name', sa.String(255), nullable=False),
         sa.Column('email', sa.String(255), nullable=False),
@@ -120,13 +133,15 @@ def upgrade() -> None:
         sa.Column('created_at', sa.DateTime(), nullable=False, server_default=sa.text('CURRENT_TIMESTAMP')),
         sa.Column('updated_at', sa.DateTime(), nullable=False, server_default=sa.text('CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP')),
         sa.PrimaryKeyConstraint('id'),
-        sa.UniqueConstraint('email')
+        sa.UniqueConstraint('email'),
+        sa.UniqueConstraint('uuid')
     )
 
     # Create users_residents
     op.create_table(
         'users_residents',
         sa.Column('id', sa.BigInteger(), autoincrement=True, nullable=False),
+        sa.Column('uuid', sa.String(36), nullable=False, server_default=sa.text('(UUID())')),
         sa.Column('condominium_id', sa.BigInteger(), nullable=False),
         sa.Column('building_id', sa.BigInteger(), nullable=False),
         sa.Column('unity_id', sa.BigInteger(), nullable=False),
@@ -136,12 +151,12 @@ def upgrade() -> None:
         sa.Column('created_at', sa.DateTime(), nullable=False, server_default=sa.text('CURRENT_TIMESTAMP')),
         sa.Column('updated_at', sa.DateTime(), nullable=False, server_default=sa.text('CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP')),
         sa.PrimaryKeyConstraint('id'),
+        sa.UniqueConstraint('uuid'),
         sa.ForeignKeyConstraint(['condominium_id'], ['core_condominiums.id']),
         sa.ForeignKeyConstraint(['building_id'], ['core_buildings.id']),
         sa.ForeignKeyConstraint(['unity_id'], ['core_unitys.id']),
         sa.ForeignKeyConstraint(['user_id'], ['users.id'])
     )
-
 
 def downgrade() -> None:
     op.drop_table('users_residents')

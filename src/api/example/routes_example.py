@@ -1,3 +1,22 @@
+# =============================================================================
+# API Routes: example (PLANTILLA DE REFERENCIA)
+# Módulo ✅ COMPLETO — Usar como patrón para nuevos módulos
+#
+# Este módulo ES LA REFERENCIA arquitectónica del proyecto.
+# NO agregar lógica de negocio aquí — es solo un template DDD funcional.
+#
+# Estructura seguir para nuevos módulos:
+#   domain/    → *_entity.py, *_data.py, *_exception.py, *_success.py,
+#                *_repository.py, *_cmd_repository.py, *_query_repository.py
+#   infrastructure/ → db*.py, *_mapper.py, *_cmd_repository.py, *_query_repository.py
+#   usecase/   → *_cmd_schema.py, *_cmd_usecase.py, *_query_usecase.py,
+#                *_usecase.py (facade), *_factory.py
+#   api/       → routes_*.py
+#
+# Módulos aún pendientes: core_buildings, core_buildings_types, core_unitys,
+#                         core_unittys_types, users, users_residents
+# =============================================================================
+
 from fastapi import APIRouter
 
 from library.dddpy.shared.logging.logging import Logger

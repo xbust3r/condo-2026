@@ -4,7 +4,7 @@ from library.dddpy.example.domain.example_entity import ExampleEntity
 from library.dddpy.example.domain.example_query_repository import ExampleQueryRepository
 from library.dddpy.example.infrastructure.dbexample import DBExample
 from library.dddpy.example.infrastructure.example_mapper import ExampleMapper
-from library.dddpy.shared.postgresql.session_manager import session_scope
+from library.dddpy.shared.mysql.session_manager import session_scope
 from library.dddpy.shared.logging.logging import Logger
 
 

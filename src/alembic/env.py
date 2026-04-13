@@ -15,14 +15,6 @@ from alembic import context
 
 # Import models AFTER path is set
 from library.dddpy.shared.mysql.base import Base
-from library.dddpy.core_condominiums.infrastructure.dbcondominiums import DBCondominiums
-from library.dddpy.core_buildings_types.infrastructure.dbbuildings_types import DBBuildingsTypes
-from library.dddpy.core_buildings.infrastructure.dbbuildings import DBBuildings
-from library.dddpy.core_unittys_types.infrastructure.dbunittys_types import DBUnittysTypes
-from library.dddpy.core_unitys.infrastructure.dbunitys import DBUnitys
-from library.dddpy.users.infrastructure.dbusers import DBUsers
-from library.dddpy.users_residents.infrastructure.dbresidents import DBResidents
-
 # Get config from alembic
 config = context.config
 

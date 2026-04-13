@@ -1,5 +1,12 @@
 from pydantic import BaseModel
-from typing import Optional, Any
+from typing import Optional, Any, List
+
+
+class ResponseSchema(BaseModel):
+    success: bool
+    message: str
+    data: Optional[Any] = None
+    errors: Optional[List[str]] = None
 
 
 class ResponseErrorSchema(BaseModel):

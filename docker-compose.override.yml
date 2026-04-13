@@ -9,4 +9,6 @@ services:
       - ./src:/app
       - $HOME/.aws:/root/.aws
     labels:
-      - lb.hook=true
+      - "traefik.enable=true"
+      - "traefik.http.routers.condo-py.rule=Host(`${PROJECT_DOMAIN}`)"
+      - "traefik.http.services.condo-py.loadbalancer.server.port=7415"
