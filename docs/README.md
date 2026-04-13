@@ -46,13 +46,14 @@ docs/
 
 | Archivo | Descripción |
 |---|---|
-| `models/core_condominiums.md` | Modelo: Condominios |
-| `models/core_buildings.md` | Modelo: Edificios/Torres |
-| `models/core_buildings_types.md` | Modelo: Tipos de edificio |
-| `models/core_unitys.md` | Modelo: Unidades inmobiliarias |
-| `models/core_unittys_types.md` | Modelo: Tipos de unidad |
-| `models/users.md` | Modelo: Usuarios del sistema |
-| `models/users_residents.md` | Modelo: Residentes (pivot) |
+| `03-modules/models/core_condominiums.md` | Modelo: Condominios |
+| `03-modules/models/core_buildings.md` | Modelo: Edificios/Torres |
+| `03-modules/models/core_buildings_types.md` | Modelo: Tipos de edificio |
+| `03-modules/models/core_unitys.md` | Modelo: Unidades inmobiliarias |
+| `03-modules/models/core_unittys_types.md` | Modelo: Tipos de unidad |
+| `03-modules/models/users.md` | Modelo: Usuarios del sistema |
+| `03-modules/models/users_residents.md` | Modelo: Residentes (pivot) |
+| `03-modules/module-roadmap.md` | Orden recomendado de implementación de módulos y sprints |
 
 ---
 
@@ -60,13 +61,13 @@ docs/
 
 | Archivo | Descripción |
 |---|---|
-| `BULMA/README.md` | Índice del equipo BULMA |
-| `BULMA/MODULES.md` | Estado y mapa de módulos |
-| `BULMA/architecture-rules.md` | Reglas de arquitectura |
-| `BULMA/implementation-guidelines.md` | Guías de implementación |
-| `BULMA/anti-patterns.md` | Anti-patterns a evitar |
-| `BULMA/change-playbook.md` | Playbook de cambios |
-| `BULMA/module-map.md` | Mapa de módulos del sistema |
+| `04-bulma/README.md` | Índice del equipo BULMA |
+| `04-bulma/MODULES.md` | Estado y mapa de módulos |
+| `04-bulma/architecture-rules.md` | Reglas de arquitectura |
+| `04-bulma/implementation-guidelines.md` | Guías de implementación |
+| `04-bulma/anti-patterns.md` | Anti-patterns a evitar |
+| `04-bulma/change-playbook.md` | Playbook de cambios |
+| `04-bulma/module-map.md` | Mapa de módulos del sistema |
 
 ---
 
@@ -82,8 +83,8 @@ Carpeta para datos de mercado, investigación y documentación en proceso de an�
 
 | Archivo | Descripción |
 |---|---|
-| `competitive-analysis.md` | Reporte de inteligencia competitiva — 8 competidores mapeados |
-| `lelouch-strategic-analysis.md` | Análisis estratégico de Lelouch |
+| `06-competitor-analysis/competitive-analysis.md` | Reporte de inteligencia competitiva — 8 competidores mapeados |
+| `06-competitor-analysis/lelouch-strategic-analysis.md` | Análisis estratégico de Lelouch |
 
 **Competidores analizados:**
 - 🇺🇸 Buildium, AppFolio, Condo Control, Propertyware
