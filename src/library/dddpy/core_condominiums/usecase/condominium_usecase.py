@@ -1,3 +1,4 @@
+from typing import Optional
 from library.dddpy.core_condominiums.usecase.condominium_cmd_usecase import CondominiumCmdUseCase
 from library.dddpy.core_condominiums.usecase.condominium_query_usecase import CondominiumQueryUseCase
 from library.dddpy.core_condominiums.usecase.condominium_factory import condominium_cmd_usecase_factory, condominium_query_usecase_factory
@@ -95,7 +96,7 @@ class CondominiumUseCase:
 
     def delete(self, id: int):
         logger.add_inside_method("delete")
-        logger.info(f"Deleting condominium id={id}")
+        logger.info(f"Soft deleting condominium id={id}")
         # Verificar que existe
         existing = self.condominium_query_usecase.get_by_id(id)
         if not existing:
@@ -108,14 +109,37 @@ class CondominiumUseCase:
         success = ResponseSuccessSchema(
             success=True,
             message=CondominiumSuccessMessage.DELETED,
-            data={},
+            data={"id": id, "deleted_at": existing.deleted_at},
         )
         logger.info(f"{success.message} for id={id}")
         return success
 
-    def list_all(self, skip: int = 0, limit: int = 100):
+    def restore(self, id: int):
+        logger.add_inside_method("restore")
+        logger.info(f"Restoring condominium id={id}")
+        restored = self.condominium_cmd_usecase.repository.restore(id)
+        if not restored:
+            logger.warning(f"Failed to restore condominium id={id}")
+            raise CondominiumNotFound()
+        condominium = self.condominium_query_usecase.get_by_id(id)
+        success = ResponseSuccessSchema(
+            success=True,
+            message="Condominium restored successfully",
+            data=condominium.to_dict(),
+        )
+        logger.info(f"{success.message} for id={id}")
+        return success
+
+    def list_all(self, skip: int = 0, limit: int = 100, status: Optional[int] = None, city: Optional[str] = None, country: Optional[str] = None, include_deleted: bool = False):
         logger.add_inside_method("list_all")
-        condominiums, total = self.condominium_query_usecase.list_all(skip=skip, limit=limit)
+        condominiums, total = self.condominium_query_usecase.list_all(
+            skip=skip, 
+            limit=limit, 
+            status=status, 
+            city=city, 
+            country=country,
+            include_deleted=include_deleted
+        )
         success = ResponseSuccessSchema(
             success=True,
             message=CondominiumSuccessMessage.LISTED,
@@ -124,6 +148,12 @@ class CondominiumUseCase:
                 "total": total,
                 "skip": skip,
                 "limit": limit,
+                "filters": {
+                    "status": status,
+                    "city": city,
+                    "country": country,
+                    "include_deleted": include_deleted,
+                },
             },
         )
         logger.info(f"{success.message}: {len(condominiums)}/{total} condominiums (skip={skip}, limit={limit})")

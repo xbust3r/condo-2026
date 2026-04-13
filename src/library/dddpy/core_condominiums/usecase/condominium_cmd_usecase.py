@@ -23,8 +23,16 @@ class CondominiumCmdUseCase:
             code=schema.code,
             name=schema.name,
             description=schema.description,
-            size=Decimal(str(schema.size)) if schema.size else None,
-            percentage=Decimal(str(schema.percentage)) if schema.percentage else None,
+            land_area=Decimal(str(schema.land_area)) if schema.land_area else None,
+            built_area=Decimal(str(schema.built_area)) if schema.built_area else None,
+            area_unit=schema.area_unit or 'm2',
+            legal_name=schema.legal_name,
+            document_number=schema.document_number,
+            address=schema.address,
+            city=schema.city,
+            country=schema.country,
+            contact_email=schema.contact_email,
+            contact_phone=schema.contact_phone,
         )
         return self.repository.create(data)
 
@@ -33,12 +41,20 @@ class CondominiumCmdUseCase:
         data = UpdateCondominiumData(
             name=schema.name,
             description=schema.description,
-            size=Decimal(str(schema.size)) if schema.size else None,
-            percentage=Decimal(str(schema.percentage)) if schema.percentage else None,
+            land_area=Decimal(str(schema.land_area)) if schema.land_area else None,
+            built_area=Decimal(str(schema.built_area)) if schema.built_area else None,
+            area_unit=schema.area_unit,
+            legal_name=schema.legal_name,
+            document_number=schema.document_number,
+            address=schema.address,
+            city=schema.city,
+            country=schema.country,
+            contact_email=schema.contact_email,
+            contact_phone=schema.contact_phone,
             status=schema.status,
         )
         return self.repository.update(id, data)
 
     def delete(self, id: int) -> bool:
-        logger.info(f"Delegating condominium delete for id={id}")
-        return self.repository.delete(id)
+        logger.info(f"Delegating condominium delete (soft) for id={id}")
+        return self.repository.soft_delete(id)

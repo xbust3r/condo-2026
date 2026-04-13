@@ -19,20 +19,28 @@ depends_on = None
 # ------------------------------------
 
 def upgrade() -> None:
-    # Create core_condominiums
+    # Create core_condominiums with UPDATED schema (2026-04-13)
     op.create_table(
         'core_condominiums',
         sa.Column('id', sa.BigInteger(), autoincrement=True, nullable=False),
-        # Usamos String(36) y (UUID()) para compatibilidad total con MySQL
         sa.Column('uuid', sa.String(36), nullable=False, server_default=sa.text('(UUID())')),
-        sa.Column('name', sa.String(255), nullable=False),
         sa.Column('code', sa.String(50), nullable=False),
+        sa.Column('name', sa.String(255), nullable=False),
+        sa.Column('legal_name', sa.String(255), nullable=True),
+        sa.Column('document_number', sa.String(50), nullable=True),
         sa.Column('description', sa.Text(), nullable=True),
-        sa.Column('size', sa.DECIMAL(10, 2), nullable=True),
-        sa.Column('percentage', sa.DECIMAL(5, 2), nullable=True),
+        sa.Column('land_area', sa.DECIMAL(12, 4), nullable=True),
+        sa.Column('built_area', sa.DECIMAL(12, 4), nullable=True),
+        sa.Column('area_unit', sa.String(20), server_default='m2', nullable=True),
+        sa.Column('address', sa.String(500), nullable=True),
+        sa.Column('city', sa.String(100), nullable=True),
+        sa.Column('country', sa.String(100), nullable=True),
+        sa.Column('contact_email', sa.String(255), nullable=True),
+        sa.Column('contact_phone', sa.String(50), nullable=True),
         sa.Column('status', sa.Integer(), nullable=False, server_default='1'),
         sa.Column('created_at', sa.DateTime(), nullable=False, server_default=sa.text('CURRENT_TIMESTAMP')),
         sa.Column('updated_at', sa.DateTime(), nullable=False, server_default=sa.text('CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP')),
+        sa.Column('deleted_at', sa.DateTime(), nullable=True),
         sa.PrimaryKeyConstraint('id'),
         sa.UniqueConstraint('code'),
         sa.UniqueConstraint('uuid')

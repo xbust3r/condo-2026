@@ -16,5 +16,11 @@ class CondominiumCmdRepository(ABC):
         pass
 
     @abstractmethod
-    def delete(self, id: int) -> bool:
+    def soft_delete(self, id: int) -> bool:
+        """Soft delete sets deleted_at timestamp."""
+        pass
+
+    @abstractmethod
+    def restore(self, id: int) -> bool:
+        """Restore a soft-deleted condominium."""
         pass

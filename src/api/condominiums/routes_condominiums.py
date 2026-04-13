@@ -1,17 +1,17 @@
 # =============================================================================
 # API Routes: core_condominiums
-# Módulo ✅ IMPLEMENTADO — Gestión de condominios
+# Módulo ✅ ACTUALIZADO — Gestión de condominios
 #
-# Este módulo sigue el patrón DDD completo:
-#   domain/    → entidad, exceptions, repository contracts (cmd/query)
-#   infrastructure/ → DB model (SQLAlchemy), mapper, concrete repositories
-#   usecase/   → cmd/query schemas, cmd/query use cases, facade (usecase.py), factory
+# Campos actuales:
+#   id, uuid, code, name, legal_name, document_number, description,
+#   land_area, built_area, area_unit, address, city, country,
+#   contact_email, contact_phone, status, created_at, updated_at, deleted_at
 #
-# Módulos aún pendientes: core_buildings, core_buildings_types, core_unitys,
-#                         core_unittys_types, users, users_residents
+# Features: soft delete, filtros por status/city/country, restore
 # =============================================================================
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Query
+from typing import Optional
 
 from library.dddpy.core_condominiums.usecase.condominium_usecase import CondominiumUseCase
 from library.dddpy.core_condominiums.usecase.condominium_cmd_schema import CreateCondominiumSchema, UpdateCondominiumSchema
@@ -30,10 +30,25 @@ def health_check() -> dict:
 
 @condominium_routes.get("")
 @api_handler
-def list_condominiums(skip: int = 0, limit: int = 100) -> dict:
+def list_condominiums(
+    skip: int = Query(0, ge=0),
+    limit: int = Query(100, ge=1, le=500),
+    status: Optional[int] = Query(None, description="Filter by status (1=active, 0=inactive)"),
+    city: Optional[str] = Query(None, description="Filter by city (partial match)"),
+    country: Optional[str] = Query(None, description="Filter by country (partial match)"),
+    include_deleted: bool = Query(False, description="Include soft-deleted records"),
+) -> dict:
+    """List all condominiums with optional filters."""
     if limit > 500:
         limit = 500  # Safety cap
-    response = CondominiumUseCase().list_all(skip=skip, limit=limit)
+    response = CondominiumUseCase().list_all(
+        skip=skip, 
+        limit=limit, 
+        status=status, 
+        city=city, 
+        country=country,
+        include_deleted=include_deleted
+    )
     return response.dict()
 
 
@@ -75,5 +90,14 @@ def update_condominium(id: int, request: UpdateCondominiumSchema) -> dict:
 @condominium_routes.delete("/{id}")
 @api_handler
 def delete_condominium(id: int) -> dict:
+    """Soft delete a condominium (sets deleted_at timestamp)."""
     response = CondominiumUseCase().delete(id)
+    return response.dict()
+
+
+@condominium_routes.post("/{id}/restore")
+@api_handler
+def restore_condominium(id: int) -> dict:
+    """Restore a soft-deleted condominium."""
+    response = CondominiumUseCase().restore(id)
     return response.dict()

@@ -1,6 +1,5 @@
 from typing import Optional, List
 
-from library.dddpy.core_condominiums.domain.condominium_entity import CondominiumEntity
 from library.dddpy.core_condominiums.domain.condominium_query_repository import CondominiumQueryRepository
 from library.dddpy.core_condominiums.infrastructure.dbcondominiums import DBCondominiums
 from library.dddpy.core_condominiums.infrastructure.condominium_mapper import CondominiumMapper
@@ -16,7 +15,7 @@ class CondominiumQueryRepositoryImpl(CondominiumQueryRepository):
     def __init__(self):
         logger.info("CondominiumQueryRepositoryImpl initialized")
 
-    def get_by_id(self, id: int) -> Optional[CondominiumEntity]:
+    def get_by_id(self, id: int) -> Optional[object]:
         logger.info(f"Fetching condominium by id={id}")
         with session_scope() as session:
             db_condominium = session.query(DBCondominiums).filter(DBCondominiums.id == id).first()
@@ -25,7 +24,7 @@ class CondominiumQueryRepositoryImpl(CondominiumQueryRepository):
                 return None
             return CondominiumMapper.to_domain(db_condominium)
 
-    def get_by_uuid(self, uuid: str) -> Optional[CondominiumEntity]:
+    def get_by_uuid(self, uuid: str) -> Optional[object]:
         logger.info(f"Fetching condominium by uuid={uuid}")
         with session_scope() as session:
             db_condominium = session.query(DBCondominiums).filter(DBCondominiums.uuid == uuid).first()
@@ -34,7 +33,7 @@ class CondominiumQueryRepositoryImpl(CondominiumQueryRepository):
                 return None
             return CondominiumMapper.to_domain(db_condominium)
 
-    def get_by_code(self, code: str) -> Optional[CondominiumEntity]:
+    def get_by_code(self, code: str) -> Optional[object]:
         logger.info(f"Fetching condominium by code={code}")
         with session_scope() as session:
             db_condominium = session.query(DBCondominiums).filter(DBCondominiums.code == code).first()
@@ -43,7 +42,7 @@ class CondominiumQueryRepositoryImpl(CondominiumQueryRepository):
                 return None
             return CondominiumMapper.to_domain(db_condominium)
 
-    def get_by_name(self, name: str) -> Optional[CondominiumEntity]:
+    def get_by_name(self, name: str) -> Optional[object]:
         logger.info(f"Fetching condominium by name={name}")
         with session_scope() as session:
             db_condominium = session.query(DBCondominiums).filter(DBCondominiums.name == name).first()
@@ -52,9 +51,23 @@ class CondominiumQueryRepositoryImpl(CondominiumQueryRepository):
                 return None
             return CondominiumMapper.to_domain(db_condominium)
 
-    def list_all(self, skip: int = 0, limit: int = 100) -> tuple[List[CondominiumEntity], int]:
-        logger.info(f"Fetching condominiums (skip={skip}, limit={limit})")
+    def list_all(self, skip: int = 0, limit: int = 100, status: Optional[int] = None, city: Optional[str] = None, country: Optional[str] = None, include_deleted: bool = False) -> tuple[List[object], int]:
+        logger.info(f"Fetching condominiums (skip={skip}, limit={limit}, status={status}, city={city}, country={country}, include_deleted={include_deleted})")
         with session_scope() as session:
-            total = session.query(DBCondominiums).count()
-            db_condominiums = session.query(DBCondominiums).offset(skip).limit(limit).all()
+            query = session.query(DBCondominiums)
+            
+            # Exclude deleted by default
+            if not include_deleted:
+                query = query.filter(DBCondominiums.deleted_at.is_(None))
+            
+            # Apply filters
+            if status is not None:
+                query = query.filter(DBCondominiums.status == status)
+            if city:
+                query = query.filter(DBCondominiums.city.ilike(f"%{city}%"))
+            if country:
+                query = query.filter(DBCondominiums.country.ilike(f"%{country}%"))
+            
+            total = query.count()
+            db_condominiums = query.offset(skip).limit(limit).all()
             return [CondominiumMapper.to_domain(c) for c in db_condominiums], total

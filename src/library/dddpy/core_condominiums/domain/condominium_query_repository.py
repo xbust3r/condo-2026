@@ -23,5 +23,15 @@ class CondominiumQueryRepository(ABC):
         pass
 
     @abstractmethod
-    def list_all(self, skip: int = 0, limit: int = 100) -> tuple[List[CondominiumEntity], int]:
+    def list_all(self, skip: int = 0, limit: int = 100, status: Optional[int] = None, city: Optional[str] = None, country: Optional[str] = None, include_deleted: bool = False) -> tuple[List[CondominiumEntity], int]:
+        """List condominiums with optional filters.
+        
+        Args:
+            skip: Number of records to skip
+            limit: Maximum records to return
+            status: Filter by status (1=active, 0=inactive)
+            city: Filter by city (partial match)
+            country: Filter by country (partial match)
+            include_deleted: If True, include soft-deleted records
+        """
         pass
