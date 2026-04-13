@@ -2,6 +2,9 @@
 
 > Fecha: 2026-04-13
 > Autor: Lelouch S
+> **ESTADO: ✅ CERRADO — 2026-04-13**
+> Arquitecto: Lelouch S | Coordinator: Misato K | Dev: Bulma S
+> Commits: 9 (c6d3f47 → 6bde035)
 > Objetivo: dejar un tablero único para construir el módulo `core_buildings` con orden, criterios de revisión y flujo operativo entre Misato y Bulma.
 
 ---
