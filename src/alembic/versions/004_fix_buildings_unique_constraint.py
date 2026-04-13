@@ -1,9 +1,12 @@
 """
-Idempotent fix: replace global UNIQUE(code) with composite UNIQUE(condominium_id, code)
+Idempotent safety-net migration: ensure composite UNIQUE exists on (condominium_id, code)
 
-Problem: 002_refactor_core_buildings.py has a known issue where MySQL's
-auto-generated constraint/index names don't match what Alembic's drop_* expects.
-This migration fixes that using raw SQL with IF EXISTS.
+Purpose: On a clean upgrade chain (001->002->003->004), 002 already creates
+ix_core_buildings_condominium_code. This migration is a no-op in that case.
+
+On environments where 002 didn't create the index (partial/failed upgrade), 004
+creates it as fallback. This makes 004 always safe to run — never fails due to
+duplicate index, never fails due to missing index on downgrade.
 
 Note: This migration does NOT modify FK actions. FK actions are handled by 005.
 
@@ -46,7 +49,19 @@ def upgrade() -> None:
 
 
 def downgrade() -> None:
-    op.drop_index('ix_core_buildings_condominium_code', 'core_buildings')
+    # Idempotent: only drop if index exists
+    result = op.get_bind().execute(
+        sa.text("""
+            SELECT COUNT(*)
+            FROM information_schema.STATISTICS
+            WHERE TABLE_SCHEMA = DATABASE()
+              AND TABLE_NAME = 'core_buildings'
+              AND INDEX_NAME = 'ix_core_buildings_condominium_code'
+        """)
+    )
+    if result.scalar() > 0:
+        op.drop_index('ix_core_buildings_condominium_code', 'core_buildings')
+
     # Restore global unique constraint (MySQL will auto-generate index name)
     op.create_unique_constraint(
         'core_buildings.code', 'core_buildings', ['code']
