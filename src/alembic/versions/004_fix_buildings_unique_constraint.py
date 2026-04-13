@@ -49,7 +49,10 @@ def upgrade() -> None:
 
 
 def downgrade() -> None:
-    # Idempotent: only drop if index exists
+    # Only drop the index if 004 created it (safety-net / no-op nature).
+    # Do NOT restore UNIQUE(code) global — that restoration is 002's responsibility.
+    # In clean chain: 004 is no-op on upgrade, so downgrade should be no-op too.
+    # In broken chain: if 004 created the index as fallback, drop it.
     result = op.get_bind().execute(
         sa.text("""
             SELECT COUNT(*)
@@ -61,8 +64,3 @@ def downgrade() -> None:
     )
     if result.scalar() > 0:
         op.drop_index('ix_core_buildings_condominium_code', 'core_buildings')
-
-    # Restore global unique constraint (MySQL will auto-generate index name)
-    op.create_unique_constraint(
-        'core_buildings.code', 'core_buildings', ['code']
-    )
