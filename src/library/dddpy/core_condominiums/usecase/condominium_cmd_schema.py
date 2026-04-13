@@ -15,7 +15,7 @@ class CreateCondominiumSchema(BaseModel):
     address: Optional[str] = Field(None, max_length=500)
     city: Optional[str] = Field(None, max_length=100)
     country: Optional[str] = Field(None, max_length=100)
-    contact_email: Optional[EmailStr] = Field(None, max_length=255)
+    contact_email: Optional[EmailStr] = Field(None)
     contact_phone: Optional[str] = Field(None, max_length=50)
 
 
@@ -30,6 +30,6 @@ class UpdateCondominiumSchema(BaseModel):
     address: Optional[str] = Field(None, max_length=500)
     city: Optional[str] = Field(None, max_length=100)
     country: Optional[str] = Field(None, max_length=100)
-    contact_email: Optional[EmailStr] = Field(None, max_length=255)
+    contact_email: Optional[EmailStr] = Field(None)
     contact_phone: Optional[str] = Field(None, max_length=50)
     status: Optional[int] = Field(None, ge=0)

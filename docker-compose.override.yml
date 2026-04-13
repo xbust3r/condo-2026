@@ -11,4 +11,4 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.condo-py.rule=Host(`${PROJECT_DOMAIN}`)"
-      - "traefik.http.services.condo-py.loadbalancer.server.port=7415"
+      - "traefik.http.services.condo-py.loadbalancer.server.port=7501"

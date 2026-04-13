@@ -9,6 +9,6 @@ RUN chmod +x /init/entrypoint.sh
 
 WORKDIR /app
 
-EXPOSE 7415
+EXPOSE 7501
 
 ENTRYPOINT ["sh", "/init/entrypoint.sh"]
