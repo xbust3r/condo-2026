@@ -261,6 +261,8 @@ def downgrade() -> None:
     )
 
     # === RESTORE global unique constraint ===
-    op.create_unique_constraint(
-        'core_buildings.code', 'core_buildings', ['code']
+    # Cannot use op.create_unique_constraint('core_buildings.code', ...) because
+    # MySQL generates the constraint name, not Alembic. Use raw SQL instead.
+    op.execute(
+        "ALTER TABLE core_buildings ADD UNIQUE(`code`)"
     )
