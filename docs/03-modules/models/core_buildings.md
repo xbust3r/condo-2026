@@ -184,13 +184,15 @@ La estructura actual soporta todo esto sin cambios adicionales.
 ## 🗂️ Archivos Relacionados
 
 - Migración: `src/alembic/versions/002_refactor_core_buildings.py`
+- Migraciones correctivas: `004_fix_buildings_unique_constraint.py`, `005_fix_buildings_fk_actions.py`
+- Seed: `seeds/seed_core_buildings_types.py`
 - Tablero de tareas: `docs/07-roadmap/core_buildings-task-order.md`
-- Módulo DDD (pendiente): `library/dddpy/core_buildings/` (por implementar en Tareas 3-7)
+- Módulo DDD: `library/dddpy/core_buildings/` (implementado en Tareas 3-7) ✅
 - Tipo de edificio: `docs/03-modules/models/core_buildings_types.md`
 - Unidades: `docs/03-modules/models/core_unitys.md`
 - Análisis competitivo: `docs/05-research/competitive-analysis-condo-systems.md`
 
 ---
 
-**Última actualización:** 2026-04-13 (post-migración 002_refactor_core_buildings)
-**Estado del módulo:** ✅ Migración completa | 📝 Documentación actualizada | ⏳ DDD layer pendiente
+**Última actualización:** 2026-04-13 (post-migraciones 002, 004, 005)
+**Estado del módulo:** ✅ OPERATIVO — 10/10 tareas completadas | 2 migraciones correctivas aplicadas
