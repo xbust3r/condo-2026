@@ -1,12 +1,15 @@
 """
-Corrective migration: set explicit FK actions on core_buildings
+Corrective migration: set explicit FK actions on core_buildings using raw SQL.
 
 Problem: FK actions for core_buildings referencing core_condominiums and core_buildings_types
 were documented but not guaranteed in the original migration.
 
-Required FK actions (from documentation):
-  - condominium_id -> RESTRICT (no cascade delete)
-  - building_type_id -> SET NULL (allow NULL if type deleted)
+Required FK actions:
+  - condominium_id -> core_condominiums.id : ON DELETE RESTRICT
+  - building_type_id -> core_buildings_types.id : ON DELETE SET NULL
+
+Uses raw SQL to look up and modify FK constraints since MySQL auto-generates
+constraint names that Alembic's drop_constraint cannot reliably predict.
 
 Revision ID: 005_fix_buildings_fk_actions
 Revises: 004_fix_buildings_unique_constraint
@@ -23,52 +26,80 @@ depends_on: Union[str, Sequence[str], None] = None
 
 
 def upgrade() -> None:
-    # Drop existing FK constraints and recreate with explicit ON DELETE/UPDATE actions
-    # The original FKs had no explicit actions (MySQL defaults to NO ACTION)
+    # === Step 1: Fix condominium_id FK -> RESTRICT ===
 
-    # FK: core_buildings.condominium_id -> core_condominiums.id
-    # Required: RESTRICT (can't delete condom if buildings exist)
-    op.drop_constraint(
-        'core_buildings_condominium_id_fk',  # auto-generated name may vary
-        'core_buildings',
-        type_='foreignkey'
+    # Find the current FK constraint name for condominium_id
+    result = op.get_bind().execute(
+        sa.text("""
+            SELECT CONSTRAINT_NAME
+            FROM information_schema.KEY_COLUMN_USAGE
+            WHERE TABLE_SCHEMA = DATABASE()
+            AND TABLE_NAME = 'core_buildings'
+            AND COLUMN_NAME = 'condominium_id'
+            AND REFERENCED_TABLE_NAME = 'core_condominiums'
+            LIMIT 1
+        """)
     )
-    op.create_foreign_key(
-        'core_buildings_condominium_id_fk',
-        'core_buildings', 'core_condominiums',
-        ['condominium_id'], ['id'],
-        ondelete='RESTRICT',
-        onupdate='CASCADE'
-    )
+    row = result.fetchone()
+    if row:
+        fk_name = row[0]
+        op.execute(f"ALTER TABLE core_buildings DROP FOREIGN KEY `{fk_name}`")
 
-    # FK: core_buildings.building_type_id -> core_buildings_types.id
-    # Required: SET NULL (if type is deleted, building remains without type)
-    op.drop_constraint(
-        'core_buildings_building_type_id_fk',  # auto-generated name may vary
-        'core_buildings',
-        type_='foreignkey'
+    op.execute("""
+        ALTER TABLE core_buildings
+        ADD CONSTRAINT fk_buildings_condominium
+        FOREIGN KEY (condominium_id)
+        REFERENCES core_condominiums(id)
+        ON DELETE RESTRICT
+        ON UPDATE CASCADE
+    """)
+
+    # === Step 2: Fix building_type_id FK -> SET NULL ===
+
+    result2 = op.get_bind().execute(
+        sa.text("""
+            SELECT CONSTRAINT_NAME
+            FROM information_schema.KEY_COLUMN_USAGE
+            WHERE TABLE_SCHEMA = DATABASE()
+            AND TABLE_NAME = 'core_buildings'
+            AND COLUMN_NAME = 'building_type_id'
+            AND REFERENCED_TABLE_NAME = 'core_buildings_types'
+            LIMIT 1
+        """)
     )
-    op.create_foreign_key(
-        'core_buildings_building_type_id_fk',
-        'core_buildings', 'core_buildings_types',
-        ['building_type_id'], ['id'],
-        ondelete='SET NULL',
-        onupdate='SET NULL'
-    )
+    row2 = result2.fetchone()
+    if row2:
+        fk_name2 = row2[0]
+        op.execute(f"ALTER TABLE core_buildings DROP FOREIGN KEY `{fk_name2}`")
+
+    op.execute("""
+        ALTER TABLE core_buildings
+        ADD CONSTRAINT fk_buildings_type
+        FOREIGN KEY (building_type_id)
+        REFERENCES core_buildings_types(id)
+        ON DELETE SET NULL
+        ON UPDATE SET NULL
+    """)
 
 
 def downgrade() -> None:
-    # Restore FKs without explicit actions (MySQL defaults)
-    op.drop_constraint('core_buildings_condominium_id_fk', 'core_buildings', type_='foreignkey')
-    op.drop_constraint('core_buildings_building_type_id_fk', 'core_buildings', type_='foreignkey')
+    # Drop named FKs
+    op.execute("""
+        ALTER TABLE core_buildings
+        DROP FOREIGN KEY IF EXISTS fk_buildings_condominium,
+        DROP FOREIGN KEY IF EXISTS fk_buildings_type
+    """)
 
-    op.create_foreign_key(
-        'core_buildings_condominium_id_fk',
-        'core_buildings', 'core_condominiums',
-        ['condominium_id'], ['id']
-    )
-    op.create_foreign_key(
-        'core_buildings_building_type_id_fk',
-        'core_buildings', 'core_buildings_types',
-        ['building_type_id'], ['id']
-    )
+    # Recreate with MySQL defaults (no explicit actions)
+    op.execute("""
+        ALTER TABLE core_buildings
+        ADD CONSTRAINT fk_buildings_condominium
+        FOREIGN KEY (condominium_id)
+        REFERENCES core_condominiums(id)
+    """)
+    op.execute("""
+        ALTER TABLE core_buildings
+        ADD CONSTRAINT fk_buildings_type
+        FOREIGN KEY (building_type_id)
+        REFERENCES core_buildings_types(id)
+    """)

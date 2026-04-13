@@ -25,12 +25,23 @@ depends_on: Union[str, Sequence[str], None] = None
 
 
 def upgrade() -> None:
-    # === STEP 1: Drop old unique constraint (global code) ===
-    # MySQL requires explicit drop before adding composite unique
-    op.drop_index('ix_core_buildings_code', table_name='core_buildings')
-    op.drop_constraint(
-        'core_buildings.code', 'core_buildings', type_='unique'
-    )
+    # === STEP 1: Safely drop old global UNIQUE constraint on code ===
+    # MySQL auto-generates index names for UNIQUE constraints. We cannot know
+    # the exact name (e.g., 'code' or 'ix_core_buildings_code' or 'uq_...').
+    # Use raw SQL with IF EXISTS to make this idempotent on clean environments.
+    # This avoids Alembic's named drop_* failing on auto-generated names.
+    op.execute("""
+        ALTER TABLE core_buildings
+        DROP INDEX IF EXISTS `code`,
+        DROP INDEX IF EXISTS ix_core_buildings_code,
+        DROP INDEX IF EXISTS uq_core_buildings_code,
+        DROP INDEX IF EXISTS core_buildings_code_uq
+    """)
+    # Alembic-native drop as fallback (won't fail if already dropped)
+    try:
+        op.drop_constraint('core_buildings.code', 'core_buildings', type_='unique')
+    except Exception:
+        pass  # Already dropped or name mismatch — raw SQL above handled it
 
     # === STEP 2: Drop deprecated columns ===
     op.drop_column('core_buildings', 'type')
