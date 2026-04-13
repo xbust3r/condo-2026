@@ -12,14 +12,14 @@
 #
 # MÓDULOS IMPLEMENTADOS EN PYTHON:
 #   ✅ core_condominiums/  — Gestión de condominios (domain + infrastructure + usecase + api/routes)
+#   ✅ core_buildings/     — Torres/edificios (domain + infrastructure + usecase + api/routes)
 #
 # MÓDULOS PENDIENTES DE IMPLEMENTAR (documentados en README.md pero sin código Python):
-#   ❌ core_buildings/         — Torres/edificios
 #   ❌ core_buildings_types/   — Tipos de edificio
 #   ❌ core_unitys/            — Unidades inmobiliarias
 #   ❌ core_unittys_types/     — Tipos de unidad
 #   ❌ users/                  — Usuarios del sistema
-#   ❌ users_residents/         — Residentes (tabla pivote)
+#   ❌ users_residents/        — Residentes (tabla pivote)
 #
 # ESTRUCTURA DDD ESPERADA POR MÓDULO:
 #   {modulo}/
@@ -57,6 +57,7 @@ from mangum import Mangum
 
 # Import routers
 from api.condominiums.routes_condominiums import condominium_routes
+from api.buildings.routes_buildings import building_routes
 from api.example.routes_example import example_routes
 
 
@@ -104,6 +105,7 @@ def health_check():
 
 # Include routers
 app.include_router(condominium_routes)
+app.include_router(building_routes)
 app.include_router(example_routes)
 
 
