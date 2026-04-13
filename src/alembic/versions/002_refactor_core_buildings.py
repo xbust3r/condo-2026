@@ -26,10 +26,38 @@ depends_on: Union[str, Sequence[str], None] = None
 
 def upgrade() -> None:
     # === STEP 1: Safely drop old global UNIQUE constraint on code ===
-    # MySQL auto-generates index names for UNIQUE constraints. We cannot know
-    # the exact name (e.g., 'code' or 'ix_core_buildings_code' or 'uq_...').
-    # Use raw SQL with IF EXISTS to make this idempotent on clean environments.
-    # This avoids Alembic's named drop_* failing on auto-generated names.
+    # MySQL/SQLAlchemy auto-generates constraint and index names.
+    # The UNIQUE constraint on column 'code' creates a MySQL index named 'code'.
+    # Alembic's drop_constraint('core_buildings.code', ...) FAILS because the
+    # actual constraint name is not 'core_buildings.code' — it's auto-generated.
+    #
+    # Solution: Query information_schema to find the actual constraint name,
+    # then drop it dynamically. Also try DROP INDEX IF EXISTS for the index.
+    # This is fully idempotent — safe on clean install AND upgraded envs.
+    #
+    # MySQL 8.0.29+ supports DROP INDEX IF EXISTS.
+    result = op.get_bind().execute(
+        sa.text("""
+            SELECT c.CONSTRAINT_NAME
+            FROM information_schema.TABLE_CONSTRAINTS c
+            JOIN information_schema.KEY_COLUMN_USAGE k
+              ON c.CONSTRAINT_NAME = k.CONSTRAINT_NAME
+              AND c.TABLE_SCHEMA = k.TABLE_SCHEMA
+              AND c.TABLE_NAME = k.TABLE_NAME
+            WHERE c.TABLE_SCHEMA = DATABASE()
+              AND c.TABLE_NAME = 'core_buildings'
+              AND c.CONSTRAINT_TYPE = 'UNIQUE'
+              AND k.COLUMN_NAME = 'code'
+            LIMIT 1
+        """)
+    )
+    row = result.fetchone()
+    if row:
+        fk_constraint_name = row[0]
+        op.execute(f"ALTER TABLE core_buildings DROP INDEX `{fk_constraint_name}`")
+
+    # Also try DROP INDEX IF EXISTS for the auto-named index (MySQL 8.0.29+)
+    # This handles the case where the index exists but constraint query returned nothing
     op.execute("""
         ALTER TABLE core_buildings
         DROP INDEX IF EXISTS `code`,
@@ -37,11 +65,6 @@ def upgrade() -> None:
         DROP INDEX IF EXISTS uq_core_buildings_code,
         DROP INDEX IF EXISTS core_buildings_code_uq
     """)
-    # Alembic-native drop as fallback (won't fail if already dropped)
-    try:
-        op.drop_constraint('core_buildings.code', 'core_buildings', type_='unique')
-    except Exception:
-        pass  # Already dropped or name mismatch — raw SQL above handled it
 
     # === STEP 2: Drop deprecated columns ===
     op.drop_column('core_buildings', 'type')
