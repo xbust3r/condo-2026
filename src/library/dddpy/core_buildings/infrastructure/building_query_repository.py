@@ -1,6 +1,7 @@
 from typing import Optional, List
 from sqlalchemy import and_, func, text
 
+from library.dddpy.core_buildings.domain.building_entity import BuildingEntity
 from library.dddpy.core_buildings.domain.building_query_repository import BuildingQueryRepository
 from library.dddpy.core_buildings.infrastructure.dbbuildings import DBBuildings
 from library.dddpy.core_buildings.infrastructure.building_mapper import BuildingMapper
