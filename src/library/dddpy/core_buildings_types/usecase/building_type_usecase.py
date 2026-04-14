@@ -131,23 +131,40 @@ class BuildingTypeUseCase:
 
     def soft_delete(self, id: int) -> ResponseSuccessSchema:
         logger.add_inside_method("soft_delete")
+        # Verify it exists first
+        existing = self._query_usecase.get_by_id(id)
+        if not existing:
+            from library.dddpy.core_buildings_types.domain.building_type_exception import (
+                BuildingTypeNotFound,
+            )
+            raise BuildingTypeNotFound()
         self._cmd_usecase.soft_delete(id)
         # Re-fetch to return actual persisted state
-        entity = self._query_usecase.get_by_id_any_status(id)
+        fresh = self._query_usecase.get_by_id_any_status(id)
+        real_deleted_at = fresh.deleted_at if fresh else None
         return ResponseSuccessSchema(
             success=True,
             message=BuildingTypeSuccessMessage.DELETED,
-            data=entity.to_dict() if entity else {"id": id},
+            data={"id": id, "deleted_at": real_deleted_at},
         )
 
     def restore(self, id: int) -> ResponseSuccessSchema:
         logger.add_inside_method("restore")
-        self._cmd_usecase.restore(id)
-        entity = self._query_usecase.get_by_id_any_status(id)
+        # Verify it exists first (any-status since entity may be soft-deleted)
+        existing = self._query_usecase.get_by_id_any_status(id)
+        if not existing:
+            from library.dddpy.core_buildings_types.domain.building_type_exception import (
+                BuildingTypeNotFound,
+            )
+            raise BuildingTypeNotFound()
+        restored = self._cmd_usecase.restore(id)
+        if not restored:
+            raise BuildingTypeNotFound()
+        entity = self._query_usecase.get_by_id(id)
         return ResponseSuccessSchema(
             success=True,
             message=BuildingTypeSuccessMessage.RESTORED,
-            data=entity.to_dict() if entity else {"id": id},
+            data=entity.to_dict(),
         )
 
     def hard_delete(self, id: int) -> ResponseSuccessSchema:
