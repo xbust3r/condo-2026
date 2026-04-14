@@ -139,6 +139,18 @@ class UnityUseCase:
                 )
                 raise RepeatedUnityUnitNumber()
 
+        # If code is being changed, check it's not duplicate in same building
+        if data.code is not None and data.code != existing.code:
+            duplicate = self.unity_query_usecase.get_by_code_in_building(
+                existing.building_id, data.code
+            )
+            if duplicate and duplicate.id != id:
+                logger.warning(
+                    f"Code already exists: {data.code} "
+                    f"in building_id={existing.building_id}"
+                )
+                raise RepeatedUnityCode()
+
         updated_unity = self.unity_cmd_usecase.update(id, data)
         unity_dict = updated_unity.to_dict()
         _enrich_unity_with_type(unity_dict)

@@ -67,41 +67,52 @@ class UnityCmdRepositoryImpl(UnityCmdRepository):
 
     def update(self, id: int, data: UpdateUnityData) -> Optional[UnityEntity]:
         logger.info(f"Updating unity id={id}")
-        with session_scope() as session:
-            db_unity = session.query(DBUnitys).filter(DBUnitys.id == id).first()
-            if not db_unity:
-                logger.warning(f"Unity not found for update id={id}")
-                return None
+        try:
+            with session_scope() as session:
+                db_unity = session.query(DBUnitys).filter(DBUnitys.id == id).first()
+                if not db_unity:
+                    logger.warning(f"Unity not found for update id={id}")
+                    return None
 
-            if data.unit_number is not None:
-                db_unity.unit_number = data.unit_number
-            if data.code is not None:
-                db_unity.code = data.code
-            if data.name is not None:
-                db_unity.name = data.name
-            if data.description is not None:
-                db_unity.description = data.description
-            if data.unity_type_id is not None:
-                db_unity.unity_type_id = data.unity_type_id
-            if data.private_area is not None:
-                db_unity.private_area = data.private_area
-            if data.coefficient is not None:
-                db_unity.coefficient = data.coefficient
-            if data.floor_number is not None:
-                db_unity.floor_number = data.floor_number
-            if data.floor_label is not None:
-                db_unity.floor_label = data.floor_label
-            if data.occupancy_status is not None:
-                db_unity.occupancy_status = data.occupancy_status
-            if data.sort_order is not None:
-                db_unity.sort_order = data.sort_order
-            if data.status is not None:
-                db_unity.status = data.status
+                if data.unit_number is not None:
+                    db_unity.unit_number = data.unit_number
+                if data.code is not None:
+                    db_unity.code = data.code
+                if data.name is not None:
+                    db_unity.name = data.name
+                if data.description is not None:
+                    db_unity.description = data.description
+                if data.unity_type_id is not None:
+                    db_unity.unity_type_id = data.unity_type_id
+                if data.private_area is not None:
+                    db_unity.private_area = data.private_area
+                if data.coefficient is not None:
+                    db_unity.coefficient = data.coefficient
+                if data.floor_number is not None:
+                    db_unity.floor_number = data.floor_number
+                if data.floor_label is not None:
+                    db_unity.floor_label = data.floor_label
+                if data.occupancy_status is not None:
+                    db_unity.occupancy_status = data.occupancy_status
+                if data.sort_order is not None:
+                    db_unity.sort_order = data.sort_order
+                if data.status is not None:
+                    db_unity.status = data.status
 
-            session.flush()
-            session.refresh(db_unity)
-            logger.info(f"Unity updated id={id}")
-            return UnityMapper.to_domain(db_unity)
+                session.flush()
+                session.refresh(db_unity)
+                logger.info(f"Unity updated id={id}")
+                return UnityMapper.to_domain(db_unity)
+        except IntegrityError as e:
+            error_str = str(e).lower()
+            if "unit_number" in error_str or "ux_core_unitys_building_unit_number" in error_str:
+                logger.warning(f"IntegrityError: duplicate unit_number during update id={id}")
+                raise RepeatedUnityUnitNumber()
+            if "code" in error_str or "ux_core_unitys_building_code" in error_str:
+                logger.warning(f"IntegrityError: duplicate code during update id={id}")
+                raise RepeatedUnityCode()
+            logger.error(f"Unexpected IntegrityError updating unity id={id}: {e}")
+            raise
 
     def soft_delete(self, id: int) -> bool:
         logger.info(f"Soft deleting unity id={id}")

@@ -423,6 +423,97 @@ class TestUnityUseCaseHardDelete:
             use_case.hard_delete(999)
 
 
+class TestUnityUseCaseUpdateCodeDuplicate:
+    """Tests for duplicate code rejection during update."""
+
+    def test_update_unity_duplicate_code_raises(self, sample_unity_entity):
+        """update() should raise RepeatedUnityCode when code already exists in building."""
+        existing = UnityEntity(
+            id=1, uuid="test", building_id=1, unit_number="101",
+            code="OLD-CODE", status=1,
+        )
+        duplicate = UnityEntity(
+            id=2, uuid="dup", building_id=1, unit_number="102",
+            code="EXISTING-CODE", status=1,
+        )
+        mock_query = MagicMock()
+        mock_query.get_by_id.return_value = existing
+        mock_query.get_by_unit_number_in_building.return_value = None
+        mock_query.get_by_code_in_building.return_value = duplicate
+
+        use_case = UnityUseCase.__new__(UnityUseCase)
+        use_case.unity_cmd_usecase = MagicMock()
+        use_case.unity_query_usecase = mock_query
+
+        schema = UpdateUnitySchema(code="EXISTING-CODE")
+
+        with pytest.raises(RepeatedUnityCode):
+            use_case.update(1, schema)
+
+    def test_update_unity_code_same_value_allowed(self, sample_unity_entity):
+        """update() should allow setting code to the same value it already has."""
+        mock_cmd = MagicMock()
+        mock_cmd.update.return_value = sample_unity_entity
+        mock_query = MagicMock()
+        mock_query.get_by_id.return_value = sample_unity_entity
+        mock_query.get_by_unit_number_in_building.return_value = None
+        mock_query.get_by_code_in_building.return_value = None  # same building, same code = same entity
+
+        use_case = UnityUseCase.__new__(UnityUseCase)
+        use_case.unity_cmd_usecase = mock_cmd
+        use_case.unity_query_usecase = mock_query
+
+        schema = UpdateUnitySchema(code="UNIT-101")  # same as existing
+
+        result = use_case.update(1, schema)
+
+        assert result.success is True
+
+
+class TestUnityGetByIdExcludesDeleted:
+    """Tests that get_by_id and get_by_uuid filter out soft-deleted unities."""
+
+    def test_get_by_id_queries_with_deleted_at_filter(self, sample_unity_entity):
+        """get_by_id() should filter by deleted_at IS NULL."""
+        from library.dddpy.core_unitys.infrastructure.unity_query_repository import UnityQueryRepositoryImpl
+        from library.dddpy.core_unitys.infrastructure.dbunitys import DBUnitys
+        from library.dddpy.core_unitys.infrastructure.unity_mapper import UnityMapper
+
+        repo = UnityQueryRepositoryImpl.__new__(UnityQueryRepositoryImpl)
+
+        with patch(
+            "library.dddpy.core_unitys.infrastructure.unity_query_repository.session_scope"
+        ) as mock_scope:
+            mock_session = MagicMock()
+            mock_scope.return_value.__enter__.return_value = mock_session
+            mock_session.query.return_value.filter.return_value.first.return_value = None
+
+            result = repo.get_by_id(999)
+
+            assert result is None
+            # Verify the query was called with DBUnitys and filtered by id AND deleted_at
+            mock_session.query.assert_called_once_with(DBUnitys)
+
+    def test_get_by_uuid_queries_with_deleted_at_filter(self):
+        """get_by_uuid() should filter by deleted_at IS NULL."""
+        from library.dddpy.core_unitys.infrastructure.unity_query_repository import UnityQueryRepositoryImpl
+        from library.dddpy.core_unitys.infrastructure.dbunitys import DBUnitys
+
+        repo = UnityQueryRepositoryImpl.__new__(UnityQueryRepositoryImpl)
+
+        with patch(
+            "library.dddpy.core_unitys.infrastructure.unity_query_repository.session_scope"
+        ) as mock_scope:
+            mock_session = MagicMock()
+            mock_scope.return_value.__enter__.return_value = mock_session
+            mock_session.query.return_value.filter.return_value.first.return_value = None
+
+            result = repo.get_by_uuid("any-uuid")
+
+            assert result is None
+            mock_session.query.assert_called_once_with(DBUnitys)
+
+
 class TestUnityUseCaseList:
     """Tests for UnityUseCase.list_all() and list_by_building()."""
 

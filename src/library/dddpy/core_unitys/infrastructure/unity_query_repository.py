@@ -20,7 +20,14 @@ class UnityQueryRepositoryImpl(UnityQueryRepository):
     def get_by_id(self, id: int) -> Optional[UnityEntity]:
         logger.debug(f"Fetching unity by id={id}")
         with session_scope() as session:
-            db_unity = session.query(DBUnitys).filter(DBUnitys.id == id).first()
+            db_unity = (
+                session.query(DBUnitys)
+                .filter(
+                    DBUnitys.id == id,
+                    DBUnitys.deleted_at.is_(None),
+                )
+                .first()
+            )
             if not db_unity:
                 return None
             return UnityMapper.to_domain(db_unity)
@@ -30,7 +37,10 @@ class UnityQueryRepositoryImpl(UnityQueryRepository):
         with session_scope() as session:
             db_unity = (
                 session.query(DBUnitys)
-                .filter(DBUnitys.uuid == uuid)
+                .filter(
+                    DBUnitys.uuid == uuid,
+                    DBUnitys.deleted_at.is_(None),
+                )
                 .first()
             )
             if not db_unity:
