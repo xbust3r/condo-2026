@@ -1,5 +1,6 @@
 """
-Pytest configuration and shared fixtures for core_buildings tests.
+Pytest configuration and shared fixtures.
+Covers: core_buildings, core_unitys
 """
 import pytest
 from decimal import Decimal
@@ -92,3 +93,66 @@ def mock_building_query_repository():
     """Mock BuildingQueryRepository implementation."""
     from library.dddpy.core_buildings.infrastructure.building_query_repository import BuildingQueryRepositoryImpl
     return BuildingQueryRepositoryImpl()
+
+
+# ─── core_unitys fixtures ────────────────────────────────────────────────────
+
+
+@pytest.fixture
+def sample_unity_data():
+    """Sample data for creating a unity."""
+    from library.dddpy.core_unitys.domain.unity_data import CreateUnityData
+    return CreateUnityData(
+        building_id=1,
+        unit_number="101",
+        unity_type_id=1,
+        code="UNIT-101",
+        name="Apartamento 101",
+        description="Apartamento de 3 habitaciones",
+        private_area=Decimal("75.0000"),
+        coefficient=Decimal("5.500000"),
+        floor_number=1,
+        floor_label="Piso 1",
+        occupancy_status="occupied",
+        sort_order=10,
+    )
+
+
+@pytest.fixture
+def sample_update_unity_data():
+    """Sample data for updating a unity."""
+    from library.dddpy.core_unitys.domain.unity_data import UpdateUnityData
+    return UpdateUnityData(
+        name="Apartamento 101 - Renovado",
+        occupancy_status="occupied",
+        private_area=Decimal("80.0000"),
+        coefficient=Decimal("6.000000"),
+        sort_order=15,
+        status=1,
+    )
+
+
+@pytest.fixture
+def sample_unity_entity():
+    """Sample unity entity for tests."""
+    from library.dddpy.core_unitys.domain.unity_entity import UnityEntity
+    return UnityEntity(
+        id=1,
+        uuid="test-uuid-unity",
+        building_id=1,
+        unity_type_id=1,
+        unit_number="101",
+        code="UNIT-101",
+        name="Apartamento 101",
+        description="Apartamento de 3 habitaciones",
+        private_area=Decimal("75.0000"),
+        coefficient=Decimal("5.500000"),
+        floor_number=1,
+        floor_label="Piso 1",
+        occupancy_status="vacant",
+        sort_order=0,
+        status=1,
+        created_at=datetime.utcnow(),
+        updated_at=datetime.utcnow(),
+        deleted_at=None,
+    )

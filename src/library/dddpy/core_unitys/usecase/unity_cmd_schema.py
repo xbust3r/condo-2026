@@ -1,5 +1,8 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 from typing import Optional
+
+
+_VALID_OCCUPANCY_STATUSES = {"vacant", "occupied", "reserved", "maintenance", "blocked"}
 
 
 class CreateUnitySchema(BaseModel):
@@ -57,5 +60,14 @@ class UpdateUnitySchema(BaseModel):
         None,
         description="Occupancy status: vacant|occupied|reserved|maintenance|blocked",
     )
+
+    @field_validator("occupancy_status")
+    @classmethod
+    def validate_occupancy_status(cls, v: Optional[str]) -> Optional[str]:
+        if v is not None and v not in _VALID_OCCUPANCY_STATUSES:
+            raise ValueError(
+                f"occupancy_status must be one of: {', '.join(sorted(_VALID_OCCUPANCY_STATUSES))}"
+            )
+        return v
     sort_order: Optional[int] = Field(None, ge=0)
     status: Optional[int] = Field(None, ge=0)

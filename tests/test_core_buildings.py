@@ -114,30 +114,27 @@ class TestBuildingUseCaseCreate:
 
     def test_create_building_success(self, sample_building_entity):
         """create() should return success response when code is unique."""
-        with patch.object(
-            BuildingUseCase, "_check_duplicate_code", return_value=None
-        ):
-            mock_cmd = MagicMock()
-            mock_cmd.create.return_value = sample_building_entity
-            mock_query = MagicMock()
-            mock_query.get_by_code_in_condominium.return_value = None
-            mock_query.get_by_id.return_value = sample_building_entity
+        mock_cmd = MagicMock()
+        mock_cmd.create.return_value = sample_building_entity
+        mock_query = MagicMock()
+        mock_query.get_by_code_in_condominium.return_value = None
+        mock_query.get_by_id.return_value = sample_building_entity
 
-            use_case = BuildingUseCase.__new__(BuildingUseCase)
-            use_case.building_cmd_usecase = mock_cmd
-            use_case.building_query_usecase = mock_query
+        use_case = BuildingUseCase.__new__(BuildingUseCase)
+        use_case.building_cmd_usecase = mock_cmd
+        use_case.building_query_usecase = mock_query
 
-            schema = CreateBuildingSchema(
-                condominium_id=1,
-                code="BLD-A",
-                name="Torre A",
-            )
+        schema = CreateBuildingSchema(
+            condominium_id=1,
+            code="BLD-A",
+            name="Torre A",
+        )
 
-            result = use_case.create(schema)
+        result = use_case.create(schema)
 
-            assert result.success is True
-            assert result.message == "Building created successfully"
-            assert result.data["code"] == "BLD-A"
+        assert result.success is True
+        assert result.message == "Building created successfully"
+        assert result.data["code"] == "BLD-A"
 
     def test_create_building_duplicate_code_raises(self):
         """create() should raise RepeatedBuildingCode when code exists in condominium."""
