@@ -60,6 +60,7 @@ class UnityQueryRepositoryImpl(UnityQueryRepository):
                     and_(
                         DBUnities.building_id == building_id,
                         DBUnities.unit_number == unit_number,
+                        DBUnities.deleted_at.is_(None),
                     )
                 )
                 .first()
@@ -79,6 +80,7 @@ class UnityQueryRepositoryImpl(UnityQueryRepository):
                     and_(
                         DBUnities.building_id == building_id,
                         DBUnities.code == code,
+                        DBUnities.deleted_at.is_(None),
                     )
                 )
                 .first()

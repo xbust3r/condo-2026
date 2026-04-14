@@ -36,5 +36,10 @@ class CondominiumRepository(ABC):
         pass
 
     @abstractmethod
+    def restore(self, id: int) -> bool:
+        """Restore a soft-deleted condominium."""
+        pass
+
+    @abstractmethod
     def list_all(self) -> List[CondominiumEntity]:
         pass

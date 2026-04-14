@@ -58,3 +58,7 @@ class CondominiumCmdUseCase:
     def delete(self, id: int) -> bool:
         logger.info(f"Delegating condominium delete (soft) for id={id}")
         return self.repository.soft_delete(id)
+
+    def restore(self, id: int) -> bool:
+        logger.info(f"Delegating condominium restore for id={id}")
+        return self.repository.restore(id)

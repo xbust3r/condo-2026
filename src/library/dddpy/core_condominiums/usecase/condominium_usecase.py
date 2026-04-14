@@ -106,10 +106,13 @@ class CondominiumUseCase:
         if not deleted:
             logger.warning(f"Failed to delete condominium id={id}")
             raise CondominiumNotFound()
+        # Re-fetch to return actual persisted state (ignore soft-delete filter)
+        fresh = self.condominium_query_usecase.get_by_id_any_status(id)
+        real_deleted_at = fresh.deleted_at if fresh else None
         success = ResponseSuccessSchema(
             success=True,
             message=CondominiumSuccessMessage.DELETED,
-            data={"id": id, "deleted_at": existing.deleted_at},
+            data={"id": id, "deleted_at": real_deleted_at},
         )
         logger.info(f"{success.message} for id={id}")
         return success
@@ -117,15 +120,21 @@ class CondominiumUseCase:
     def restore(self, id: int):
         logger.add_inside_method("restore")
         logger.info(f"Restoring condominium id={id}")
-        restored = self.condominium_cmd_usecase.repository.restore(id)
+        # Verify it exists first (use any-status since entity is soft-deleted)
+        existing = self.condominium_query_usecase.get_by_id_any_status(id)
+        if not existing:
+            logger.warning(f"Condominium not found for restore id={id}")
+            raise CondominiumNotFound()
+        restored = self.condominium_cmd_usecase.restore(id)
         if not restored:
             logger.warning(f"Failed to restore condominium id={id}")
             raise CondominiumNotFound()
-        condominium = self.condominium_query_usecase.get_by_id(id)
+        # Re-fetch to return actual persisted state
+        refreshed = self.condominium_query_usecase.get_by_id_any_status(id)
         success = ResponseSuccessSchema(
             success=True,
-            message="Condominium restored successfully",
-            data=condominium.to_dict(),
+            message=CondominiumSuccessMessage.RESTORED,
+            data=refreshed.to_dict(),
         )
         logger.info(f"{success.message} for id={id}")
         return success

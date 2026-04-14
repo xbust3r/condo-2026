@@ -2,6 +2,7 @@ from typing import Optional, List
 
 from library.dddpy.core_condominiums.domain.condominium_query_repository import CondominiumQueryRepository
 from library.dddpy.core_condominiums.domain.condominium_entity import CondominiumEntity
+from library.dddpy.core_condominiums.usecase.condominium_query_usecase import CondominiumQueryUseCase
 from library.dddpy.shared.logging.logging import Logger
 
 
@@ -33,3 +34,9 @@ class CondominiumQueryUseCase:
     def list_all(self, skip: int = 0, limit: int = 100, status: Optional[int] = None, city: Optional[str] = None, country: Optional[str] = None, include_deleted: bool = False) -> tuple[List[CondominiumEntity], int]:
         logger.info(f"Delegating condominium list_all (skip={skip}, limit={limit}, status={status}, city={city}, country={country}, include_deleted={include_deleted})")
         return self.repository.list_all(skip=skip, limit=limit, status=status, city=city, country=country, include_deleted=include_deleted)
+
+
+    def get_by_id_any_status(self, id: int) -> Optional[CondominiumEntity]:
+        """"Re-fetch entity ignoring soft-delete filter. For use after mutations."""
+        logger.info(f"Delegating condominium fetch by id={id} (any status)")
+        return self.repository._get_by_id_any_status(id)
