@@ -10,6 +10,7 @@ Create Date: 2026-04-13
 from typing import Sequence, Union
 from alembic import op
 import sqlalchemy as sa
+from sqlalchemy import text
 
 
 revision: str = '006_add_building_types_scope'
@@ -93,7 +94,7 @@ def upgrade() -> None:
     )
     row = result.fetchone()
     if row:
-        conn.execute(f"ALTER TABLE core_buildings_types DROP INDEX `{row[0]}`")
+        conn.execute(text(f"ALTER TABLE core_buildings_types DROP INDEX `{row[0]}`"))
 
     # Fallback: also try known auto-generated names (idempotent)
     op.execute(
@@ -145,10 +146,9 @@ def upgrade() -> None:
     )
     existing_fk = result_fk.fetchone()
     if existing_fk:
-        conn.execute(
-            f"ALTER TABLE core_buildings_types "
-            f"DROP FOREIGN KEY `{existing_fk[0]}`"
-        )
+        conn.execute(text(f"ALTER TABLE core_buildings_types "
+        f"DROP FOREIGN KEY `{existing_fk[0]}`"
+        ))
 
     op.execute("""
         ALTER TABLE core_buildings_types

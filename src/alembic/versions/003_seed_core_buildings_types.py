@@ -20,6 +20,7 @@ re-upserts with is_system=1.
 from typing import Sequence, Union
 from alembic import op
 import sqlalchemy as sa
+import sqlalchemy as sa
 
 
 revision: str = '003_seed_core_buildings_types'
@@ -66,18 +67,20 @@ BASE_TYPES = [
 
 def upgrade() -> None:
     for bt in BASE_TYPES:
+        code = bt["code"]
+        name = bt["name"]
+        description = bt["description"]
         op.execute(
             f"""
             INSERT INTO core_buildings_types
               (uuid, code, name, description, status, created_at, updated_at)
             VALUES
-              (UUID(), :code, :name, :description, 1, NOW(), NOW())
+              (UUID(), '{code}', '{name}', '{description}', 1, NOW(), NOW())
             ON DUPLICATE KEY UPDATE
               name        = VALUES(name),
               description = VALUES(description),
               updated_at  = NOW()
-            """,
-            {"code": bt["code"], "name": bt["name"], "description": bt["description"]},
+            """
         )
 
 

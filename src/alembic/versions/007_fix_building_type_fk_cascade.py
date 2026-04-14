@@ -17,6 +17,7 @@ Create Date: 2026-04-13
 from typing import Sequence, Union
 from alembic import op
 import sqlalchemy as sa
+from sqlalchemy import text
 
 
 revision: str = '007_fix_building_type_fk_cascade'
@@ -65,8 +66,8 @@ def upgrade() -> None:
         return  # Already CASCADE, nothing to do
 
     # Drop and recreate with CASCADE on UPDATE
-    conn.execute(f"ALTER TABLE core_buildings DROP FOREIGN KEY `{fk_name}`")
-    conn.execute("""
+    conn.execute(text(f"ALTER TABLE core_buildings DROP FOREIGN KEY `{fk_name}`"))
+    conn.execute(text("""
         ALTER TABLE core_buildings
         ADD CONSTRAINT fk_buildings_type
         FOREIGN KEY (building_type_id)
@@ -74,6 +75,7 @@ def upgrade() -> None:
         ON DELETE SET NULL
         ON UPDATE CASCADE
     """)
+    )
 
 
 def downgrade() -> None:
@@ -96,8 +98,8 @@ def downgrade() -> None:
 
     fk_name = row[0]
 
-    conn.execute(f"ALTER TABLE core_buildings DROP FOREIGN KEY `{fk_name}`")
-    conn.execute("""
+    conn.execute(text(f"ALTER TABLE core_buildings DROP FOREIGN KEY `{fk_name}`"))
+    conn.execute(text("""
         ALTER TABLE core_buildings
         ADD CONSTRAINT fk_buildings_type
         FOREIGN KEY (building_type_id)
@@ -105,3 +107,4 @@ def downgrade() -> None:
         ON DELETE SET NULL
         ON UPDATE SET NULL
     """)
+    )
