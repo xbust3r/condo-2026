@@ -78,9 +78,9 @@ Rutas API: `src/api/condominiums/routes_condominiums.py`
 **Descripción:** Catálogo de tipos de edificio (residencial, comercial, mixto, etc.).
 **Tabla esperada:** `core_buildings_types`
 
-### ❌ `core_unitys/` — Unidades Inmobiliarias
+### ❌ `core_unities/` — Unidades Inmobiliarias
 **Descripción:** Unidades/casas/departamentos dentro de cada edificio.
-**Tabla esperada:** `core_unitys`
+**Tabla esperada:** `core_unities`
 
 ### ❌ `core_unittys_types/` — Tipos de Unidad
 **Descripción:** Catálogo de tipos de unidad (apartamento, casa, local comercial, etc.).

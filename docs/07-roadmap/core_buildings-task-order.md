@@ -15,7 +15,7 @@ Implementar `core_buildings` como módulo real de negocio, no solo como tabla in
 
 Debe quedar preparado para servir como base de:
 - estructura física del condominio
-- relación con unidades (`core_unitys`)
+- relación con unidades (`core_unities`)
 - segmentación operativa por edificio
 - filtros administrativos
 - futura expansión a cobranza, tickets, reportes y portal residente
@@ -365,7 +365,7 @@ La idea no es solo guardar torres; la idea es construir una pieza reutilizable d
 **Objetivo:**
 - validar consistencia DDD
 - validar naming
-- validar integración con `core_unitys`
+- validar integración con `core_unities`
 - validar readiness para siguientes módulos
 
 **Entregable:**

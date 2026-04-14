@@ -23,7 +23,7 @@ Tabla pivote que asigna qué usuarios viven o son dueños de qué unidades, regi
 | uuid | CHAR(36) / UUID | Identificador único universal de la relación residencia |
 | condominium_id | BIGINT | FK → [[core_condominiums]] |
 | building_id | BIGINT | FK → [[core_buildings]] |
-| unity_id | BIGINT | FK → [[core_unitys]] |
+| unity_id | BIGINT | FK → [[core_unities]] |
 | type | VARCHAR(100) | Rol (Propietario, Inquilino, etc.) |
 | status | VARCHAR(50) | Estado de la residencia (vigente, histórico) |
 | user_id | BIGINT | FK → [[users]] |
@@ -33,4 +33,4 @@ Tabla pivote que asigna qué usuarios viven o son dueños de qué unidades, regi
 ---
 
 ## 🔗 Relaciones (Foreign Keys)
-- **Depende de:** [[core_condominiums]], [[core_buildings]], [[core_unitys]], [[users]]
+- **Depende de:** [[core_condominiums]], [[core_buildings]], [[core_unities]], [[users]]

@@ -7,7 +7,7 @@ tags:
   - table
 ---
 
-# 🗄️ Tabla: core_unitys
+# 🗄️ Tabla: core_unities
 
 ## 📝 Descripción
 Representa las unidades inmobiliarias individuales de un edificio: apartamentos, locales, oficinas,PH, etc. Es la pieza central del núcleo inmobiliario — donde convergen ocupación, residentes, cobranza y reportes.
@@ -52,15 +52,15 @@ Representa las unidades inmobiliarias individuales de un edificio: apartamentos,
 
 | Índice | Columnas | Tipo | Propósito |
 |--------|----------|------|-----------|
-| ix_core_unitys_building_id | building_id | normal | FK + filtro por edificio |
-| ix_core_unitys_unity_type_id | unity_type_id | normal | Filtro por tipo de unidad |
-| ix_core_unitys_status | status | normal | Filtro por estado operativo |
-| ix_core_unitys_building_status | (building_id, status) | composite | Listados por edificio+estado |
-| ix_core_unitys_building_sort | (building_id, sort_order) | composite | Orden visual por edificio |
-| ix_core_unitys_building_floor | (building_id, floor_number) | composite | Agrupación por piso |
-| ix_core_unitys_building_occupancy | (building_id, occupancy_status) | composite | Filtro operativo por ocupación |
-| ux_core_unitys_building_unit_number | (building_id, unit_number) | UNIQUE | Unicidad dentro del edificio |
-| ux_core_unitys_building_code | (building_id, code) | UNIQUE | Unicidad de código interno |
+| ix_core_unities_building_id | building_id | normal | FK + filtro por edificio |
+| ix_core_unities_unity_type_id | unity_type_id | normal | Filtro por tipo de unidad |
+| ix_core_unities_status | status | normal | Filtro por estado operativo |
+| ix_core_unities_building_status | (building_id, status) | composite | Listados por edificio+estado |
+| ix_core_unities_building_sort | (building_id, sort_order) | composite | Orden visual por edificio |
+| ix_core_unities_building_floor | (building_id, floor_number) | composite | Agrupación por piso |
+| ix_core_unities_building_occupancy | (building_id, occupancy_status) | composite | Filtro operativo por ocupación |
+| ux_core_unities_building_unit_number | (building_id, unit_number) | UNIQUE | Unicidad dentro del edificio |
+| ux_core_unities_building_code | (building_id, code) | UNIQUE | Unicidad de código interno |
 
 ---
 
@@ -68,10 +68,10 @@ Representa las unidades inmobiliarias individuales de un edificio: apartamentos,
 
 | Nombre | Expresión | Propósito |
 |--------|-----------|-----------|
-| ck_core_unitys_private_area_positive | private_area >= 0 | Área no puede ser negativa |
-| ck_core_unitys_coefficient_range | coefficient >= 0 AND coefficient <= 100 | Coeficiente en rango válido |
-| ck_core_unitys_sort_order_positive | sort_order >= 0 | Orden no negativo |
-| ck_core_unitys_occupancy_status_valid | occupancy_status IN ('vacant','occupied','reserved','maintenance','blocked') | Solo valores permitidos |
+| ck_core_unities_private_area_positive | private_area >= 0 | Área no puede ser negativa |
+| ck_core_unities_coefficient_range | coefficient >= 0 AND coefficient <= 100 | Coeficiente en rango válido |
+| ck_core_unities_sort_order_positive | sort_order >= 0 | Orden no negativo |
+| ck_core_unities_occupancy_status_valid | occupancy_status IN ('vacant','occupied','reserved','maintenance','blocked') | Solo valores permitidos |
 
 ---
 
@@ -89,10 +89,10 @@ Representa las unidades inmobiliarias individuales de un edificio: apartamentos,
 
 ## 📦 Módulo DDD
 
-Ubicación: `src/library/dddpy/core_unitys/`
+Ubicación: `src/library/dddpy/core_unities/`
 
 ```
-core_unitys/
+core_unities/
 ├── domain/
 │   ├── unity_entity.py       — Entidad de dominio con invariantes
 │   ├── unity_data.py         — CreateData / UpdateData (dataclasses)
@@ -118,19 +118,19 @@ core_unitys/
 
 ## 🌐 API Routes
 
-Prefijo: `/unitys`
+Prefijo: `/unities`
 
 | Método | Path | Descripción |
 |--------|------|-------------|
-| POST | /unitys | Crear unidad |
-| GET | /unitys/{id} | Obtener por ID |
-| GET | /unitys/uuid/{uuid} | Obtener por UUID |
-| PUT | /unitys/{id} | Actualizar |
-| DELETE | /unitys/{id} | Soft delete |
-| POST | /unitys/{id}/restore | Restaurar |
-| DELETE | /unitys/{id}/hard | Hard delete (bloqueado si tiene residentes) |
-| GET | /unitys | Listar con filtros |
-| GET | /unitys/building/{building_id} | Listar por edificio |
+| POST | /unities | Crear unidad |
+| GET | /unities/{id} | Obtener por ID |
+| GET | /unities/uuid/{uuid} | Obtener por UUID |
+| PUT | /unities/{id} | Actualizar |
+| DELETE | /unities/{id} | Soft delete |
+| POST | /unities/{id}/restore | Restaurar |
+| DELETE | /unities/{id}/hard | Hard delete (bloqueado si tiene residentes) |
+| GET | /unities | Listar con filtros |
+| GET | /unities/building/{building_id} | Listar por edificio |
 
 ---
 

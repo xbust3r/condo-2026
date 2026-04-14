@@ -1,22 +1,22 @@
 from typing import Optional
 
-from library.dddpy.core_unitys.usecase.unity_cmd_usecase import UnityCmdUseCase
-from library.dddpy.core_unitys.usecase.unity_query_usecase import UnityQueryUseCase
-from library.dddpy.core_unitys.usecase.unity_factory import (
+from library.dddpy.core_unities.usecase.unity_cmd_usecase import UnityCmdUseCase
+from library.dddpy.core_unities.usecase.unity_query_usecase import UnityQueryUseCase
+from library.dddpy.core_unities.usecase.unity_factory import (
     unity_cmd_usecase_factory,
     unity_query_usecase_factory,
 )
-from library.dddpy.core_unitys.usecase.unity_cmd_schema import (
+from library.dddpy.core_unities.usecase.unity_cmd_schema import (
     CreateUnitySchema,
     UpdateUnitySchema,
 )
-from library.dddpy.core_unitys.domain.unity_exception import (
+from library.dddpy.core_unities.domain.unity_exception import (
     UnityNotFound,
     RepeatedUnityUnitNumber,
     RepeatedUnityCode,
     UnityHasActiveResidents,
 )
-from library.dddpy.core_unitys.domain.unity_success import UnitySuccessMessage
+from library.dddpy.core_unities.domain.unity_success import UnitySuccessMessage
 from library.dddpy.shared.schemas.response_schema import ResponseSuccessSchema
 from library.dddpy.shared.logging.logging import Logger
 

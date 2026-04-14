@@ -26,7 +26,7 @@ Si inviertes ese orden, terminas parchando pagos sobre entidades mal modeladas. 
 1. `core_condominiums`
 2. `core_buildings`
 3. `core_buildings_types`
-4. `core_unitys`
+4. `core_unities`
 5. `core_unittys_types`
 
 ### Objetivo
@@ -228,7 +228,7 @@ Primero hay que dominar el tablero base.
 - implementar `core_buildings_types`
 
 ## Sprint 2
-- implementar `core_unitys`
+- implementar `core_unities`
 - implementar `core_unittys_types`
 - validar relaciones y constraints
 

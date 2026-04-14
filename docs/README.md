@@ -50,7 +50,7 @@ docs/
 | `models/core_condominiums.md` | Modelo: Condominios |
 | `models/core_buildings.md` | Modelo: Edificios/Torres |
 | `models/core_buildings_types.md` | Modelo: Tipos de edificio |
-| `models/core_unitys.md` | Modelo: Unidades inmobiliarias |
+| `models/core_unities.md` | Modelo: Unidades inmobiliarias |
 | `models/core_unittys_types.md` | Modelo: Tipos de unidad |
 | `models/users.md` | Modelo: Usuarios del sistema |
 | `models/users_residents.md` | Modelo: Residentes (pivot) |

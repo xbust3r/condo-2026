@@ -1,6 +1,6 @@
 """
 Pytest configuration and shared fixtures.
-Covers: core_buildings, core_unitys
+Covers: core_buildings, core_unities
 """
 import pytest
 from decimal import Decimal
@@ -95,13 +95,13 @@ def mock_building_query_repository():
     return BuildingQueryRepositoryImpl()
 
 
-# ─── core_unitys fixtures ────────────────────────────────────────────────────
+# ─── core_unities fixtures ────────────────────────────────────────────────────
 
 
 @pytest.fixture
 def sample_unity_data():
     """Sample data for creating a unity."""
-    from library.dddpy.core_unitys.domain.unity_data import CreateUnityData
+    from library.dddpy.core_unities.domain.unity_data import CreateUnityData
     return CreateUnityData(
         building_id=1,
         unit_number="101",
@@ -121,7 +121,7 @@ def sample_unity_data():
 @pytest.fixture
 def sample_update_unity_data():
     """Sample data for updating a unity."""
-    from library.dddpy.core_unitys.domain.unity_data import UpdateUnityData
+    from library.dddpy.core_unities.domain.unity_data import UpdateUnityData
     return UpdateUnityData(
         name="Apartamento 101 - Renovado",
         occupancy_status="occupied",
@@ -135,7 +135,7 @@ def sample_update_unity_data():
 @pytest.fixture
 def sample_unity_entity():
     """Sample unity entity for tests."""
-    from library.dddpy.core_unitys.domain.unity_entity import UnityEntity
+    from library.dddpy.core_unities.domain.unity_entity import UnityEntity
     return UnityEntity(
         id=1,
         uuid="test-uuid-unity",

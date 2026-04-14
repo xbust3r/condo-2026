@@ -13,7 +13,7 @@
 #                *_usecase.py (facade), *_factory.py
 #   api/       → routes_*.py
 #
-# Módulos aún pendientes: core_buildings, core_buildings_types, core_unitys,
+# Módulos aún pendientes: core_buildings, core_buildings_types, core_unities,
 #                         core_unittys_types, users, users_residents
 # =============================================================================
 

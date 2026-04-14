@@ -111,22 +111,22 @@ class BuildingQueryRepositoryImpl(BuildingQueryRepository):
     def count_active_units(self, building_id: int) -> int:
         """Count active units for a building.
         
-        Uses raw SQL to avoid circular dependency with core_unitys module.
+        Uses raw SQL to avoid circular dependency with core_unities module.
         Active = status=1 AND deleted_at IS NULL.
-        Returns 0 if core_unitys table doesn't exist yet.
+        Returns 0 if core_unities table doesn't exist yet.
         """
         logger.info(f"Counting active units for building_id={building_id}")
         try:
             with session_scope() as session:
-                # Raw SQL to avoid import of core_unitys that may not exist yet
+                # Raw SQL to avoid import of core_unities that may not exist yet
                 result = session.execute(
-                    text("SELECT COUNT(*) FROM core_unitys WHERE building_id = :building_id AND status = 1 AND deleted_at IS NULL"),
+                    text("SELECT COUNT(*) FROM core_unities WHERE building_id = :building_id AND status = 1 AND deleted_at IS NULL"),
                     {"building_id": building_id}
                 )
                 count = result.scalar() or 0
                 logger.info(f"Active units count for building_id={building_id}: {count}")
                 return count
         except Exception as e:
-            # Table may not exist yet (core_unitys not built)
+            # Table may not exist yet (core_unities not built)
             logger.warning(f"Could not count active units for building_id={building_id}: {e}")
             return 0

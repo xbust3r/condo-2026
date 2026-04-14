@@ -11,7 +11,7 @@
 | 01 | `core_condominiums` | Gestión de condominios | ✅ Ya existe |
 | 02 | `core_buildings` | Torres/edificios dentro del condominio | Alta |
 | 03 | `core_buildings_types` | Catálogo: residencial, comercial, mixto | Alta |
-| 04 | `core_unitys` | Unidades/departamentos dentro de cada edificio | Alta |
+| 04 | `core_unities` | Unidades/departamentos dentro de cada edificio | Alta |
 | 05 | `core_unittys_types` | Catálogo: apartamento, casa, local comercial | Alta |
 
 ---

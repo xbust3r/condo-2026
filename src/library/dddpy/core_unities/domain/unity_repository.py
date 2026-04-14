@@ -1,8 +1,8 @@
 from abc import ABC, abstractmethod
 from typing import Optional, List
 
-from library.dddpy.core_unitys.domain.unity_entity import UnityEntity
-from library.dddpy.core_unitys.domain.unity_data import CreateUnityData, UpdateUnityData
+from library.dddpy.core_unities.domain.unity_entity import UnityEntity
+from library.dddpy.core_unities.domain.unity_data import CreateUnityData, UpdateUnityData
 
 
 class UnityRepository(ABC):

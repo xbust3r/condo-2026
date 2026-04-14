@@ -101,9 +101,9 @@ def upgrade() -> None:
         sa.UniqueConstraint('uuid')
     )
 
-    # Create core_unitys
+    # Create core_unities
     op.create_table(
-        'core_unitys',
+        'core_unities',
         sa.Column('id', sa.BigInteger(), autoincrement=True, nullable=False),
         sa.Column('uuid', sa.String(36), nullable=False, server_default=sa.text('(UUID())')),
         sa.Column('name', sa.String(255), nullable=False),
@@ -162,14 +162,14 @@ def upgrade() -> None:
         sa.UniqueConstraint('uuid'),
         sa.ForeignKeyConstraint(['condominium_id'], ['core_condominiums.id']),
         sa.ForeignKeyConstraint(['building_id'], ['core_buildings.id']),
-        sa.ForeignKeyConstraint(['unity_id'], ['core_unitys.id']),
+        sa.ForeignKeyConstraint(['unity_id'], ['core_unities.id']),
         sa.ForeignKeyConstraint(['user_id'], ['users.id'])
     )
 
 def downgrade() -> None:
     op.drop_table('users_residents')
     op.drop_table('users')
-    op.drop_table('core_unitys')
+    op.drop_table('core_unities')
     op.drop_table('core_unittys_types')
     op.drop_table('core_buildings')
     op.drop_table('core_buildings_types')

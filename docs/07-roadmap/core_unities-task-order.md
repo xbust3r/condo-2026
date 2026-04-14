@@ -1,16 +1,16 @@
-# ♟️ core_unitys — Orden de Trabajo y Control de Ejecución
+# ♟️ core_unities — Orden de Trabajo y Control de Ejecución
 
 > Fecha: 2026-04-14
 > Autor: Lelouch S
 > **ESTADO: 🟡 EN REVISIÓN — pendiente de aprobación**
 > Arquitecto: Lelouch S | Coordinator: Misato K | Dev: Bulma S
-> Objetivo: dejar un tablero único para rediseñar e implementar `core_unitys` como módulo real de negocio, con criterios claros de base de datos, lógica, naming, constraints, y flujo de ejecución.
+> Objetivo: dejar un tablero único para rediseñar e implementar `core_unities` como módulo real de negocio, con criterios claros de base de datos, lógica, naming, constraints, y flujo de ejecución.
 
 ---
 
 ## 1. Objetivo del módulo
 
-Implementar `core_unitys` como pieza central del núcleo inmobiliario del sistema, no como simple tabla de departamentos.
+Implementar `core_unities` como pieza central del núcleo inmobiliario del sistema, no como simple tabla de departamentos.
 
 Debe quedar preparada para servir como base de:
 - ocupación por unidad
@@ -55,7 +55,7 @@ El diseño actual en `001_create_initial.py` define esta tabla:
 7. No existen constraints numéricos mínimos.
 8. No existen índices estratégicos para filtros operativos.
 9. No existe estado de ocupación (`occupancy_status`).
-10. El módulo Python `src/library/dddpy/core_unitys/` no existe todavía.
+10. El módulo Python `src/library/dddpy/core_unities/` no existe todavía.
 
 ---
 
@@ -147,7 +147,7 @@ Una unidad con historial de residentes, cobros, tickets o documentos no debe des
 
 ---
 
-## 4. Estructura final recomendada para `core_unitys`
+## 4. Estructura final recomendada para `core_unities`
 
 | Campo | Tipo sugerido | Nullable | Default | Descripción |
 |---|---|---|---|---|
@@ -225,20 +225,20 @@ Si `code` queda opcional, evaluar permitir múltiples `NULL` y mantener unicidad
 ### 6.2 CHECK constraints
 Crear como mínimo:
 
-- `ck_core_unitys_private_area_positive`
+- `ck_core_unities_private_area_positive`
   - `private_area IS NULL OR private_area >= 0`
 
-- `ck_core_unitys_coefficient_range`
+- `ck_core_unities_coefficient_range`
   - `coefficient IS NULL OR (coefficient >= 0 AND coefficient <= 100)`
 
-- `ck_core_unitys_sort_order_positive`
+- `ck_core_unities_sort_order_positive`
   - `sort_order >= 0`
 
-- `ck_core_unitys_floor_number_range`
+- `ck_core_unities_floor_number_range`
   - opcional en fase 1 si se usa un rango operativo razonable
   - ejemplo: `floor_number IS NULL OR floor_number >= -20`
 
-- `ck_core_unitys_occupancy_status_valid`
+- `ck_core_unities_occupancy_status_valid`
   - si usan CHECK en lugar de catálogo/enum:
   - `occupancy_status IN ('vacant','occupied','reserved','maintenance','blocked')`
 
@@ -260,19 +260,19 @@ Crear como mínimo:
 ## 7. Índices exactos recomendados
 
 ### Índices mínimos
-- `ix_core_unitys_building_id` → `(building_id)`
-- `ix_core_unitys_unity_type_id` → `(unity_type_id)`
-- `ix_core_unitys_status` → `(status)`
+- `ix_core_unities_building_id` → `(building_id)`
+- `ix_core_unities_unity_type_id` → `(unity_type_id)`
+- `ix_core_unities_status` → `(status)`
 
 ### Índices compuestos operativos
-- `ix_core_unitys_building_status` → `(building_id, status)`
-- `ix_core_unitys_building_sort` → `(building_id, sort_order)`
-- `ix_core_unitys_building_floor` → `(building_id, floor_number)`
-- `ix_core_unitys_building_occupancy` → `(building_id, occupancy_status)`
+- `ix_core_unities_building_status` → `(building_id, status)`
+- `ix_core_unities_building_sort` → `(building_id, sort_order)`
+- `ix_core_unities_building_floor` → `(building_id, floor_number)`
+- `ix_core_unities_building_occupancy` → `(building_id, occupancy_status)`
 
 ### Índices únicos
-- `ux_core_unitys_building_unit_number` → `(building_id, unit_number)`
-- `ux_core_unitys_building_code` → `(building_id, code)` si aplica
+- `ux_core_unities_building_unit_number` → `(building_id, unit_number)`
+- `ux_core_unities_building_code` → `(building_id, code)` si aplica
 
 ---
 
@@ -335,7 +335,7 @@ El error clásico sería modelarla como “otro CRUD”. Ese camino sacrifica la
 
 ## 11. Lista oficial de tareas
 
-## Tarea 1 — Diseñar migración de refactor sobre `core_unitys`
+## Tarea 1 — Diseñar migración de refactor sobre `core_unities`
 **Objetivo:**
 - eliminar campos ambiguos
 - agregar campos nuevos
@@ -353,7 +353,7 @@ El error clásico sería modelarla como “otro CRUD”. Ese camino sacrifica la
 
 ## Tarea 2 — Crear/ajustar documentación del modelo
 **Objetivo:**
-Actualizar `docs/03-modules/models/core_unitys.md` con estructura final, reglas de negocio, índices y constraints.
+Actualizar `docs/03-modules/models/core_unities.md` con estructura final, reglas de negocio, índices y constraints.
 
 **Entregable:**
 - documento actualizado y coherente con migración real
@@ -363,12 +363,12 @@ Actualizar `docs/03-modules/models/core_unitys.md` con estructura final, reglas 
 
 ---
 
-## Tarea 3 — Implementar módulo DDD `core_unitys`
+## Tarea 3 — Implementar módulo DDD `core_unities`
 **Objetivo:**
 Crear la estructura completa:
 
 ```
-core_unitys/
+core_unities/
 ├── domain/
 │   ├── unity_entity.py
 │   ├── unity_data.py
@@ -401,15 +401,15 @@ core_unitys/
 Agregar endpoints siguiendo patrón de `core_buildings`.
 
 ### Endpoints mínimos
-- `POST /unitys`
-- `GET /unitys/{id}`
-- `GET /unitys/uuid/{uuid}`
-- `PUT /unitys/{id}`
-- `DELETE /unitys/{id}`
-- `POST /unitys/{id}/restore`
-- `DELETE /unitys/{id}/hard`
-- `GET /unitys`
-- `GET /unitys/building/{building_id}`
+- `POST /unities`
+- `GET /unities/{id}`
+- `GET /unities/uuid/{uuid}`
+- `PUT /unities/{id}`
+- `DELETE /unities/{id}`
+- `POST /unities/{id}/restore`
+- `DELETE /unities/{id}/hard`
+- `GET /unities`
+- `GET /unities/building/{building_id}`
 
 **Responsable propuesto:** Bulma S
 **Revisión:** Misato K
@@ -452,7 +452,7 @@ Cubrir al menos:
 Validar que `core_buildings.count_active_units()` siga coherente con el nuevo modelo y naming.
 
 **Observación:**
-Actualmente el conteo usa SQL crudo sobre `core_unitys` con `status = 1`. Revisar si debe además excluir `deleted_at IS NOT NULL`.
+Actualmente el conteo usa SQL crudo sobre `core_unities` con `status = 1`. Revisar si debe además excluir `deleted_at IS NOT NULL`.
 
 **Regla final sugerida:**
 - unidad activa = `status = 1 AND deleted_at IS NULL`
@@ -530,13 +530,13 @@ Flujo recomendado:
 
 ## 17. Follow-ups arquitectónicos posteriores al cierre inicial
 
-Estas observaciones nacen de la revisión arquitectónica final del módulo. No bloquean el cierre funcional de `core_unitys`, pero deben quedar registradas para hardening y coherencia futura.
+Estas observaciones nacen de la revisión arquitectónica final del módulo. No bloquean el cierre funcional de `core_unities`, pero deben quedar registradas para hardening y coherencia futura.
 
 ### Follow-up A — Unificar política de soft delete en lecturas puntuales
 **Estado:** corregible dentro del mismo módulo (`Obs1`)
 
 **Hallazgo:**
-`get_by_id()` y `get_by_uuid()` en `core_unitys` no excluyen `deleted_at IS NOT NULL`, mientras `list_all()` y `list_by_building()` sí lo hacen.
+`get_by_id()` y `get_by_uuid()` en `core_unities` no excluyen `deleted_at IS NOT NULL`, mientras `list_all()` y `list_by_building()` sí lo hacen.
 
 **Riesgo:**
 comportamiento inconsistente entre lecturas puntuales y listados, y asimetría con `core_buildings`.
@@ -572,7 +572,7 @@ la capa de aplicación puede terminar dependiendo de `IntegrityError` del motor 
 **Estado:** diferido hasta implementación de `users_residents` (`Obs3`)
 
 **Hallazgo:**
-`count_active_residents()` en `core_unitys` asume que `users_residents` tiene columna `deleted_at` y consulta `deleted_at IS NULL`.
+`count_active_residents()` en `core_unities` asume que `users_residents` tiene columna `deleted_at` y consulta `deleted_at IS NULL`.
 
 **Situación actual:**
 la tabla `users_residents` del schema inicial no garantiza todavía ese campo. Si el módulo existe sin `deleted_at`, el query cae al `except` y devuelve `0`.
@@ -592,7 +592,7 @@ se degrada la defensa lógica previa al hard delete y se delega el bloqueo real 
 
 ## 18. Veredicto final
 
-`core_unitys` debe dejar de ser una tabla genérica y convertirse en una pieza operativa real del sistema.
+`core_unities` debe dejar de ser una tabla genérica y convertirse en una pieza operativa real del sistema.
 
 La jugada correcta no es “hacer CRUD de departamentos”.
 La jugada correcta es construir la base que luego sostendrá ocupación, residentes, cobro, tickets y reportes sin rehacer media arquitectura.

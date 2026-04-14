@@ -14,7 +14,7 @@ tags:
 
 Almacena la información de las torres, bloques o edificios que pertenecen a un condominio.
 
-Cada `core_buildings` representa una unidad física independiente dentro de un condominio. Es el núcleo de la estructura operativa del sistema — de él dependen las unidades inmobiliarias (`core_unitys`), los residentes (`users_residents`), y futura lógica de cobranza, tickets y reportes segmentados por edificio.
+Cada `core_buildings` representa una unidad física independiente dentro de un condominio. Es el núcleo de la estructura operativa del sistema — de él dependen las unidades inmobiliarias (`core_unities`), los residentes (`users_residents`), y futura lógica de cobranza, tickets y reportes segmentados por edificio.
 
 ---
 
@@ -50,7 +50,7 @@ Cada `core_buildings` representa una unidad física independiente dentro de un c
 core_buildings
 ├── core_condominiums (condominium_id)     — UN BUILDING PERTENECE A UN CONDOMINIO
 ├── core_buildings_types (building_type_id) — UN BUILDING PUEDE TENER UN TIPO (O NO)
-└── core_unitys (vía building_id)          — UN BUILDING TIENE MUCHAS UNIDADES
+└── core_unities (vía building_id)          — UN BUILDING TIENE MUCHAS UNIDADES
 ```
 
 | FK | Target | ON DELETE | Notas |
@@ -152,7 +152,7 @@ Los siguientes CHECK constraints existen en la BD y no deben removerse:
 - GET /list → excluye deleted por defecto
 - GET /list?include_deleted=true → incluye todos
 
-**No hacer:** no hay cascada física. Si el edificio tiene `core_unitys` asociadas con status activo, la eliminación lógica se permite pero la física debe bloquearse en capa de negocio.
+**No hacer:** no hay cascada física. Si el edificio tiene `core_unities` asociadas con status activo, la eliminación lógica se permite pero la física debe bloquearse en capa de negocio.
 
 ---
 
@@ -161,14 +161,14 @@ Los siguientes CHECK constraints existen en la BD y no deben removerse:
 | Campo | Razón de exclusión |
 |-------|-------------------|
 | `legacy_code` | Solo como campo transitorio para migraciones reales. No смысла sin datos legacy |
-| `address` | Va en `core_condominiums` o en `core_unitys`, no en edificio |
+| `address` | Va en `core_condominiums` o en `core_unities`, no en edificio |
 | `manager_id` | Pertenece a relación separate (users con rol de gestión) |
 
 ---
 
 ## 📊 Estrategia de Expansión Futura
 
-Esta tabla es el eje de segmentación operativa. Una vez que `core_unitys` esté vinculada:
+Esta tabla es el eje de segmentación operativa. Una vez que `core_unities` esté vinculada:
 
 - **Anuncios segmentados por edificio** — notificación push a residentes de X torre
 - **Tickets e incidencias por torre** — filtro automático por building_id
@@ -189,7 +189,7 @@ La estructura actual soporta todo esto sin cambios adicionales.
 - Tablero de tareas: `docs/07-roadmap/core_buildings-task-order.md`
 - Módulo DDD: `library/dddpy/core_buildings/` (implementado en Tareas 3-7) ✅
 - Tipo de edificio: `docs/03-modules/models/core_buildings_types.md`
-- Unidades: `docs/03-modules/models/core_unitys.md`
+- Unidades: `docs/03-modules/models/core_unities.md`
 - Análisis competitivo: `docs/05-research/competitive-analysis-condo-systems.md`
 
 ---

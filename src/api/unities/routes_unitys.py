@@ -1,38 +1,38 @@
 # =============================================================================
-# API Routes: core_unitys
+# API Routes: core_unities
 # Módulo de gestión de unidades inmobiliarias
 #
 # Endpoints:
-#   POST   /unitys                      — create
-#   GET    /unitys/{id}                — get by id
-#   GET    /unitys/uuid/{uuid}         — get by uuid
-#   PUT    /unitys/{id}                — update
-#   DELETE /unitys/{id}                — soft delete
-#   POST   /unitys/{id}/restore        — restore
-#   DELETE /unitys/{id}/hard           — hard delete (blocked if has residents)
-#   GET    /unitys                      — list with filters
-#   GET    /unitys/building/{building_id} — list by building
+#   POST   /unities                      — create
+#   GET    /unities/{id}                — get by id
+#   GET    /unities/uuid/{uuid}         — get by uuid
+#   PUT    /unities/{id}                — update
+#   DELETE /unities/{id}                — soft delete
+#   POST   /unities/{id}/restore        — restore
+#   DELETE /unities/{id}/hard           — hard delete (blocked if has residents)
+#   GET    /unities                      — list with filters
+#   GET    /unities/building/{building_id} — list by building
 # =============================================================================
 
 from fastapi import APIRouter, Query
 from typing import Optional
 
-from library.dddpy.core_unitys.usecase.unity_usecase import UnityUseCase
-from library.dddpy.core_unitys.usecase.unity_cmd_schema import (
+from library.dddpy.core_unities.usecase.unity_usecase import UnityUseCase
+from library.dddpy.core_unities.usecase.unity_cmd_schema import (
     CreateUnitySchema,
     UpdateUnitySchema,
 )
 from library.dddpy.shared.decorators.api_handler import api_handler
 
 
-PREFIX = "/unitys"
+PREFIX = "/unities"
 
 unity_routes = APIRouter(prefix=PREFIX)
 
 
 @unity_routes.get("/health")
 def health_check() -> dict:
-    return {"status": "healthy", "module": "core_unitys"}
+    return {"status": "healthy", "module": "core_unities"}
 
 
 @unity_routes.post("")

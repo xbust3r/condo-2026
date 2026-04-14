@@ -1,10 +1,10 @@
 from typing import Optional, List, Tuple
 from sqlalchemy import func, and_
 
-from library.dddpy.core_unitys.domain.unity_entity import UnityEntity
-from library.dddpy.core_unitys.domain.unity_query_repository import UnityQueryRepository
-from library.dddpy.core_unitys.infrastructure.dbunitys import DBUnitys
-from library.dddpy.core_unitys.infrastructure.unity_mapper import UnityMapper
+from library.dddpy.core_unities.domain.unity_entity import UnityEntity
+from library.dddpy.core_unities.domain.unity_query_repository import UnityQueryRepository
+from library.dddpy.core_unities.infrastructure.dbunities import DBUnities
+from library.dddpy.core_unities.infrastructure.unity_mapper import UnityMapper
 from library.dddpy.shared.mysql.session_manager import session_scope
 from library.dddpy.shared.logging.logging import Logger
 
@@ -21,10 +21,10 @@ class UnityQueryRepositoryImpl(UnityQueryRepository):
         logger.debug(f"Fetching unity by id={id}")
         with session_scope() as session:
             db_unity = (
-                session.query(DBUnitys)
+                session.query(DBUnities)
                 .filter(
-                    DBUnitys.id == id,
-                    DBUnitys.deleted_at.is_(None),
+                    DBUnities.id == id,
+                    DBUnities.deleted_at.is_(None),
                 )
                 .first()
             )
@@ -36,10 +36,10 @@ class UnityQueryRepositoryImpl(UnityQueryRepository):
         logger.debug(f"Fetching unity by uuid={uuid}")
         with session_scope() as session:
             db_unity = (
-                session.query(DBUnitys)
+                session.query(DBUnities)
                 .filter(
-                    DBUnitys.uuid == uuid,
-                    DBUnitys.deleted_at.is_(None),
+                    DBUnities.uuid == uuid,
+                    DBUnities.deleted_at.is_(None),
                 )
                 .first()
             )
@@ -55,11 +55,11 @@ class UnityQueryRepositoryImpl(UnityQueryRepository):
         )
         with session_scope() as session:
             db_unity = (
-                session.query(DBUnitys)
+                session.query(DBUnities)
                 .filter(
                     and_(
-                        DBUnitys.building_id == building_id,
-                        DBUnitys.unit_number == unit_number,
+                        DBUnities.building_id == building_id,
+                        DBUnities.unit_number == unit_number,
                     )
                 )
                 .first()
@@ -74,11 +74,11 @@ class UnityQueryRepositoryImpl(UnityQueryRepository):
         logger.debug(f"Fetching unity by code={code} in building_id={building_id}")
         with session_scope() as session:
             db_unity = (
-                session.query(DBUnitys)
+                session.query(DBUnities)
                 .filter(
                     and_(
-                        DBUnitys.building_id == building_id,
-                        DBUnitys.code == code,
+                        DBUnities.building_id == building_id,
+                        DBUnities.code == code,
                     )
                 )
                 .first()
@@ -101,23 +101,23 @@ class UnityQueryRepositoryImpl(UnityQueryRepository):
             f"Listing unities skip={skip} limit={limit} building_id={building_id}"
         )
         with session_scope() as session:
-            query = session.query(DBUnitys)
+            query = session.query(DBUnities)
 
             if not include_deleted:
-                query = query.filter(DBUnitys.deleted_at.is_(None))
+                query = query.filter(DBUnities.deleted_at.is_(None))
             if building_id is not None:
-                query = query.filter(DBUnitys.building_id == building_id)
+                query = query.filter(DBUnities.building_id == building_id)
             if unity_type_id is not None:
-                query = query.filter(DBUnitys.unity_type_id == unity_type_id)
+                query = query.filter(DBUnities.unity_type_id == unity_type_id)
             if occupancy_status is not None:
-                query = query.filter(DBUnitys.occupancy_status == occupancy_status)
+                query = query.filter(DBUnities.occupancy_status == occupancy_status)
             if status is not None:
-                query = query.filter(DBUnitys.status == status)
+                query = query.filter(DBUnities.status == status)
 
             total = query.count()
             results = (
                 query
-                .order_by(DBUnitys.building_id, DBUnitys.sort_order)
+                .order_by(DBUnities.building_id, DBUnities.sort_order)
                 .offset(skip)
                 .limit(limit)
                 .all()
@@ -135,21 +135,21 @@ class UnityQueryRepositoryImpl(UnityQueryRepository):
     ) -> Tuple[List[UnityEntity], int]:
         logger.debug(f"Listing unities for building_id={building_id}")
         with session_scope() as session:
-            query = session.query(DBUnitys).filter(
-                DBUnitys.building_id == building_id
+            query = session.query(DBUnities).filter(
+                DBUnities.building_id == building_id
             )
 
             if not include_deleted:
-                query = query.filter(DBUnitys.deleted_at.is_(None))
+                query = query.filter(DBUnities.deleted_at.is_(None))
             if occupancy_status is not None:
-                query = query.filter(DBUnitys.occupancy_status == occupancy_status)
+                query = query.filter(DBUnities.occupancy_status == occupancy_status)
             if status is not None:
-                query = query.filter(DBUnitys.status == status)
+                query = query.filter(DBUnities.status == status)
 
             total = query.count()
             results = (
                 query
-                .order_by(DBUnitys.sort_order)
+                .order_by(DBUnities.sort_order)
                 .offset(skip)
                 .limit(limit)
                 .all()

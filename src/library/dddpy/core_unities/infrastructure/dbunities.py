@@ -2,8 +2,8 @@ from sqlalchemy import Column, BigInteger, String, Text, DECIMAL, Integer, DateT
 from library.dddpy.shared.mysql.base import Base
 
 
-class DBUnitys(Base):
-    __tablename__ = 'core_unitys'
+class DBUnities(Base):
+    __tablename__ = 'core_unities'
 
     id = Column(BigInteger, primary_key=True, autoincrement=True)
     uuid = Column(String(36), nullable=False, unique=True)

@@ -1,15 +1,15 @@
 """
 Unity Mapper - Transforma entre DB model y Domain entity.
 """
-from library.dddpy.core_unitys.infrastructure.dbunitys import DBUnitys
-from library.dddpy.core_unitys.domain.unity_entity import UnityEntity
+from library.dddpy.core_unities.infrastructure.dbunities import DBUnities
+from library.dddpy.core_unities.domain.unity_entity import UnityEntity
 
 
 class UnityMapper:
-    """Mapper para convertir entre DBUnitys y UnityEntity."""
+    """Mapper para convertir entre DBUnities y UnityEntity."""
 
     @staticmethod
-    def to_domain(db_unity: DBUnitys) -> UnityEntity:
+    def to_domain(db_unity: DBUnities) -> UnityEntity:
         """Convierte modelo DB a entidad de dominio."""
         return UnityEntity(
             id=db_unity.id,
@@ -33,9 +33,9 @@ class UnityMapper:
         )
 
     @staticmethod
-    def to_infrastructure(entity: UnityEntity) -> DBUnitys:
+    def to_infrastructure(entity: UnityEntity) -> DBUnities:
         """Convierte entidad de dominio a modelo DB."""
-        return DBUnitys(
+        return DBUnities(
             id=entity.id,
             uuid=entity.uuid,
             building_id=entity.building_id,

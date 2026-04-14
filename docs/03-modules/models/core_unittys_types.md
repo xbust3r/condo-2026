@@ -29,4 +29,4 @@ Catálogo de los diferentes tipos de unidades inmobiliarias (ej. Apartamento, Pe
 ---
 
 ## 🔗 Relaciones (Foreign Keys)
-- **Tiene muchos:** [[core_unitys]]
+- **Tiene muchos:** [[core_unities]]

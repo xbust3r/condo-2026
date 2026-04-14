@@ -3,12 +3,12 @@ from datetime import datetime
 import uuid as uuid_lib
 from sqlalchemy.exc import IntegrityError
 
-from library.dddpy.core_unitys.domain.unity_entity import UnityEntity
-from library.dddpy.core_unitys.domain.unity_data import CreateUnityData, UpdateUnityData
-from library.dddpy.core_unitys.domain.unity_cmd_repository import UnityCmdRepository
-from library.dddpy.core_unitys.infrastructure.dbunitys import DBUnitys
-from library.dddpy.core_unitys.infrastructure.unity_mapper import UnityMapper
-from library.dddpy.core_unitys.domain.unity_exception import (
+from library.dddpy.core_unities.domain.unity_entity import UnityEntity
+from library.dddpy.core_unities.domain.unity_data import CreateUnityData, UpdateUnityData
+from library.dddpy.core_unities.domain.unity_cmd_repository import UnityCmdRepository
+from library.dddpy.core_unities.infrastructure.dbunities import DBUnities
+from library.dddpy.core_unities.infrastructure.unity_mapper import UnityMapper
+from library.dddpy.core_unities.domain.unity_exception import (
     RepeatedUnityUnitNumber,
     RepeatedUnityCode,
 )
@@ -30,7 +30,7 @@ class UnityCmdRepositoryImpl(UnityCmdRepository):
         )
         try:
             with session_scope() as session:
-                db_unity = DBUnitys(
+                db_unity = DBUnities(
                     uuid=str(uuid_lib.uuid4()),
                     building_id=data.building_id,
                     unity_type_id=data.unity_type_id,
@@ -52,12 +52,12 @@ class UnityCmdRepositoryImpl(UnityCmdRepository):
                 return UnityMapper.to_domain(db_unity)
         except IntegrityError as e:
             error_str = str(e).lower()
-            if "unit_number" in error_str or "ux_core_unitys_building_unit_number" in error_str:
+            if "unit_number" in error_str or "ux_core_unities_building_unit_number" in error_str:
                 logger.warning(
                     f"Duplicate unit_number={data.unit_number} in building_id={data.building_id}"
                 )
                 raise RepeatedUnityUnitNumber()
-            if "code" in error_str or "ux_core_unitys_building_code" in error_str:
+            if "code" in error_str or "ux_core_unities_building_code" in error_str:
                 logger.warning(
                     f"Duplicate code={data.code} in building_id={data.building_id}"
                 )
@@ -69,7 +69,7 @@ class UnityCmdRepositoryImpl(UnityCmdRepository):
         logger.info(f"Updating unity id={id}")
         try:
             with session_scope() as session:
-                db_unity = session.query(DBUnitys).filter(DBUnitys.id == id).first()
+                db_unity = session.query(DBUnities).filter(DBUnities.id == id).first()
                 if not db_unity:
                     logger.warning(f"Unity not found for update id={id}")
                     return None
@@ -105,10 +105,10 @@ class UnityCmdRepositoryImpl(UnityCmdRepository):
                 return UnityMapper.to_domain(db_unity)
         except IntegrityError as e:
             error_str = str(e).lower()
-            if "unit_number" in error_str or "ux_core_unitys_building_unit_number" in error_str:
+            if "unit_number" in error_str or "ux_core_unities_building_unit_number" in error_str:
                 logger.warning(f"IntegrityError: duplicate unit_number during update id={id}")
                 raise RepeatedUnityUnitNumber()
-            if "code" in error_str or "ux_core_unitys_building_code" in error_str:
+            if "code" in error_str or "ux_core_unities_building_code" in error_str:
                 logger.warning(f"IntegrityError: duplicate code during update id={id}")
                 raise RepeatedUnityCode()
             logger.error(f"Unexpected IntegrityError updating unity id={id}: {e}")
@@ -117,7 +117,7 @@ class UnityCmdRepositoryImpl(UnityCmdRepository):
     def soft_delete(self, id: int) -> bool:
         logger.info(f"Soft deleting unity id={id}")
         with session_scope() as session:
-            db_unity = session.query(DBUnitys).filter(DBUnitys.id == id).first()
+            db_unity = session.query(DBUnities).filter(DBUnities.id == id).first()
             if not db_unity:
                 logger.warning(f"Unity not found for soft delete id={id}")
                 return False
@@ -129,7 +129,7 @@ class UnityCmdRepositoryImpl(UnityCmdRepository):
     def restore(self, id: int) -> bool:
         logger.info(f"Restoring unity id={id}")
         with session_scope() as session:
-            db_unity = session.query(DBUnitys).filter(DBUnitys.id == id).first()
+            db_unity = session.query(DBUnities).filter(DBUnities.id == id).first()
             if not db_unity:
                 logger.warning(f"Unity not found for restore id={id}")
                 return False
@@ -141,7 +141,7 @@ class UnityCmdRepositoryImpl(UnityCmdRepository):
     def hard_delete(self, id: int) -> bool:
         logger.info(f"Hard deleting unity id={id}")
         with session_scope() as session:
-            db_unity = session.query(DBUnitys).filter(DBUnitys.id == id).first()
+            db_unity = session.query(DBUnities).filter(DBUnities.id == id).first()
             if not db_unity:
                 logger.warning(f"Unity not found for hard delete id={id}")
                 return False

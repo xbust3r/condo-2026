@@ -477,7 +477,7 @@ Si estos no se corrigen, `condo-py` no compite; solo demuestra arquitectura:
 - RBAC
 - módulos:
   - `core_buildings`
-  - `core_unitys`
+  - `core_unities`
   - `users`
   - `users_residents`
 - seeds/base catalogs

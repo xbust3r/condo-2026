@@ -1,14 +1,14 @@
 from typing import Optional
 from decimal import Decimal
 
-from library.dddpy.core_unitys.usecase.unity_cmd_schema import (
+from library.dddpy.core_unities.usecase.unity_cmd_schema import (
     CreateUnitySchema,
     UpdateUnitySchema,
 )
-from library.dddpy.core_unitys.domain.unity_cmd_repository import UnityCmdRepository
-from library.dddpy.core_unitys.domain.unity_entity import UnityEntity
-from library.dddpy.core_unitys.domain.unity_data import CreateUnityData, UpdateUnityData
-from library.dddpy.core_unitys.domain.unity_exception import OccupancyStatusNotAllowed
+from library.dddpy.core_unities.domain.unity_cmd_repository import UnityCmdRepository
+from library.dddpy.core_unities.domain.unity_entity import UnityEntity
+from library.dddpy.core_unities.domain.unity_data import CreateUnityData, UpdateUnityData
+from library.dddpy.core_unities.domain.unity_exception import OccupancyStatusNotAllowed
 from library.dddpy.shared.logging.logging import Logger
 
 
@@ -37,7 +37,7 @@ class UnityCmdUseCase:
             )
             UnityTypeUseCase().get_by_id(unity_type_id)
         except Exception:
-            from library.dddpy.core_unitys.domain.unity_exception import UnityTypeNotFound
+            from library.dddpy.core_unities.domain.unity_exception import UnityTypeNotFound
             raise UnityTypeNotFound()
 
     def _validate_building(self, building_id: int) -> None:
@@ -46,7 +46,7 @@ class UnityCmdUseCase:
             from library.dddpy.core_buildings.usecase.building_usecase import BuildingUseCase
             BuildingUseCase().get_by_id(building_id)
         except Exception:
-            from library.dddpy.core_unitys.domain.unity_exception import BuildingNotFoundForUnity
+            from library.dddpy.core_unities.domain.unity_exception import BuildingNotFoundForUnity
             raise BuildingNotFoundForUnity()
 
     def create(self, schema: CreateUnitySchema) -> UnityEntity:

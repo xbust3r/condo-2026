@@ -1,5 +1,5 @@
 """
-Tests for core_unitys module.
+Tests for core_unities module.
 
 Coverage:
 - UnityEntity invariants (coefficient range, area >= 0, sort_order >= 0, valid occupancy_status)
@@ -15,17 +15,17 @@ from decimal import Decimal
 from unittest.mock import MagicMock, patch
 from datetime import datetime
 
-from library.dddpy.core_unitys.domain.unity_entity import UnityEntity
-from library.dddpy.core_unitys.domain.unity_data import CreateUnityData, UpdateUnityData
-from library.dddpy.core_unitys.domain.unity_exception import (
+from library.dddpy.core_unities.domain.unity_entity import UnityEntity
+from library.dddpy.core_unities.domain.unity_data import CreateUnityData, UpdateUnityData
+from library.dddpy.core_unities.domain.unity_exception import (
     UnityNotFound,
     RepeatedUnityUnitNumber,
     RepeatedUnityCode,
     UnityHasActiveResidents,
     OccupancyStatusNotAllowed,
 )
-from library.dddpy.core_unitys.usecase.unity_usecase import UnityUseCase
-from library.dddpy.core_unitys.usecase.unity_cmd_schema import (
+from library.dddpy.core_unities.usecase.unity_usecase import UnityUseCase
+from library.dddpy.core_unities.usecase.unity_cmd_schema import (
     CreateUnitySchema,
     UpdateUnitySchema,
 )
@@ -475,14 +475,14 @@ class TestUnityGetByIdExcludesDeleted:
 
     def test_get_by_id_queries_with_deleted_at_filter(self, sample_unity_entity):
         """get_by_id() should filter by deleted_at IS NULL."""
-        from library.dddpy.core_unitys.infrastructure.unity_query_repository import UnityQueryRepositoryImpl
-        from library.dddpy.core_unitys.infrastructure.dbunitys import DBUnitys
-        from library.dddpy.core_unitys.infrastructure.unity_mapper import UnityMapper
+        from library.dddpy.core_unities.infrastructure.unity_query_repository import UnityQueryRepositoryImpl
+        from library.dddpy.core_unities.infrastructure.dbunities import DBUnities
+        from library.dddpy.core_unities.infrastructure.unity_mapper import UnityMapper
 
         repo = UnityQueryRepositoryImpl.__new__(UnityQueryRepositoryImpl)
 
         with patch(
-            "library.dddpy.core_unitys.infrastructure.unity_query_repository.session_scope"
+            "library.dddpy.core_unities.infrastructure.unity_query_repository.session_scope"
         ) as mock_scope:
             mock_session = MagicMock()
             mock_scope.return_value.__enter__.return_value = mock_session
@@ -491,18 +491,18 @@ class TestUnityGetByIdExcludesDeleted:
             result = repo.get_by_id(999)
 
             assert result is None
-            # Verify the query was called with DBUnitys and filtered by id AND deleted_at
-            mock_session.query.assert_called_once_with(DBUnitys)
+            # Verify the query was called with DBUnities and filtered by id AND deleted_at
+            mock_session.query.assert_called_once_with(DBUnities)
 
     def test_get_by_uuid_queries_with_deleted_at_filter(self):
         """get_by_uuid() should filter by deleted_at IS NULL."""
-        from library.dddpy.core_unitys.infrastructure.unity_query_repository import UnityQueryRepositoryImpl
-        from library.dddpy.core_unitys.infrastructure.dbunitys import DBUnitys
+        from library.dddpy.core_unities.infrastructure.unity_query_repository import UnityQueryRepositoryImpl
+        from library.dddpy.core_unities.infrastructure.dbunities import DBUnities
 
         repo = UnityQueryRepositoryImpl.__new__(UnityQueryRepositoryImpl)
 
         with patch(
-            "library.dddpy.core_unitys.infrastructure.unity_query_repository.session_scope"
+            "library.dddpy.core_unities.infrastructure.unity_query_repository.session_scope"
         ) as mock_scope:
             mock_session = MagicMock()
             mock_scope.return_value.__enter__.return_value = mock_session
@@ -511,7 +511,7 @@ class TestUnityGetByIdExcludesDeleted:
             result = repo.get_by_uuid("any-uuid")
 
             assert result is None
-            mock_session.query.assert_called_once_with(DBUnitys)
+            mock_session.query.assert_called_once_with(DBUnities)
 
 
 class TestUnityUseCaseList:
@@ -702,17 +702,17 @@ class TestUnityRepositoryContracts:
 
     def test_unity_repository_interface_is_importable(self):
         """UnityRepository should be importable and defined."""
-        from library.dddpy.core_unitys.domain.unity_repository import UnityRepository
+        from library.dddpy.core_unities.domain.unity_repository import UnityRepository
         assert UnityRepository is not None
 
     def test_unity_cmd_repository_interface_is_importable(self):
         """UnityCmdRepository should be importable and defined."""
-        from library.dddpy.core_unitys.domain.unity_cmd_repository import UnityCmdRepository
+        from library.dddpy.core_unities.domain.unity_cmd_repository import UnityCmdRepository
         assert UnityCmdRepository is not None
 
     def test_unity_query_repository_interface_is_importable(self):
         """UnityQueryRepository should be importable and defined."""
-        from library.dddpy.core_unitys.domain.unity_query_repository import UnityQueryRepository
+        from library.dddpy.core_unities.domain.unity_query_repository import UnityQueryRepository
         assert UnityQueryRepository is not None
 
 

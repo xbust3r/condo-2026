@@ -1,5 +1,5 @@
 """
-Refactorización profunda de core_unitys
+Refactorización profunda de core_unities
 
 Cambios sobre la tabla original (001_create_initial):
   - ELIMINADO:  `type`          (redundante con unity_type_id)
@@ -25,7 +25,7 @@ Su constraint NOT NULL se aplica en el schema Pydantic de la capa de aplicación
 no en Alembic — para no crashear si hay nulos legacy en producción.
 Proceso de limpieza de datos legacy es responsabilidad aparte.
 
-Revision ID: 008_refactor_core_unitys
+Revision ID: 008_refactor_core_unities
 Revises: 007_fix_building_type_fk_cascade
 Create Date: 2026-04-14
 """
@@ -34,7 +34,7 @@ from alembic import op
 import sqlalchemy as sa
 
 
-revision: str = '008_refactor_core_unitys'
+revision: str = '008_refactor_core_unities'
 down_revision: Union[str, None] = '007_fix_building_type_fk_cascade'
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -58,7 +58,7 @@ def _column_exists(table: str, column: str) -> bool:
     return result.scalar() > 0
 
 
-def _index_exists(index_name: str, table: str = 'core_unitys') -> bool:
+def _index_exists(index_name: str, table: str = 'core_unities') -> bool:
     result = op.get_bind().execute(
         sa.text("""
             SELECT COUNT(*)
@@ -72,7 +72,7 @@ def _index_exists(index_name: str, table: str = 'core_unitys') -> bool:
     return result.scalar() > 0
 
 
-def _constraint_exists(constraint_name: str, table: str = 'core_unitys') -> bool:
+def _constraint_exists(constraint_name: str, table: str = 'core_unities') -> bool:
     result = op.get_bind().execute(
         sa.text("""
             SELECT COUNT(*)
@@ -111,55 +111,55 @@ def upgrade() -> None:
     # ------------------------------------------------------------------
     # 1. Agregar deleted_at (acolchón seguro antes de tocar otras columnas)
     # ------------------------------------------------------------------
-    if not _column_exists('core_unitys', 'deleted_at'):
+    if not _column_exists('core_unities', 'deleted_at'):
         op.add_column(
-            'core_unitys',
+            'core_unities',
             sa.Column('deleted_at', sa.DateTime(), nullable=True),
         )
 
     # ------------------------------------------------------------------
     # 2. Renombrar `unit` → `unit_number`
     # ------------------------------------------------------------------
-    if _column_exists('core_unitys', 'unit') and not _column_exists('core_unitys', 'unit_number'):
-        op.execute("ALTER TABLE core_unitys CHANGE COLUMN `unit` `unit_number` VARCHAR(50) NULL")
+    if _column_exists('core_unities', 'unit') and not _column_exists('core_unities', 'unit_number'):
+        op.execute("ALTER TABLE core_unities CHANGE COLUMN `unit` `unit_number` VARCHAR(50) NULL")
 
     # ------------------------------------------------------------------
     # 3. Renombrar `size` → `private_area` y cambiar tipo a DECIMAL(12,4)
     # ------------------------------------------------------------------
-    if _column_exists('core_unitys', 'size') and not _column_exists('core_unitys', 'private_area'):
+    if _column_exists('core_unities', 'size') and not _column_exists('core_unities', 'private_area'):
         op.execute(
-            "ALTER TABLE core_unitys CHANGE COLUMN `size` `private_area` DECIMAL(12,4) NULL"
+            "ALTER TABLE core_unities CHANGE COLUMN `size` `private_area` DECIMAL(12,4) NULL"
         )
 
     # ------------------------------------------------------------------
     # 4. Renombrar `percentage` → `coefficient` y cambiar tipo a DECIMAL(9,6)
     # ------------------------------------------------------------------
-    if _column_exists('core_unitys', 'percentage') and not _column_exists('core_unitys', 'coefficient'):
+    if _column_exists('core_unities', 'percentage') and not _column_exists('core_unities', 'coefficient'):
         op.execute(
-            "ALTER TABLE core_unitys CHANGE COLUMN `percentage` `coefficient` DECIMAL(9,6) NULL"
+            "ALTER TABLE core_unities CHANGE COLUMN `percentage` `coefficient` DECIMAL(9,6) NULL"
         )
 
     # ------------------------------------------------------------------
     # 5. Renombrar `floor` → `floor_number`
     # ------------------------------------------------------------------
-    if _column_exists('core_unitys', 'floor') and not _column_exists('core_unitys', 'floor_number'):
-        op.execute("ALTER TABLE core_unitys CHANGE COLUMN `floor` `floor_number` INT NULL")
+    if _column_exists('core_unities', 'floor') and not _column_exists('core_unities', 'floor_number'):
+        op.execute("ALTER TABLE core_unities CHANGE COLUMN `floor` `floor_number` INT NULL")
 
     # ------------------------------------------------------------------
     # 6. Agregar `floor_label` ( VARCHAR(30) )
     # ------------------------------------------------------------------
-    if not _column_exists('core_unitys', 'floor_label'):
+    if not _column_exists('core_unities', 'floor_label'):
         op.add_column(
-            'core_unitys',
+            'core_unities',
             sa.Column('floor_label', sa.String(30), nullable=True),
         )
 
     # ------------------------------------------------------------------
     # 7. Agregar `occupancy_status` con default 'vacant'
     # ------------------------------------------------------------------
-    if not _column_exists('core_unitys', 'occupancy_status'):
+    if not _column_exists('core_unities', 'occupancy_status'):
         op.add_column(
-            'core_unitys',
+            'core_unities',
             sa.Column(
                 'occupancy_status',
                 sa.String(30),
@@ -170,23 +170,23 @@ def upgrade() -> None:
         # Asegurar que las filas existentes tengan valor antes de alterar la nullable-ness
         # (MySQL server_default ya lo hace, pero por claridad actualizamos valores nulos)
         op.execute(
-            "UPDATE core_unitys SET occupancy_status = 'vacant' WHERE occupancy_status IS NULL"
+            "UPDATE core_unities SET occupancy_status = 'vacant' WHERE occupancy_status IS NULL"
         )
 
     # ------------------------------------------------------------------
     # 8. Agregar `sort_order`
     # ------------------------------------------------------------------
-    if not _column_exists('core_unitys', 'sort_order'):
+    if not _column_exists('core_unities', 'sort_order'):
         op.add_column(
-            'core_unitys',
+            'core_unities',
             sa.Column('sort_order', sa.Integer(), nullable=False, server_default='0'),
         )
 
     # ------------------------------------------------------------------
     # 9. Eliminar columna `type` (redundante con unity_type_id)
     # ------------------------------------------------------------------
-    if _column_exists('core_unitys', 'type'):
-        op.drop_column('core_unitys', 'type')
+    if _column_exists('core_unities', 'type'):
+        op.drop_column('core_unities', 'type')
 
     # ------------------------------------------------------------------
     # 10. Hacer `unit_number` NOT NULL
@@ -202,14 +202,14 @@ def upgrade() -> None:
     # ------------------------------------------------------------------
 
     # 11a. Eliminar UNIQUE(code) global si existe
-    if _constraint_exists('code', 'core_unitys'):
+    if _constraint_exists('code', 'core_unities'):
         # El nombre real de la constraint puede variar. Buscarlo.
         result = conn.execute(
             sa.text("""
                 SELECT CONSTRAINT_NAME
                 FROM information_schema.TABLE_CONSTRAINTS
                 WHERE TABLE_SCHEMA = DATABASE()
-                  AND TABLE_NAME = 'core_unitys'
+                  AND TABLE_NAME = 'core_unities'
                   AND CONSTRAINT_NAME = 'code'
                   AND CONSTRAINT_TYPE = 'UNIQUE'
                 LIMIT 1
@@ -217,7 +217,7 @@ def upgrade() -> None:
         )
         row = result.fetchone()
         if row:
-            op.drop_constraint('code', 'core_unitys', type_='unique')
+            op.drop_constraint('code', 'core_unities', type_='unique')
         else:
             # Buscar por nombre generado por MySQL (e.g. code_2, code_3…)
             result2 = conn.execute(
@@ -225,7 +225,7 @@ def upgrade() -> None:
                     SELECT CONSTRAINT_NAME
                     FROM information_schema.TABLE_CONSTRAINTS
                     WHERE TABLE_SCHEMA = DATABASE()
-                      AND TABLE_NAME = 'core_unitys'
+                      AND TABLE_NAME = 'core_unities'
                       AND CONSTRAINT_TYPE = 'UNIQUE'
                       AND CONSTRAINT_NAME LIKE '%code%'
                     LIMIT 1
@@ -233,14 +233,14 @@ def upgrade() -> None:
             )
             row2 = result2.fetchone()
             if row2:
-                op.drop_constraint(row2[0], 'core_unitys', type_='unique')
+                op.drop_constraint(row2[0], 'core_unities', type_='unique')
 
     # 11b. Crear UNIQUE compuesto (building_id, unit_number)
     #      Primero verificar que no exista ya
-    if not _index_exists('ux_core_unitys_building_unit_number', 'core_unitys'):
+    if not _index_exists('ux_core_unities_building_unit_number', 'core_unities'):
         op.create_index(
-            'ux_core_unitys_building_unit_number',
-            'core_unitys',
+            'ux_core_unities_building_unit_number',
+            'core_unities',
             ['building_id', 'unit_number'],
             unique=True,
         )
@@ -248,10 +248,10 @@ def upgrade() -> None:
     # ------------------------------------------------------------------
     # 12. Crear UNIQUE compuesto (building_id, code) — solo si code no es null
     # ------------------------------------------------------------------
-    if not _index_exists('ux_core_unitys_building_code', 'core_unitys'):
+    if not _index_exists('ux_core_unities_building_code', 'core_unities'):
         op.create_index(
-            'ux_core_unitys_building_code',
-            'core_unitys',
+            'ux_core_unities_building_code',
+            'core_unities',
             ['building_id', 'code'],
             unique=True,
         )
@@ -259,39 +259,39 @@ def upgrade() -> None:
     # ------------------------------------------------------------------
     # 13. Índices compuestos operativos
     # ------------------------------------------------------------------
-    if not _index_exists('ix_core_unitys_building_status', 'core_unitys'):
+    if not _index_exists('ix_core_unities_building_status', 'core_unities'):
         op.create_index(
-            'ix_core_unitys_building_status',
-            'core_unitys',
+            'ix_core_unities_building_status',
+            'core_unities',
             ['building_id', 'status'],
         )
 
-    if not _index_exists('ix_core_unitys_building_sort', 'core_unitys'):
+    if not _index_exists('ix_core_unities_building_sort', 'core_unities'):
         op.create_index(
-            'ix_core_unitys_building_sort',
-            'core_unitys',
+            'ix_core_unities_building_sort',
+            'core_unities',
             ['building_id', 'sort_order'],
         )
 
-    if not _index_exists('ix_core_unitys_building_floor', 'core_unitys'):
+    if not _index_exists('ix_core_unities_building_floor', 'core_unities'):
         op.create_index(
-            'ix_core_unitys_building_floor',
-            'core_unitys',
+            'ix_core_unities_building_floor',
+            'core_unities',
             ['building_id', 'floor_number'],
         )
 
-    if not _index_exists('ix_core_unitys_building_occupancy', 'core_unitys'):
+    if not _index_exists('ix_core_unities_building_occupancy', 'core_unities'):
         op.create_index(
-            'ix_core_unitys_building_occupancy',
-            'core_unitys',
+            'ix_core_unities_building_occupancy',
+            'core_unities',
             ['building_id', 'occupancy_status'],
         )
 
     # ------------------------------------------------------------------
     # 14. Indices adicionales ya cubiertos por FK: building_id, unity_type_id
     # ------------------------------------------------------------------
-    if not _index_exists('ix_core_unitys_status', 'core_unitys'):
-        op.create_index('ix_core_unitys_status', 'core_unitys', ['status'])
+    if not _index_exists('ix_core_unities_status', 'core_unities'):
+        op.create_index('ix_core_unities_status', 'core_unities', ['status'])
 
 
 # ---------------------------------------------------------------------------
@@ -303,64 +303,64 @@ def downgrade() -> None:
 
     # Eliminar índices新增
     for idx in [
-        'ux_core_unitys_building_unit_number',
-        'ux_core_unitys_building_code',
-        'ix_core_unitys_building_status',
-        'ix_core_unitys_building_sort',
-        'ix_core_unitys_building_floor',
-        'ix_core_unitys_building_occupancy',
-        'ix_core_unitys_status',
+        'ux_core_unities_building_unit_number',
+        'ux_core_unities_building_code',
+        'ix_core_unities_building_status',
+        'ix_core_unities_building_sort',
+        'ix_core_unities_building_floor',
+        'ix_core_unities_building_occupancy',
+        'ix_core_unities_status',
     ]:
         if _index_exists(idx):
-            op.drop_index(idx, 'core_unitys')
+            op.drop_index(idx, 'core_unities')
 
     # Restaurar UNIQUE global en code
-    if not _constraint_exists('code', 'core_unitys'):
-        op.create_unique_constraint('code', 'core_unitys', ['code'])
+    if not _constraint_exists('code', 'core_unities'):
+        op.create_unique_constraint('code', 'core_unities', ['code'])
 
     # Revertir floor_label
-    if _column_exists('core_unitys', 'floor_label'):
-        op.drop_column('core_unitys', 'floor_label')
+    if _column_exists('core_unities', 'floor_label'):
+        op.drop_column('core_unities', 'floor_label')
 
     # Revertir sort_order
-    if _column_exists('core_unitys', 'sort_order'):
-        op.drop_column('core_unitys', 'sort_order')
+    if _column_exists('core_unities', 'sort_order'):
+        op.drop_column('core_unities', 'sort_order')
 
     # Revertir occupancy_status
-    if _column_exists('core_unitys', 'occupancy_status'):
-        op.drop_column('core_unitys', 'occupancy_status')
+    if _column_exists('core_unities', 'occupancy_status'):
+        op.drop_column('core_unities', 'occupancy_status')
 
     # Revertir floor_number → floor
-    if _column_exists('core_unitys', 'floor_number'):
+    if _column_exists('core_unities', 'floor_number'):
         op.execute(
-            "ALTER TABLE core_unitys CHANGE COLUMN `floor_number` `floor` INT NULL"
+            "ALTER TABLE core_unities CHANGE COLUMN `floor_number` `floor` INT NULL"
         )
 
     # Revertir coefficient → percentage
-    if _column_exists('core_unitys', 'coefficient'):
+    if _column_exists('core_unities', 'coefficient'):
         op.execute(
-            "ALTER TABLE core_unitys CHANGE COLUMN `coefficient` `percentage` DECIMAL(5,2) NULL"
+            "ALTER TABLE core_unities CHANGE COLUMN `coefficient` `percentage` DECIMAL(5,2) NULL"
         )
 
     # Revertir private_area → size
-    if _column_exists('core_unitys', 'private_area'):
+    if _column_exists('core_unities', 'private_area'):
         op.execute(
-            "ALTER TABLE core_unitys CHANGE COLUMN `private_area` `size` DECIMAL(10,2) NULL"
+            "ALTER TABLE core_unities CHANGE COLUMN `private_area` `size` DECIMAL(10,2) NULL"
         )
 
     # Revertir unit_number → unit
-    if _column_exists('core_unitys', 'unit_number'):
+    if _column_exists('core_unities', 'unit_number'):
         op.execute(
-            "ALTER TABLE core_unitys CHANGE COLUMN `unit_number` `unit` VARCHAR(50) NULL"
+            "ALTER TABLE core_unities CHANGE COLUMN `unit_number` `unit` VARCHAR(50) NULL"
         )
 
     # Restaurar columna type (proveniente de unity_type_id, nullable)
-    if not _column_exists('core_unitys', 'type'):
+    if not _column_exists('core_unities', 'type'):
         op.add_column(
-            'core_unitys',
+            'core_unities',
             sa.Column('type', sa.String(100), nullable=True),
         )
 
     # Eliminar deleted_at
-    if _column_exists('core_unitys', 'deleted_at'):
-        op.drop_column('core_unitys', 'deleted_at')
+    if _column_exists('core_unities', 'deleted_at'):
+        op.drop_column('core_unities', 'deleted_at')

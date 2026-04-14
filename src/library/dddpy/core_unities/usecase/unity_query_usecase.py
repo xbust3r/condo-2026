@@ -1,7 +1,7 @@
 from typing import Optional, List
 
-from library.dddpy.core_unitys.domain.unity_query_repository import UnityQueryRepository
-from library.dddpy.core_unitys.domain.unity_entity import UnityEntity
+from library.dddpy.core_unities.domain.unity_query_repository import UnityQueryRepository
+from library.dddpy.core_unities.domain.unity_entity import UnityEntity
 from library.dddpy.shared.logging.logging import Logger
 
 
