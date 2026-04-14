@@ -134,11 +134,14 @@ Cada módulo sigue la estructura:
 - `DELETE /unities/{id}` - Eliminar
 
 ### Tipos de Unidad
-- `POST /unit-types` - Crear
-- `GET /unit-types` - Listar todos
-- `GET /unit-types/{id}` - Obtener por ID
-- `PUT /unit-types/{id}` - Actualizar
-- `DELETE /unit-types/{id}` - Eliminar
+- `POST /core_unities_types` - Crear
+- `GET /core_unities_types` - Listar todos
+- `GET /core_unities_types/{id}` - Obtener por ID
+- `GET /core_unities_types/uuid/{uuid}` - Obtener por UUID
+- `PUT /core_unities_types/{id}` - Actualizar
+- `DELETE /core_unities_types/{id}` - Soft delete
+- `POST /core_unities_types/{id}/restore` - Restaurar
+- `DELETE /core_unities_types/{id}/hard` - Hard delete
 
 ### Usuarios
 - `POST /users` - Crear

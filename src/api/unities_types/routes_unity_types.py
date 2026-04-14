@@ -2,14 +2,14 @@
 # API Routes: core_unities_types
 # =============================================================================
 # Endpoints:
-#   POST   /unity-types                       — create
-#   GET    /unity-types/{id}                 — get by id
-#   GET    /unity-types/uuid/{uuid}          — get by uuid
-#   PUT    /unity-types/{id}                 — update
-#   DELETE /unity-types/{id}                 — soft delete
-#   POST   /unity-types/{id}/restore         — restore
-#   DELETE /unity-types/{id}/hard            — hard delete
-#   GET    /unity-types                      — list with filters
+#   POST   /core_unities_types               — create
+#   GET    /core_unities_types/{id}          — get by id
+#   GET    /core_unities_types/uuid/{uuid}   — get by uuid
+#   PUT    /core_unities_types/{id}          — update
+#   DELETE /core_unities_types/{id}          — soft delete
+#   POST   /core_unities_types/{id}/restore  — restore
+#   DELETE /core_unities_types/{id}/hard     — hard delete
+#   GET    /core_unities_types               — list with filters
 # =============================================================================
 
 from fastapi import APIRouter, Query
@@ -25,7 +25,7 @@ from library.dddpy.core_unities_types.usecase.unity_type_cmd_schema import (
 from library.dddpy.shared.decorators.api_handler import api_handler
 
 
-PREFIX = "/unity-types"
+PREFIX = "/core_unities_types"
 unity_type_routes = APIRouter(prefix=PREFIX)
 
 
