@@ -33,49 +33,49 @@ building_type_routes = APIRouter(prefix=PREFIX)
 @api_handler
 def create_building_type(request: CreateBuildingTypeSchema) -> dict:
     response = BuildingTypeUseCase().create(request)
-    return response.model_dump()
+    return response.dict()
 
 
 @building_type_routes.get("/{id}")
 @api_handler
 def get_building_type(id: int) -> dict:
     response = BuildingTypeUseCase().get_by_id(id)
-    return response.model_dump()
+    return response.dict()
 
 
 @building_type_routes.get("/uuid/{uuid}")
 @api_handler
 def get_building_type_by_uuid(uuid: str) -> dict:
     response = BuildingTypeUseCase().get_by_uuid(uuid)
-    return response.model_dump()
+    return response.dict()
 
 
 @building_type_routes.put("/{id}")
 @api_handler
 def update_building_type(id: int, request: UpdateBuildingTypeSchema) -> dict:
     response = BuildingTypeUseCase().update(id, request)
-    return response.model_dump()
+    return response.dict()
 
 
 @building_type_routes.delete("/{id}")
 @api_handler
 def delete_building_type(id: int) -> dict:
     response = BuildingTypeUseCase().soft_delete(id)
-    return response.model_dump()
+    return response.dict()
 
 
 @building_type_routes.post("/{id}/restore")
 @api_handler
 def restore_building_type(id: int) -> dict:
     response = BuildingTypeUseCase().restore(id)
-    return response.model_dump()
+    return response.dict()
 
 
 @building_type_routes.delete("/{id}/hard")
 @api_handler
 def hard_delete_building_type(id: int) -> dict:
     response = BuildingTypeUseCase().hard_delete(id)
-    return response.model_dump()
+    return response.dict()
 
 
 @building_type_routes.get("")
@@ -110,4 +110,4 @@ def list_building_types(
         status=status,
         include_deleted=include_deleted,
     )
-    return response.model_dump()
+    return response.dict()

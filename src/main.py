@@ -94,7 +94,7 @@ async def global_exception_handler(request: Request, exc: Exception):
             success=False,
             message="Internal server error",
             errors=[str(exc)]
-        ).model_dump()
+        ).dict()
     )
 
 
