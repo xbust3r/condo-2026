@@ -528,7 +528,69 @@ Flujo recomendado:
 
 ---
 
-## 17. Veredicto final
+## 17. Follow-ups arquitectónicos posteriores al cierre inicial
+
+Estas observaciones nacen de la revisión arquitectónica final del módulo. No bloquean el cierre funcional de `core_unitys`, pero deben quedar registradas para hardening y coherencia futura.
+
+### Follow-up A — Unificar política de soft delete en lecturas puntuales
+**Estado:** corregible dentro del mismo módulo (`Obs1`)
+
+**Hallazgo:**
+`get_by_id()` y `get_by_uuid()` en `core_unitys` no excluyen `deleted_at IS NOT NULL`, mientras `list_all()` y `list_by_building()` sí lo hacen.
+
+**Riesgo:**
+comportamiento inconsistente entre lecturas puntuales y listados, y asimetría con `core_buildings`.
+
+**Regla final deseada:**
+- por defecto, las lecturas públicas deben excluir registros soft-deleted
+- si se requiere incluir eliminados, debe ser vía flag o flujo explícito
+
+**Responsable recomendado:** Bulma S
+**Revisión:** Misato K
+
+---
+
+### Follow-up B — Blindar duplicado de `code` también en update
+**Estado:** corregible dentro del mismo módulo (`Obs2`)
+
+**Hallazgo:**
+`update()` valida duplicado de `unit_number`, pero no prevalida duplicado de `code` dentro del mismo building.
+
+**Riesgo:**
+la capa de aplicación puede terminar dependiendo de `IntegrityError` del motor en vez de lanzar una excepción de dominio limpia (`RepeatedUnityCode`).
+
+**Regla final deseada:**
+- `create()` y `update()` deben tener comportamiento simétrico para `code` y `unit_number`
+- los errores de duplicado deben salir como dominio, no como accidente de infraestructura
+
+**Responsable recomendado:** Bulma S
+**Revisión:** Misato K
+
+---
+
+### Follow-up C — Alinear `count_active_residents()` con el diseño real de `users_residents`
+**Estado:** diferido hasta implementación de `users_residents` (`Obs3`)
+
+**Hallazgo:**
+`count_active_residents()` en `core_unitys` asume que `users_residents` tiene columna `deleted_at` y consulta `deleted_at IS NULL`.
+
+**Situación actual:**
+la tabla `users_residents` del schema inicial no garantiza todavía ese campo. Si el módulo existe sin `deleted_at`, el query cae al `except` y devuelve `0`.
+
+**Riesgo:**
+se degrada la defensa lógica previa al hard delete y se delega el bloqueo real al FK o a fallos de infraestructura.
+
+**Regla final deseada cuando exista `users_residents`:**
+- definir formalmente qué significa “residente activo”
+- alinear el query con el schema real (`status`, `deleted_at`, u otra convención explícita)
+- evitar `except` demasiado amplio como sustituto de contrato entre módulos
+
+**Responsable futuro:** Misato K + Bulma S
+**Revisión arquitectónica:** Lelouch S
+
+---
+
+## 18. Veredicto final
 
 `core_unitys` debe dejar de ser una tabla genérica y convertirse en una pieza operativa real del sistema.
 
