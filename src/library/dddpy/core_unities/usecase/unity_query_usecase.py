@@ -70,3 +70,8 @@ class UnityQueryUseCase:
     def count_active_residents(self, unity_id: int) -> int:
         logger.debug(f"Counting active residents for unity_id={unity_id}")
         return self.repository.count_active_residents(unity_id)
+
+    def get_by_id_any_status(self, id: int) -> Optional[UnityEntity]:
+        """Re-fetch entity ignoring soft-delete filter. For use after mutations."""
+        logger.debug(f"Delegating unity fetch by id={id} (any status)")
+        return self.repository._get_by_id_any_status(id)

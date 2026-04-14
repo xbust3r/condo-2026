@@ -191,3 +191,14 @@ class UnityQueryRepositoryImpl(UnityQueryRepository):
         except Exception as e:
             logger.warning(f"Could not count residents for unity {unity_id}: {e}")
             return 0
+
+    # ── Internal helpers for post-mutation re-fetch ──────────────────────────
+
+    def _get_by_id_any_status(self, id: int) -> Optional[UnityEntity]:
+        """Re-fetch entity ignoring soft-delete filter. For use after mutations."""
+        logger.debug(f"Fetching unity by id={id} (any status)")
+        with session_scope() as session:
+            db_unity = session.query(DBUnities).filter(DBUnities.id == id).first()
+            if not db_unity:
+                return None
+            return UnityMapper.to_domain(db_unity)

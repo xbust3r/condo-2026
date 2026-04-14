@@ -130,3 +130,17 @@ class BuildingQueryRepositoryImpl(BuildingQueryRepository):
             # Table may not exist yet (core_unities not built)
             logger.warning(f"Could not count active units for building_id={building_id}: {e}")
             return 0
+
+    # ── Internal helpers for post-mutation re-fetch ──────────────────────────
+
+    def _get_by_id_any_status(self, id: int) -> Optional[BuildingEntity]:
+        """Re-fetch entity ignoring soft-delete filter. For use after mutations."""
+        logger.info(f"Fetching building by id={id} (any status)")
+        with session_scope() as session:
+            db_building = session.query(DBBuildings).filter(
+                DBBuildings.id == id
+            ).first()
+            if not db_building:
+                logger.warning(f"Building not found by id={id}")
+                return None
+            return BuildingMapper.to_domain(db_building)

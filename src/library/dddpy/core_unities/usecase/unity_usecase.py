@@ -175,23 +175,33 @@ class UnityUseCase:
         if not deleted:
             raise UnityNotFound()
 
+        # Re-fetch to return actual persisted state (ignore soft-delete filter)
+        fresh = self.unity_query_usecase.get_by_id_any_status(id)
+        real_deleted_at = fresh.deleted_at if fresh else None
         return ResponseSuccessSchema(
             success=True,
             message=UnitySuccessMessage.DELETED,
-            data={"id": id},
+            data={"id": id, "deleted_at": real_deleted_at},
         )
 
     def restore(self, id: int):
         logger.add_inside_method("restore")
         logger.info(f"Restoring unity id={id}")
 
+        # Verify it exists first (use any-status since entity may be soft-deleted)
+        existing = self.unity_query_usecase.get_by_id_any_status(id)
+        if not existing:
+            logger.warning(f"Unity not found for restore id={id}")
+            raise UnityNotFound()
+
         restored = self.unity_cmd_usecase.restore(id)
         if not restored:
             logger.warning(f"Failed to restore unity id={id}")
             raise UnityNotFound()
 
-        unity = self.unity_query_usecase.get_by_id(id)
-        unity_dict = unity.to_dict()
+        # Re-fetch to return actual persisted state
+        refreshed = self.unity_query_usecase.get_by_id_any_status(id)
+        unity_dict = refreshed.to_dict()
         _enrich_unity_with_type(unity_dict)
         return ResponseSuccessSchema(
             success=True,

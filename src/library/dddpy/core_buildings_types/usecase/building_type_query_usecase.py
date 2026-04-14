@@ -86,3 +86,8 @@ class BuildingTypeQueryUseCase:
             raise BuildingTypeNotAccessible()
 
         return entity
+
+    def get_by_id_any_status(self, id: int) -> Optional[BuildingTypeEntity]:
+        """Re-fetch entity ignoring soft-delete filter. For use after mutations."""
+        logger.info(f"Delegating building type fetch by id={id} (any status)")
+        return self._query._get_by_id_any_status(id)

@@ -69,3 +69,8 @@ class BuildingQueryUseCase:
     def count_active_units(self, building_id: int) -> int:
         logger.info(f"Delegating count_active_units for building_id={building_id}")
         return self.repository.count_active_units(building_id)
+
+    def get_by_id_any_status(self, id: int) -> Optional[BuildingEntity]:
+        """Re-fetch entity ignoring soft-delete filter. For use after mutations."""
+        logger.info(f"Delegating building fetch by id={id} (any status)")
+        return self.repository._get_by_id_any_status(id)

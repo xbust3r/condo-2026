@@ -174,3 +174,17 @@ class BuildingTypeQueryRepositoryImpl(BuildingTypeQueryRepository):
                 )
                 return None
             return BuildingTypeMapper.to_domain(db_type)
+
+    # ── Internal helpers for post-mutation re-fetch ──────────────────────────
+
+    def _get_by_id_any_status(self, id: int) -> Optional[BuildingTypeEntity]:
+        """Re-fetch entity ignoring soft-delete filter. For use after mutations."""
+        logger.info(f"Fetching building type by id={id} (any status)")
+        with session_scope() as session:
+            db_type = session.query(DBBuildingType).filter(
+                DBBuildingType.id == id
+            ).first()
+            if not db_type:
+                logger.warning(f"Building type not found by id={id}")
+                return None
+            return BuildingTypeMapper.to_domain(db_type)

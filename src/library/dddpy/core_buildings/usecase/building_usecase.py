@@ -151,23 +151,33 @@ class BuildingUseCase:
             logger.warning(f"Failed to soft delete building id={id}")
             raise BuildingNotFound()
 
+        # Re-fetch to return actual persisted state (ignore soft-delete filter)
+        fresh = self.building_query_usecase.get_by_id_any_status(id)
+        real_deleted_at = fresh.deleted_at if fresh else None
         return ResponseSuccessSchema(
             success=True,
             message=BuildingSuccessMessage.DELETED,
-            data={"id": id},
+            data={"id": id, "deleted_at": real_deleted_at},
         )
 
     def restore(self, id: int):
         logger.add_inside_method("restore")
         logger.info(f"Restoring building id={id}")
 
+        # Verify it exists first (use any-status since entity may be soft-deleted)
+        existing = self.building_query_usecase.get_by_id_any_status(id)
+        if not existing:
+            logger.warning(f"Building not found for restore id={id}")
+            raise BuildingNotFound()
+
         restored = self.building_cmd_usecase.restore(id)
         if not restored:
             logger.warning(f"Failed to restore building id={id}")
             raise BuildingNotFound()
 
-        building = self.building_query_usecase.get_by_id(id)
-        building_dict = building.to_dict()
+        # Re-fetch to return actual persisted state
+        refreshed = self.building_query_usecase.get_by_id_any_status(id)
+        building_dict = refreshed.to_dict()
         _enrich_building_with_type(building_dict)
         return ResponseSuccessSchema(
             success=True,
