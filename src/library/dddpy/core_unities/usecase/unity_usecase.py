@@ -39,7 +39,7 @@ def _enrich_unity_with_type(unity_dict: dict) -> dict:
         return unity_dict
 
     try:
-        from library.dddpy.core_unittys_types.usecase.unity_type_usecase import (
+        from library.dddpy.core_unities_types.usecase.unity_type_usecase import (
             UnityTypeUseCase,
         )
         response = UnityTypeUseCase().get_by_id(type_id)

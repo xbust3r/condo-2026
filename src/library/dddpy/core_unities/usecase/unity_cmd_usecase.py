@@ -27,18 +27,41 @@ class UnityCmdUseCase:
         if status not in self.VALID_OCCUPANCY:
             raise OccupancyStatusNotAllowed(status)
 
-    def _validate_unity_type(self, unity_type_id: Optional[int]) -> None:
-        """Validate unity_type_id if provided. Silent pass if None."""
+    def _validate_unity_type(
+        self,
+        unity_type_id: Optional[int],
+        building_id: int,
+    ) -> None:
+        """
+        Validate unity_type_id against business rules for a given building.
+
+        Rules:
+        - Type must exist and not be soft-deleted
+        - Type must be active (status=1)
+        - Type must be global OR belong to the same condominium as the building
+
+        Silent pass if unity_type_id is None.
+        Raises DomainException on failure.
+        """
         if unity_type_id is None:
             return
-        try:
-            from library.dddpy.core_unittys_types.usecase.unity_type_usecase import (
-                UnityTypeUseCase,
-            )
-            UnityTypeUseCase().get_by_id(unity_type_id)
-        except Exception:
-            from library.dddpy.core_unities.domain.unity_exception import UnityTypeNotFound
-            raise UnityTypeNotFound()
+        # Resolve building's condominium_id for scope validation
+        from library.dddpy.core_buildings.infrastructure.building_query_repository import (
+            BuildingQueryRepositoryImpl,
+        )
+        building_repo = BuildingQueryRepositoryImpl()
+        building = building_repo.get_by_id(building_id)
+        if not building:
+            from library.dddpy.core_unities.domain.unity_exception import BuildingNotFoundForUnity
+            raise BuildingNotFoundForUnity()
+
+        from library.dddpy.core_unities_types.usecase.unity_type_usecase import (
+            UnityTypeUseCase,
+        )
+        UnityTypeUseCase().validate_for_unity_assignment(
+            type_id=unity_type_id,
+            condominium_id=building.condominium_id,
+        )
 
     def _validate_building(self, building_id: int) -> None:
         """Validate building exists and is active. Silent pass if not implemented yet."""
@@ -56,8 +79,7 @@ class UnityCmdUseCase:
         )
         self._validate_occupancy_status(schema.occupancy_status)
         self._validate_building(schema.building_id)
-        if schema.unity_type_id is not None:
-            self._validate_unity_type(schema.unity_type_id)
+        self._validate_unity_type(schema.unity_type_id, schema.building_id)
 
         data = CreateUnityData(
             building_id=schema.building_id,
@@ -81,7 +103,14 @@ class UnityCmdUseCase:
         if schema.occupancy_status is not None:
             self._validate_occupancy_status(schema.occupancy_status)
         if schema.unity_type_id is not None:
-            self._validate_unity_type(schema.unity_type_id)
+            # Get existing unity to find its building → condominium_id
+            from library.dddpy.core_unities.infrastructure.unity_query_repository import (
+                UnityQueryRepositoryImpl,
+            )
+            unity_repo = UnityQueryRepositoryImpl()
+            existing = unity_repo.get_by_id(id)
+            if existing:
+                self._validate_unity_type(schema.unity_type_id, existing.building_id)
 
         data = UpdateUnityData(
             unit_number=schema.unit_number,

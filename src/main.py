@@ -20,7 +20,7 @@ load_dotenv(os.path.join(os.path.dirname(__file__), '.env'))
 #
 # MÓDULOS PENDIENTES DE IMPLEMENTAR (documentados en README.md pero sin código Python):
 #   ✅ core_unities/            — Unidades inmobiliarias (domain + infrastructure + usecase + api/routes)
-#   ❌ core_unittys_types/     — Tipos de unidad
+#   ✅ core_unities_types/     — Catálogo de tipos de unidad con scope global/custom (DDD completo)
 #   ❌ users/                  — Usuarios del sistema
 #   ❌ users_residents/        — Residentes (tabla pivote)
 #
@@ -63,6 +63,7 @@ from api.condominiums.routes_condominiums import condominium_routes
 from api.buildings.routes_buildings import building_routes
 from api.buildings_types.routes_building_types import building_type_routes
 from api.unities.routes_unities import unity_routes
+from api.unities_types.routes_unity_types import unity_type_routes
 from api.example.routes_example import example_routes
 
 
@@ -113,6 +114,7 @@ app.include_router(condominium_routes)
 app.include_router(building_routes)
 app.include_router(building_type_routes)
 app.include_router(unity_routes)
+app.include_router(unity_type_routes)
 app.include_router(example_routes)
 
 
