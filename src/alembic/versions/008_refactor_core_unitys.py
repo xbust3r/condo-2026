@@ -20,6 +20,11 @@ Cambios sobre la tabla original (001_create_initial):
 
 Revisión: Misato K antes de commit.
 
+NOTA: `unit_number` es VARCHAR(50) NULL en esta migración (hereda de `unit` original).
+Su constraint NOT NULL se aplica en el schema Pydantic de la capa de aplicación,
+no en Alembic — para no crashear si hay nulos legacy en producción.
+Proceso de limpieza de datos legacy es responsabilidad aparte.
+
 Revision ID: 008_refactor_core_unitys
 Revises: 007_fix_building_type_fk_cascade
 Create Date: 2026-04-14
