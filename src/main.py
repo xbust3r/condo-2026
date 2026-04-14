@@ -59,7 +59,7 @@ from mangum import Mangum
 from api.condominiums.routes_condominiums import condominium_routes
 from api.buildings.routes_buildings import building_routes
 from api.buildings_types.routes_building_types import building_type_routes
-from api.unities.routes_unitys import unity_routes
+from api.unities.routes_unities import unity_routes
 from api.example.routes_example import example_routes
 
 

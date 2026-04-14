@@ -126,12 +126,12 @@ Cada módulo sigue la estructura:
 - `DELETE /buildings-types/{id}` - Eliminar
 
 ### Unidades
-- `POST /unitys` - Crear
-- `GET /unitys` - Listar todos
-- `GET /unitys/by-building/{id}` - Por edificio
-- `GET /unitys/{id}` - Obtener por ID
-- `PUT /unitys/{id}` - Actualizar
-- `DELETE /unitys/{id}` - Eliminar
+- `POST /unities` - Crear
+- `GET /unities` - Listar todos
+- `GET /unities/by-building/{id}` - Por edificio
+- `GET /unities/{id}` - Obtener por ID
+- `PUT /unities/{id}` - Actualizar
+- `DELETE /unities/{id}` - Eliminar
 
 ### Tipos de Unidad
 - `POST /unit-types` - Crear
