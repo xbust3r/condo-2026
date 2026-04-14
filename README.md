@@ -49,7 +49,7 @@ condo-py/
 │   │       ├── core_condominiums/
 │   │       ├── core_buildings/
 │   │       ├── core_buildings_types/
-│   │       ├── core_unitys/
+│   ├── core_unities/
 │   │       ├── core_unittys_types/
 │   │       ├── users/
 │   │       └── users_residents/
@@ -70,7 +70,7 @@ condo-py/
 | `core_condominiums` | `core_condominiums` | Gestión de condominios |
 | `core_buildings` | `core_buildings` | Torres/edificios |
 | `core_buildings_types` | `core_buildings_types` | Tipos de edificio |
-| `core_unitys` | `core_unitys` | Unidades inmobiliarias |
+| `core_unities` | `core_unities` | Unidades inmobiliarias |
 | `core_unittys_types` | `core_unittys_types` | Tipos de unidad |
 | `users` | `users` | Usuarios del sistema |
 | `users_residents` | `users_residents` | Residentes (pivot) |
