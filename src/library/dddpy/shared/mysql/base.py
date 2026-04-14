@@ -7,18 +7,14 @@ from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, create_async_engin
 from sqlalchemy.future import select
 from sqlalchemy.orm import sessionmaker
 
-#from dotenv import load_dotenv
 import os
 
-#load_dotenv()
-
-DB_USER = os.environ.get("MYSQL_USER")
-DB_PASSWORD = os.environ.get("MYSQL_PASSWORD")
-DB_HOST = os.environ.get("MYSQL_HOST")
+DB_USER = os.environ.get("MYSQL_USER", "root")
+DB_PASSWORD = os.environ.get("MYSQL_PASSWORD", "123456")
+DB_HOST = os.environ.get("MYSQL_HOST", "mysql")
 DB_PORT = os.environ.get("MYSQL_PORT", "3306")
-DB_NAME = os.environ.get("MYSQL_DB_NAME")
+DB_NAME = os.environ.get("MYSQL_DB", "db_condominiums")
 
-# Conexión a la base de datos utilizando pymysql y SQLAlchemy
 DATABASE_URL = f"mysql+pymysql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}?charset=utf8mb4"
 
 engine = create_engine(DATABASE_URL, echo=False)
