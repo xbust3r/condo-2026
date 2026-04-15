@@ -1,0 +1,12 @@
+from library.dddpy.core_unit_ownerships.infrastructure.unit_ownership_cmd_repository import UnitOwnershipCmdRepositoryImpl
+from library.dddpy.core_unit_ownerships.infrastructure.unit_ownership_query_repository import UnitOwnershipQueryRepositoryImpl
+from library.dddpy.core_unit_ownerships.usecase.unit_ownership_cmd_usecase import UnitOwnershipCmdUseCase
+from library.dddpy.core_unit_ownerships.usecase.unit_ownership_query_usecase import UnitOwnershipQueryUseCase
+
+
+def unit_ownership_cmd_usecase_factory() -> UnitOwnershipCmdUseCase:
+    return UnitOwnershipCmdUseCase(repository=UnitOwnershipCmdRepositoryImpl())
+
+
+def unit_ownership_query_usecase_factory() -> UnitOwnershipQueryUseCase:
+    return UnitOwnershipQueryUseCase(repository=UnitOwnershipQueryRepositoryImpl())

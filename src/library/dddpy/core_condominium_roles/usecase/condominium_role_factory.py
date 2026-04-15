@@ -1,0 +1,12 @@
+from library.dddpy.core_condominium_roles.infrastructure.condominium_role_cmd_repository import CondominiumRoleCmdRepositoryImpl
+from library.dddpy.core_condominium_roles.infrastructure.condominium_role_query_repository import CondominiumRoleQueryRepositoryImpl
+from library.dddpy.core_condominium_roles.usecase.condominium_role_cmd_usecase import CondominiumRoleCmdUseCase
+from library.dddpy.core_condominium_roles.usecase.condominium_role_query_usecase import CondominiumRoleQueryUseCase
+
+
+def condominium_role_cmd_usecase_factory() -> CondominiumRoleCmdUseCase:
+    return CondominiumRoleCmdUseCase(repository=CondominiumRoleCmdRepositoryImpl())
+
+
+def condominium_role_query_usecase_factory() -> CondominiumRoleQueryUseCase:
+    return CondominiumRoleQueryUseCase(repository=CondominiumRoleQueryRepositoryImpl())

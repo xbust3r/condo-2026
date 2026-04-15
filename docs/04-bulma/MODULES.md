@@ -70,45 +70,40 @@ Rutas API: `src/api/condominiums/routes_condominiums.py`
 
 ## Módulos Pendientes de Implementar
 
-### ❌ `core_buildings/` — Torres/Edificios
-**Descripción:** Gestión de edificios o torres dentro de un condominio.
-**Tabla esperada:** `core_buildings`
+### ✅ `core_buildings/` — Torres/Edificios
+**Ruta:** `src/library/dddpy/core_buildings/`
+**Rutas API:** `src/api/buildings/routes_buildings.py`
 
-### ❌ `core_buildings_types/` — Tipos de Edificio
-**Descripción:** Catálogo de tipos de edificio (residencial, comercial, mixto, etc.).
-**Tabla esperada:** `core_buildings_types`
+### ✅ `core_buildings_types/` — Tipos de Edificio
+**Ruta:** `src/library/dddpy/core_buildings_types/`
+**Rutas API:** `src/api/buildings_types/routes_building_types.py`
 
-### ❌ `core_units/` — Unidades Inmobiliarias
-**Descripción:** Unidades/casas/departamentos dentro de cada edificio.
-**Tabla esperada:** `core_units`
+### ✅ `core_units/` — Unidades Inmobiliarias
+**Ruta:** `src/library/dddpy/core_units/`
+**Rutas API:** `src/api/units/routes_units.py`
 
-### ❌ `core_unit_types/` — Tipos de Unidad
-**Descripción:** Catálogo de tipos de unidad (apartamento, casa, local comercial, etc.).
-**Tabla esperada:** `core_unit_types`
+### ✅ `core_unit_types/` — Tipos de Unidad
+**Ruta:** `src/library/dddpy/core_unit_types/`
+**Rutas API:** `src/api/unit_types/routes_unit_types.py`
 
-### ❌ `users/` — Usuarios del Sistema
-**Descripción:** Usuarios autenticables en el sistema.
-**Tabla esperada:** `users`
+### ✅ `users/` — Usuarios del Sistema
+**Tabla:** `users` (auth: email, password_hash, status, security fields)
 
-### ❌ `user_profiles/` — Perfil Humano
-**Descripción:** Perfil desacoplado de autenticación.
-**Tabla esperada:** `user_profiles`
+### ✅ `user_profiles/` — Perfil Humano
+**Tabla:** `user_profiles` (1:1 con users: first_name, last_name, doc_identity, phone)
 
-### ❌ `core_unit_ownerships/` — Titularidad de Unidades
-**Descripción:** Relación patrimonial usuario ↔ unidad.
-**Tabla esperada:** `core_unit_ownerships`
+### 🔄 `core_unit_ownerships/` — Titularidad de Unidades
+**En construcción:** DDD module + migration 012
 
-### ❌ `core_unit_occupancies/` — Ocupación de Unidades
-**Descripción:** Relación de ocupación/uso usuario ↔ unidad.
-**Tabla esperada:** `core_unit_occupancies`
+### 🔄 `core_unit_occupancies/` — Ocupación de Unidades
+**En construcción:** DDD module + migration 013
 
-### ❌ `core_condominium_roles/` — Roles por Condominio
-**Descripción:** Relación administrativa contextual usuario ↔ condominio.
-**Tabla esperada:** `core_condominium_roles`
+### 🔄 `core_condominium_roles/` — Roles por Condominio
+**En construcción:** DDD module + migration 014
 
 ### ❌ `users_residents/` — Tabla Histórica Deprecada
 **Descripción:** Diseño previo que no debe usarse como solución final; reemplazado por ownership + occupancy + roles.
-**Tabla esperada:** `users_residents` (solo referencia histórica)
+**Tabla existente:** `users_residents` (será deprecada en Bloque D)
 
 ---
 

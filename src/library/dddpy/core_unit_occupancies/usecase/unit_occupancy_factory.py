@@ -1,0 +1,12 @@
+from library.dddpy.core_unit_occupancies.infrastructure.unit_occupancy_cmd_repository import UnitOccupancyCmdRepositoryImpl
+from library.dddpy.core_unit_occupancies.infrastructure.unit_occupancy_query_repository import UnitOccupancyQueryRepositoryImpl
+from library.dddpy.core_unit_occupancies.usecase.unit_occupancy_cmd_usecase import UnitOccupancyCmdUseCase
+from library.dddpy.core_unit_occupancies.usecase.unit_occupancy_query_usecase import UnitOccupancyQueryUseCase
+
+
+def unit_occupancy_cmd_usecase_factory() -> UnitOccupancyCmdUseCase:
+    return UnitOccupancyCmdUseCase(repository=UnitOccupancyCmdRepositoryImpl())
+
+
+def unit_occupancy_query_usecase_factory() -> UnitOccupancyQueryUseCase:
+    return UnitOccupancyQueryUseCase(repository=UnitOccupancyQueryRepositoryImpl())

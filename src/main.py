@@ -68,6 +68,9 @@ from api.buildings.routes_buildings import building_routes
 from api.buildings_types.routes_building_types import building_type_routes
 from api.units.routes_units import unit_routes
 from api.unit_types.routes_unit_types import unit_type_routes
+from api.unit_ownerships.routes_unit_ownerships import unit_ownership_routes
+from api.unit_occupancies.routes_unit_occupancies import unit_occupancy_routes
+from api.condominium_roles.routes_condominium_roles import condominium_role_routes
 from api.example.routes_example import example_routes
 
 
@@ -119,4 +122,7 @@ app.include_router(building_routes)
 app.include_router(building_type_routes)
 app.include_router(unit_routes)
 app.include_router(unit_type_routes)
+app.include_router(unit_ownership_routes)
+app.include_router(unit_occupancy_routes)
+app.include_router(condominium_role_routes)
 app.include_router(example_routes)
