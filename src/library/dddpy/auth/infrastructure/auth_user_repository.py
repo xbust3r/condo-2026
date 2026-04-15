@@ -4,8 +4,8 @@ Auth User repository — fetches user identity for authentication.
 Queries users + user_profiles in a single JOIN for the /auth/me endpoint.
 Does NOT expose password_hash in results.
 """
+from datetime import datetime
 from typing import Optional
-import uuid as uuid_lib
 
 from sqlalchemy import text
 
