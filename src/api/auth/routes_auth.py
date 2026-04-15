@@ -17,7 +17,7 @@ from typing import Optional, Tuple
 from library.dddpy.auth.usecase.auth_usecase import AuthUseCase
 from library.dddpy.auth.usecase.auth_cmd_schema import LoginSchema, RefreshSchema, LogoutSchema
 from library.dddpy.auth.domain.user_identity import UserIdentity
-from library.dddpy.auth.auth_dependencies import get_current_user
+from api.auth.auth_dependencies import get_current_user
 from library.dddpy.shared.decorators.api_handler import api_handler
 
 
