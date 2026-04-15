@@ -24,14 +24,13 @@ class password():
     @staticmethod
     def bcrypt_password(password):
         salt=bcrypt.gensalt(10)
-        new_password=bcrypt.hash(password,salt)
+        new_password=bcrypt.hashpw(password.encode('utf-8'), salt)
         return new_password
-    
+
     @staticmethod
     def generate(password):
-        
         salt=bcrypt.gensalt()
-        hashed=bcrypt.hashpw(password.encode(),salt)
+        hashed=bcrypt.hashpw(password.encode(), salt)
         return hashed
     
     @staticmethod
