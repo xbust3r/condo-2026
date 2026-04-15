@@ -26,8 +26,8 @@ Si inviertes ese orden, terminas parchando pagos sobre entidades mal modeladas. 
 1. `core_condominiums`
 2. `core_buildings`
 3. `core_buildings_types`
-4. `core_unities`
-5. `core_unittys_types`
+4. `core_units`
+5. `core_unit_types` *(o mantener naming actual del catálogo solo como transición, pero el objetivo recomendado es `core_unit_types`)*
 
 ### Objetivo
 Tener modelada la estructura física completa:
@@ -54,8 +54,11 @@ El sistema ya puede representar correctamente el mundo físico del negocio.
 
 ### Prioridad alta
 6. `users`
-7. `users_residents`
-8. auth / RBAC
+7. `user_profiles`
+8. `core_unit_ownerships`
+9. `core_unit_occupancies`
+10. `core_condominium_roles`
+11. auth / RBAC contextual
 
 ### Objetivo
 Modelar quién vive, quién alquila, quién administra y quién puede entrar al sistema.
@@ -90,10 +93,10 @@ Eso evita caos cuando una persona:
 ## Fase 3 — Cuentas, cargos y recibos
 
 ### Prioridad crítica
-9. módulo de cuentas por cobrar
-10. módulo de cargos/recibos
-11. módulo de pagos
-12. módulo de estado de cuenta / ledger
+12. módulo de cuentas por cobrar
+13. módulo de cargos/recibos
+14. módulo de pagos
+15. módulo de estado de cuenta / ledger
 
 ### Sí, tu intuición aquí es correcta
 Después de estructura + usuarios, el siguiente gran bloque debe ser:
@@ -190,20 +193,23 @@ Completar la propuesta competitiva para condominios más maduros o administrador
 1. Condominios
 2. Edificios
 3. Tipos de edificio
-4. Unidades/departamentos
+4. Unidades/departamentos (`core_units`)
 5. Tipos de unidad
 6. Usuarios
-7. Residentes / inquilinos / relaciones de ocupación
-8. Auth + roles
-9. Cuentas por cobrar
-10. Recibos / cargos
-11. Pagos
-12. Estado de cuenta
-13. Comunicados / notificaciones / documentos
-14. Incidencias / mantenimiento básico
-15. Portal residente
-16. Reservas / visitas / extras
-17. Gobernanza / votaciones / reporting avanzado
+7. Perfil de usuario
+8. Ownership por unidad
+9. Occupancy por unidad
+10. Roles administrativos por condominio
+11. Auth + RBAC contextual
+12. Cuentas por cobrar
+13. Recibos / cargos
+14. Pagos
+15. Estado de cuenta
+16. Comunicados / notificaciones / documentos
+17. Incidencias / mantenimiento básico
+18. Portal residente
+19. Reservas / visitas / extras
+20. Gobernanza / votaciones / reporting avanzado
 
 ---
 
@@ -228,21 +234,27 @@ Primero hay que dominar el tablero base.
 - implementar `core_buildings_types`
 
 ## Sprint 2
-- implementar `core_unities`
-- implementar `core_unittys_types`
+- implementar `core_units`
+- implementar catálogo de tipos de unidad
 - validar relaciones y constraints
 
 ## Sprint 3
 - implementar `users`
-- implementar `users_residents`
-- diseñar roles y permisos
+- implementar `user_profiles`
+- diseñar ownership / occupancy / roles por condominio
 
 ## Sprint 4
+- implementar `core_unit_ownerships`
+- implementar `core_unit_occupancies`
+- implementar `core_condominium_roles`
+- cerrar RBAC contextual
+
+## Sprint 5
 - módulo de cuentas por cobrar
 - cargos recurrentes
 - recibos
 
-## Sprint 5
+## Sprint 6
 - pagos
 - estado de cuenta
 - notificaciones de vencimiento

@@ -17,12 +17,16 @@ load_dotenv(os.path.join(os.path.dirname(__file__), '.env'))
 #   ✅ core_condominiums/  — Gestión de condominios (domain + infrastructure + usecase + api/routes)
 #   ✅ core_buildings/     — Torres/edificios (domain + infrastructure + usecase + api/routes)
 #   ✅ core_buildings_types/ — Catálogo de tipos de edificio con scope global/custom (DDD completo)
+#   ✅ core_units/         — Unidades inmobiliarias (domain + infrastructure + usecase + api/routes)
+#   ✅ core_unit_types/    — Catálogo de tipos de unidad con scope global/custom (DDD completo)
 #
 # MÓDULOS PENDIENTES DE IMPLEMENTAR (documentados en README.md pero sin código Python):
-#   ✅ core_unities/            — Unidades inmobiliarias (domain + infrastructure + usecase + api/routes)
-#   ✅ core_unities_types/     — Catálogo de tipos de unidad con scope global/custom (DDD completo)
 #   ❌ users/                  — Usuarios del sistema
-#   ❌ users_residents/        — Residentes (tabla pivote)
+#   ❌ user_profiles/         — Perfil humano (nuevo)
+#   ❌ users_residents/        — Residentes (tabla pivote, deprecada)
+#   ❌ core_unit_ownerships/   — Propiedad de unidades (nuevo)
+#   ❌ core_unit_occupancies/ — Ocupación de unidades (nuevo)
+#   ❌ core_condominium_roles/ — Roles administrativos (nuevo)
 #
 # ESTRUCTURA DDD ESPERADA POR MÓDULO:
 #   {modulo}/
@@ -62,8 +66,8 @@ from mangum import Mangum
 from api.condominiums.routes_condominiums import condominium_routes
 from api.buildings.routes_buildings import building_routes
 from api.buildings_types.routes_building_types import building_type_routes
-from api.unities.routes_unities import unity_routes
-from api.unities_types.routes_unity_types import unity_type_routes
+from api.units.routes_units import unit_routes
+from api.unit_types.routes_unit_types import unit_type_routes
 from api.example.routes_example import example_routes
 
 
@@ -113,9 +117,6 @@ def health_check():
 app.include_router(condominium_routes)
 app.include_router(building_routes)
 app.include_router(building_type_routes)
-app.include_router(unity_routes)
-app.include_router(unity_type_routes)
+app.include_router(unit_routes)
+app.include_router(unit_type_routes)
 app.include_router(example_routes)
-
-
-

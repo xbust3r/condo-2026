@@ -10,7 +10,9 @@ tags:
 # 🗄️ Tabla: core_unittys_types
 
 ## 📝 Descripción
-Catálogo de los diferentes tipos de unidades inmobiliarias (ej. Apartamento, Penthouse, Local, Estacionamiento).
+Catálogo histórico de los diferentes tipos de unidades inmobiliarias.
+
+⚠️ **Nota arquitectónica:** el naming final recomendado del catálogo es `core_unit_types` para alinearlo con `core_units`. Este documento se mantiene temporalmente por compatibilidad histórica del proyecto.
 
 ---
 
@@ -29,4 +31,4 @@ Catálogo de los diferentes tipos de unidades inmobiliarias (ej. Apartamento, Pe
 ---
 
 ## 🔗 Relaciones (Foreign Keys)
-- **Tiene muchos:** [[core_unities]]
+- **Tiene muchos:** [[core_units]]
