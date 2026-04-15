@@ -2,8 +2,8 @@ from library.dddpy.shared.decorators.domain_exception import DomainException
 
 
 class UnitNotFound(DomainException):
-    def __init__(self):
-        super().__init__("Unit not found", status_code=404)
+    def __init__(self, message: str = "Unit not found"):
+        super().__init__(message, status_code=404)
 
 
 class RepeatedUnitUnitNumber(DomainException):
