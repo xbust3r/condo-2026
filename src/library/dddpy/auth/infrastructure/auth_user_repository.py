@@ -40,8 +40,8 @@ class AuthUserRepository:
                       p.uuid AS profile_uuid,
                       p.first_name,
                       p.last_name,
-                      p.doc_type,
-                      p.doc_identity,
+                      p.document_type,
+                      p.document_number,
                       p.phone,
                       p.deleted_at AS profile_deleted_at
                     FROM users u
@@ -65,8 +65,8 @@ class AuthUserRepository:
                 created_at=row.created_at,
                 first_name=row.first_name,
                 last_name=row.last_name,
-                doc_type=row.doc_type,
-                doc_identity=row.doc_identity,
+                document_type=row.document_type,
+                document_number=row.document_number,
                 phone=row.phone,
                 profile_uuid=row.profile_uuid,
             )
@@ -87,8 +87,8 @@ class AuthUserRepository:
                       p.uuid AS profile_uuid,
                       p.first_name,
                       p.last_name,
-                      p.doc_type,
-                      p.doc_identity,
+                      p.document_type,
+                      p.document_number,
                       p.phone,
                       p.deleted_at AS profile_deleted_at
                     FROM users u
@@ -112,8 +112,8 @@ class AuthUserRepository:
                 created_at=row.created_at,
                 first_name=row.first_name,
                 last_name=row.last_name,
-                doc_type=row.doc_type,
-                doc_identity=row.doc_identity,
+                document_type=row.document_type,
+                document_number=row.document_number,
                 phone=row.phone,
                 profile_uuid=row.profile_uuid,
             )

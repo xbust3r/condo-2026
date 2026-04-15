@@ -21,8 +21,8 @@ class UserIdentity:
     # From user_profiles
     first_name: Optional[str]
     last_name: Optional[str]
-    doc_type: Optional[str]
-    doc_identity: Optional[str]
+    document_type: Optional[str]
+    document_number: Optional[str]
     phone: Optional[str]
     profile_uuid: Optional[str]
 
@@ -44,8 +44,8 @@ class UserIdentity:
                 "uuid": self.profile_uuid,
                 "first_name": self.first_name,
                 "last_name": self.last_name,
-                "doc_type": self.doc_type,
-                "doc_identity": self.doc_identity,
+                "document_type": self.document_type,
+                "document_number": self.document_number,
                 "phone": self.phone,
             },
         }
