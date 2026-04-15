@@ -40,7 +40,7 @@ class CondominiumUserContext:
 
 # ── Core dependency ─────────────────────────────────────────────────────────
 
-def get_condominium_user(
+async def get_condominium_user(
     condominium_id: int = Path(..., description="Condominium ID"),
 ) -> CondominiumUserContext:
     """
@@ -59,7 +59,7 @@ def get_condominium_user(
     )
 
     # Get authenticated user (raises 401 if not authenticated)
-    user = get_current_user()
+    user = await get_current_user()
 
     role_repo = CondominiumRoleQueryRepositoryImpl()
     role = role_repo.get_active_by_user_and_condominium(
