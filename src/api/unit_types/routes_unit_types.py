@@ -29,6 +29,11 @@ PREFIX = "/core_unit_types"
 unit_type_routes = APIRouter(prefix=PREFIX)
 
 
+@unit_type_routes.get("/health")
+def health_check() -> dict:
+    return {"status": "healthy", "module": "core_unit_types"}
+
+
 @unit_type_routes.post("")
 @api_handler
 def create_unit_type(request: CreateUnitTypeSchema) -> dict:
