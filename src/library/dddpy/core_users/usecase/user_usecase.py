@@ -38,7 +38,7 @@ class UserUseCase:
         if not schema.password:
             raise UserPasswordRequired("Password is required")
 
-        password_hash = password.hash_password(schema.password)
+        password_hash = password.bcrypt_password(schema.password)
 
         user_id = self._cmd.create(
             email=schema.email,
