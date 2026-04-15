@@ -1,4 +1,4 @@
-from sqlalchemy import Column, BigInteger, String, Text, DECIMAL, Date, DateTime, Integer, ForeignKey, func
+from sqlalchemy import Column, BigInteger, String, Text, DECIMAL, Date, DateTime, Integer, ForeignKey, ForeignKeyConstraint, func
 from library.dddpy.shared.mysql.base import Base
 
 
@@ -12,7 +12,7 @@ class DBUnitOwnership(Base):
     ownership_type = Column(String(30), nullable=False, comment="owner or co_owner")
     ownership_percentage = Column(DECIMAL(5, 2), nullable=False, comment="Percentage 0-100")
     status = Column(String(30), nullable=False, server_default='active', comment="active/inactive/historical")
-    start_date = Column(Date, nullable=False)
+    start_date = Column(Date, nullable=True)
     end_date = Column(Date, nullable=True)
     notes = Column(Text, nullable=True)
     created_at = Column(DateTime, nullable=False, server_default=func.now())
