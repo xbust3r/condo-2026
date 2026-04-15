@@ -101,9 +101,11 @@ Rutas API: `src/api/condominiums/routes_condominiums.py`
 ### 🔄 `core_condominium_roles/` — Roles por Condominio
 **En construcción:** DDD module + migration 014
 
-### ❌ `users_residents/` — Tabla Histórica Deprecada
-**Descripción:** Diseño previo que no debe usarse como solución final; reemplazado por ownership + occupancy + roles.
-**Tabla existente:** `users_residents` (será deprecada en Bloque D)
+### ❌ `users_residents/` — Tabla Deprecada
+**Estado:** ⚠️ DEPRECADO — solo referencia histórica. NO usar en código nuevo.
+**Tabla DB:** `users_residents` — presente como fallback hasta validación con datos reales.
+**Eliminación física:** pendiente de validación (Bloque D — standby).
+**Reemplazo:** `core_unit_ownerships` + `core_unit_occupancies` + `core_condominium_roles`
 
 ---
 

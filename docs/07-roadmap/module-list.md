@@ -22,9 +22,9 @@
 |---|---|---|---|
 | 06 | `users` | Usuarios autenticables en el sistema (users + user_profiles) | ✅ Implementado |
 | 07 | `user_profiles` | Perfil humano desacoplado de autenticación | ✅ Implementado |
-| 08 | `core_unit_ownerships` | Relación patrimonial usuario ↔ unidad | 🔄 En construcción |
-| 09 | `core_unit_occupancies` | Relación de ocupación/uso usuario ↔ unidad | 🔄 En construcción |
-| 10 | `core_condominium_roles` | Roles administrativos por condominio | 🔄 En construcción |
+| 08 | `core_unit_ownerships` | Relación patrimonial usuario ↔ unidad | ✅ Implementado |
+| 09 | `core_unit_occupancies` | Relación de ocupación/uso usuario ↔ unidad | ✅ Implementado |
+| 10 | `core_condominium_roles` | Roles administrativos por condominio | ✅ Implementado |
 | 11 | `auth` | Autenticación JWT/OAuth2 + RBAC contextual | ❌ Pendiente |
 
 ---
@@ -79,4 +79,9 @@
 
 **Implementados:** 7 (01-07, incluyendo users y user_profiles)
 **En construcción:** 3 (08, 09, 10 — Bloque C)
+| 11 | `auth` | Autenticación JWT/OAuth2 + RBAC contextual | ❌ Pendiente |
+| — | `users_residents` | Tabla histórica deprecada — fallback emergencia | ⚠️ Deprecated |
+
+**Implementados:** 10 (01-10)
+**Deprecados:** 1 (`users_residents` — no eliminar hasta validación)
 **Pendientes:** 19

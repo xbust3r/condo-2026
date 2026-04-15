@@ -1,11 +1,19 @@
 ---
 type: db-table
 system: condominios
-status: active
+status: deprecated
 tags:
   - database
   - table
   - pivot
+  - deprecated
+deprecated: true
+deprecated_since: 2026-04-15
+deprecated_reason: >
+  Mezcla identidad, propiedad, ocupación y contexto físico en una sola tabla.
+  Reemplazada por core_unit_ownerships + core_unit_occupancies + core_condominium_roles.
+  NO eliminar hasta validación con datos reales (fallback de emergencia).
+remove_after_validation: true
 ---
 
 # 🗄️ Tabla: users_residents
@@ -39,7 +47,8 @@ Eso rompe escalabilidad cuando un usuario puede:
 ## ✅ Reemplazo oficial
 No debe implementarse como solución final.
 
-Se reemplaza por estas tablas especializadas:
+## ✅ Reemplazo oficial
+Se reemplaza por estas tablas especializadas (Bloque C — implementadas 2026-04-15):
 - [[core_unit_ownerships]] → propiedad/titularidad
 - [[core_unit_occupancies]] → ocupación/uso
 - [[core_condominium_roles]] → administración por condominio
@@ -49,7 +58,9 @@ Y la unidad base oficial pasa a ser:
 
 ---
 
-## 📋 Estado
-- **Estado funcional:** deprecado
-- **Estado documental:** mantener solo como referencia histórica de transición
-- **Implementación nueva:** prohibido usar esta tabla como diseño objetivo
+## 🚫 Estado
+- **Estado funcional:** DEPRECADO — no usar en código nuevo
+- **Tabla DB:** presente como fallback de emergencia hasta validación con datos reales
+- **Eliminación física:** pendiente — se elimina cuando se valide que ownerships + occupancies + roles cubren el 100% de los flujos
+- **Código Python:** NO existe módulo DDD para esta tabla
+- **Migración de datos:** pendiente (si se requiere)
