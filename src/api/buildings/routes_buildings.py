@@ -1,18 +1,24 @@
 # =============================================================================
 # API Routes: core_buildings
-# Módulo en construcción — Gestión de edificios/torres
+# Gestión de edificios/torres dentro de condominios.
 #
 # RBAC: Todas las rutas que acceden/modifican edificios requieren que el
 # usuario autenticado tenga un rol activo en el condominio del edificio.
+#
+# Patrón RBAC en cada ruta:
+#   1. Obtener el building para saber su condominium_id
+#   2. Verificar que el usuario tiene rol en ese condominio
 # =============================================================================
 
-from fastapi import APIRouter, Query, Depends, HTTPException, status
+from fastapi import APIRouter, Query, Depends, HTTPException, status, Path
 from typing import Optional
 
 from library.dddpy.core_buildings.usecase.building_usecase import BuildingUseCase
 from library.dddpy.core_buildings.usecase.building_cmd_schema import CreateBuildingSchema, UpdateBuildingSchema
 from library.dddpy.shared.decorators.api_handler import api_handler
-from api.auth.rbac_dependencies import get_condominium_user, CondominiumUserContext
+from api.auth.auth_dependencies import get_current_user
+from api.auth.rbac_dependencies import require_condominium_role, CondominiumUserContext
+from library.dddpy.auth.domain.user_identity import UserIdentity
 
 
 PREFIX = "/buildings"
@@ -25,8 +31,30 @@ def health_check() -> dict:
     return {"status": "healthy"}
 
 
+@building_routes.post("")
+@api_handler
+def create_building(
+    request: CreateBuildingSchema,
+    user: UserIdentity = Depends(get_current_user),
+) -> dict:
+    """Create a new building.
+    Requires authenticated user with an active role in the target condominium.
+    """
+    # Validate user has role in the building's condominium
+    ctx = require_condominium_role(user, request.condominium_id)
+
+    # Prevent creating a building in a condominium the user has no access to
+    if request.condominium_id != ctx.condominium_id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Cannot create building in a condominium you don't have access to",
+        )
+
+    return BuildingUseCase().create(request).dict()
+
+
 def _get_building_condominium_id(building_id: int) -> int:
-    """Fetch building and return its condominium_id. Raises BuildingNotFound."""
+    """Fetch building, return its condominium_id. Raises BuildingNotFound."""
     building_resp = BuildingUseCase().get_by_id(building_id)
     building_data = building_resp.data
     if not building_data:
@@ -41,46 +69,24 @@ def _get_building_condominium_id(building_id: int) -> int:
     return condominium_id
 
 
-@building_routes.post("")
-@api_handler
-def create_building(
-    request: CreateBuildingSchema,
-    ctx: CondominiumUserContext = Depends(get_condominium_user),
-) -> dict:
-    """Create a new building in a condominium.
-    Requires authenticated user with an active role in the target condominium.
-    """
-    if request.condominium_id != ctx.condominium_id:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Cannot create building in a condominium you don't have access to",
-        )
-    return BuildingUseCase().create(request).dict()
-
-
 @building_routes.get("/{id}")
 @api_handler
 def get_building(
     id: int,
-    ctx: CondominiumUserContext = Depends(get_condominium_user),
+    user: UserIdentity = Depends(get_current_user),
 ) -> dict:
     """Get a building by its ID.
     Requires authenticated user with an active role in the building's condominium.
     """
-    # Validate this building belongs to the authenticated condominium
-    building_condo_id = _get_building_condominium_id(id)
-    if building_condo_id != ctx.condominium_id:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Access denied: building not in your condominium",
-        )
+    condominium_id = _get_building_condominium_id(id)
+    require_condominium_role(user, condominium_id)  # raises 403 if no role
     return BuildingUseCase().get_by_id(id).dict()
 
 
 @building_routes.get("/uuid/{uuid}")
 @api_handler
 def get_building_by_uuid(uuid: str) -> dict:
-    """Get a building by its UUID."""
+    """Get a building by its UUID. No RBAC (public lookup)."""
     return BuildingUseCase().get_by_uuid(uuid).dict()
 
 
@@ -89,17 +95,13 @@ def get_building_by_uuid(uuid: str) -> dict:
 def update_building(
     id: int,
     request: UpdateBuildingSchema,
-    ctx: CondominiumUserContext = Depends(get_condominium_user),
+    user: UserIdentity = Depends(get_current_user),
 ) -> dict:
     """Update an existing building.
     Requires authenticated user with an active role in the building's condominium.
     """
-    building_condo_id = _get_building_condominium_id(id)
-    if building_condo_id != ctx.condominium_id:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Access denied: building not in your condominium",
-        )
+    condominium_id = _get_building_condominium_id(id)
+    require_condominium_role(user, condominium_id)
     return BuildingUseCase().update(id, request).dict()
 
 
@@ -107,17 +109,11 @@ def update_building(
 @api_handler
 def delete_building(
     id: int,
-    ctx: CondominiumUserContext = Depends(get_condominium_user),
+    user: UserIdentity = Depends(get_current_user),
 ) -> dict:
-    """Soft delete a building (sets deleted_at timestamp).
-    Requires authenticated user with an active role in the building's condominium.
-    """
-    building_condo_id = _get_building_condominium_id(id)
-    if building_condo_id != ctx.condominium_id:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Access denied: building not in your condominium",
-        )
+    """Soft delete a building. Requires active role in the building's condominium."""
+    condominium_id = _get_building_condominium_id(id)
+    require_condominium_role(user, condominium_id)
     return BuildingUseCase().delete(id).dict()
 
 
@@ -125,17 +121,11 @@ def delete_building(
 @api_handler
 def restore_building(
     id: int,
-    ctx: CondominiumUserContext = Depends(get_condominium_user),
+    user: UserIdentity = Depends(get_current_user),
 ) -> dict:
-    """Restore a soft-deleted building.
-    Requires authenticated user with an active role in the building's condominium.
-    """
-    building_condo_id = _get_building_condominium_id(id)
-    if building_condo_id != ctx.condominium_id:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Access denied: building not in your condominium",
-        )
+    """Restore a soft-deleted building. Requires active role."""
+    condominium_id = _get_building_condominium_id(id)
+    require_condominium_role(user, condominium_id)
     return BuildingUseCase().restore(id).dict()
 
 
@@ -143,17 +133,11 @@ def restore_building(
 @api_handler
 def hard_delete_building(
     id: int,
-    ctx: CondominiumUserContext = Depends(get_condominium_user),
+    user: UserIdentity = Depends(get_current_user),
 ) -> dict:
-    """Hard delete a building. Blocked if building has active units.
-    Requires authenticated user with an active role in the building's condominium.
-    """
-    building_condo_id = _get_building_condominium_id(id)
-    if building_condo_id != ctx.condominium_id:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Access denied: building not in your condominium",
-        )
+    """Hard delete a building. Blocked if it has active units. Requires active role."""
+    condominium_id = _get_building_condominium_id(id)
+    require_condominium_role(user, condominium_id)
     return BuildingUseCase().hard_delete(id).dict()
 
 
@@ -167,7 +151,7 @@ def list_buildings(
     status: Optional[int] = Query(None, description="Filter by status (1=active, 0=inactive)"),
     include_deleted: bool = Query(False, description="Include soft-deleted records"),
 ) -> dict:
-    """List all buildings with optional filters."""
+    """List all buildings with optional filters. No RBAC — admin-level list."""
     if limit > 500:
         limit = 500
     return BuildingUseCase().list_all(
@@ -187,11 +171,12 @@ def list_buildings_by_condominium(
     limit: int = Query(100, ge=1, le=500),
     status: Optional[int] = Query(None, description="Filter by status (1=active, 0=inactive)"),
     include_deleted: bool = Query(False, description="Include soft-deleted records"),
-    ctx: CondominiumUserContext = Depends(get_condominium_user),
+    user: UserIdentity = Depends(get_current_user),
 ) -> dict:
     """List buildings for a specific condominium.
     Requires authenticated user with an active role in the target condominium.
     """
+    require_condominium_role(user, condominium_id)
     if limit > 500:
         limit = 500
     return BuildingUseCase().list_by_condominium(
