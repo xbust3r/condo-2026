@@ -1,26 +1,32 @@
 """
-User exceptions.
+User exceptions — all extend DomainException for proper HTTP status mapping.
 """
-class UserException(Exception):
-    """Base exception for user operations."""
-    pass
+from library.dddpy.shared.decorators.domain_exception import DomainException
 
 
-class UserNotFound(UserException):
+class UserNotFound(DomainException):
     """Raised when a user is not found by id or uuid."""
-    pass
+
+    def __init__(self, message: str = "User not found"):
+        super().__init__(message=message, status_code=404)
 
 
-class UserAlreadyExists(UserException):
-    """Raised when attempting to create a user with a duplicate email."""
-    pass
+class UserAlreadyExists(DomainException):
+    """Raised when attempting to create or update a user with a duplicate email."""
+
+    def __init__(self, message: str = "User with this email already exists"):
+        super().__init__(message=message, status_code=409)
 
 
-class UserInvalidStatus(UserException):
+class UserInvalidStatus(DomainException):
     """Raised when a status transition is invalid."""
-    pass
+
+    def __init__(self, message: str = "Invalid status transition"):
+        super().__init__(message=message, status_code=422)
 
 
-class UserPasswordRequired(UserException):
+class UserPasswordRequired(DomainException):
     """Raised when password is missing on user creation."""
-    pass
+
+    def __init__(self, message: str = "Password is required"):
+        super().__init__(message=message, status_code=400)
