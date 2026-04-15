@@ -22,7 +22,7 @@ from typing import Optional, Literal
 
 from fastapi import Depends, HTTPException, Header, status, Path, Query
 
-from library.dddpy.auth.auth_dependencies import get_current_user
+from api.auth.auth_dependencies import get_current_user
 from library.dddpy.auth.domain.user_identity import UserIdentity
 from library.dddpy.core_condominium_roles.infrastructure.condominium_role_query_repository import CondominiumRoleQueryRepositoryImpl
 from library.dddpy.core_user_profiles.infrastructure.user_profile_query_repository import UserProfileQueryRepositoryImpl
