@@ -2,7 +2,6 @@ from typing import Optional, List
 
 from library.dddpy.core_condominiums.domain.condominium_query_repository import CondominiumQueryRepository
 from library.dddpy.core_condominiums.domain.condominium_entity import CondominiumEntity
-from library.dddpy.core_condominiums.usecase.condominium_query_usecase import CondominiumQueryUseCase
 from library.dddpy.shared.logging.logging import Logger
 
 
