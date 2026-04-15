@@ -2,7 +2,7 @@ from functools import wraps
 from typing import Any, Optional
 import traceback
 
-from fastapi import Request
+from fastapi import Request, HTTPException
 from fastapi.responses import JSONResponse
 from pydantic import ValidationError
 
@@ -54,6 +54,13 @@ def api_handler(func):
         except DomainException as e:
             logger.warning(f"Domain Exception: {str(e)}")
             error_response = ResponseErrorSchema(success=False, message=str(e))
+            return JSONResponse(content=error_response.dict(), status_code=e.status_code)
+
+        except HTTPException as e:
+            # FastAPI dependencies (auth, RBAC) raise HTTPException directly.
+            # Catch it here to return the proper status code instead of 500.
+            logger.warning(f"HTTPException: {e.status_code} — {e.detail}")
+            error_response = ResponseErrorSchema(success=False, message=e.detail)
             return JSONResponse(content=error_response.dict(), status_code=e.status_code)
 
         except ValidationError as e:

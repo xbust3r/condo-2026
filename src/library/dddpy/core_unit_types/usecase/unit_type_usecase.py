@@ -204,7 +204,7 @@ class UnitTypeUseCase:
         if type_id is None:
             return
         logger.add_inside_method("validate_for_unit_assignment")
-        entity = self._query.get_active_in_scope(type_id, condominium_id)
+        entity = self._query.get_active_for_unit_assignment(type_id, condominium_id)
         if not entity:
             exists = self._query.get_by_id(type_id)
             if not exists:
