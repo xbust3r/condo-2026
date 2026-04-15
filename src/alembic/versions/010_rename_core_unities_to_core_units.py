@@ -16,7 +16,7 @@ from sqlalchemy import text
 
 
 revision: str = '010_rename_core_unities_to_core_units'
-down_revision: Union[str, None] = '008_refactor_core_unities'
+down_revision: Union[str, None] = '009_rename_and_refactor_core_unities_types'
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
