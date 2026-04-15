@@ -17,6 +17,7 @@
 # usuario autenticado tenga un rol activo en el condominio del edificio.
 # =============================================================================
 
+import anyio
 from fastapi import APIRouter, Query, Depends, HTTPException, status
 from typing import Optional
 
@@ -55,7 +56,7 @@ def create_building(
 
 
 def _get_building_condominium_id(building_id: int) -> int:
-    """Fetch building from DB and return its condominium_id. Raises BuildingNotFound."""
+    """Fetch building and return its condominium_id. Raises BuildingNotFound."""
     building_resp = BuildingUseCase().get_by_id(building_id)
     building_data = building_resp.data
     if not building_data:
@@ -70,6 +71,15 @@ def _get_building_condominium_id(building_id: int) -> int:
     return condominium_id
 
 
+def _check_condominium_access_sync(condominium_id: int) -> None:
+    """
+    Synchronous wrapper that calls the async get_condominium_user in a thread pool.
+    This lets us perform the RBAC check from sync route handlers.
+    Raises HTTPException 403 if the user has no role in the condominium.
+    """
+    anyio.run(get_condominium_user, condominium_id)
+
+
 @building_routes.get("/{id}")
 @api_handler
 def get_building(id: int) -> dict:
@@ -77,18 +87,15 @@ def get_building(id: int) -> dict:
     Requires authenticated user with an active role in the building's condominium.
     """
     condominium_id = _get_building_condominium_id(id)
-    # Trigger RBAC check — raises 403 if user has no role in this condominium
-    get_condominium_user(condominium_id=condominium_id)
-    response = BuildingUseCase().get_by_id(id)
-    return response.dict()
+    _check_condominium_access_sync(condominium_id)
+    return BuildingUseCase().get_by_id(id).dict()
 
 
 @building_routes.get("/uuid/{uuid}")
 @api_handler
 def get_building_by_uuid(uuid: str) -> dict:
     """Get a building by its UUID."""
-    response = BuildingUseCase().get_by_uuid(uuid)
-    return response.dict()
+    return BuildingUseCase().get_by_uuid(uuid).dict()
 
 
 @building_routes.put("/{id}")
@@ -98,9 +105,8 @@ def update_building(id: int, request: UpdateBuildingSchema) -> dict:
     Requires authenticated user with an active role in the building's condominium.
     """
     condominium_id = _get_building_condominium_id(id)
-    get_condominium_user(condominium_id=condominium_id)
-    response = BuildingUseCase().update(id, request)
-    return response.dict()
+    _check_condominium_access_sync(condominium_id)
+    return BuildingUseCase().update(id, request).dict()
 
 
 @building_routes.delete("/{id}")
@@ -110,9 +116,8 @@ def delete_building(id: int) -> dict:
     Requires authenticated user with an active role in the building's condominium.
     """
     condominium_id = _get_building_condominium_id(id)
-    get_condominium_user(condominium_id=condominium_id)
-    response = BuildingUseCase().delete(id)
-    return response.dict()
+    _check_condominium_access_sync(condominium_id)
+    return BuildingUseCase().delete(id).dict()
 
 
 @building_routes.post("/{id}/restore")
@@ -122,9 +127,8 @@ def restore_building(id: int) -> dict:
     Requires authenticated user with an active role in the building's condominium.
     """
     condominium_id = _get_building_condominium_id(id)
-    get_condominium_user(condominium_id=condominium_id)
-    response = BuildingUseCase().restore(id)
-    return response.dict()
+    _check_condominium_access_sync(condominium_id)
+    return BuildingUseCase().restore(id).dict()
 
 
 @building_routes.delete("/{id}/hard")
@@ -134,9 +138,8 @@ def hard_delete_building(id: int) -> dict:
     Requires authenticated user with an active role in the building's condominium.
     """
     condominium_id = _get_building_condominium_id(id)
-    get_condominium_user(condominium_id=condominium_id)
-    response = BuildingUseCase().hard_delete(id)
-    return response.dict()
+    _check_condominium_access_sync(condominium_id)
+    return BuildingUseCase().hard_delete(id).dict()
 
 
 @building_routes.get("")
@@ -151,16 +154,14 @@ def list_buildings(
 ) -> dict:
     """List all buildings with optional filters."""
     if limit > 500:
-        limit = 500  # Safety cap
-    response = BuildingUseCase().list_all(
-        skip=skip,
-        limit=limit,
+        limit = 500
+    return BuildingUseCase().list_all(
+        skip=skip, limit=limit,
         condominium_id=condominium_id,
         building_type_id=building_type_id,
         status=status,
         include_deleted=include_deleted,
-    )
-    return response.dict()
+    ).dict()
 
 
 @building_routes.get("/condominium/{condominium_id}")
@@ -177,12 +178,10 @@ def list_buildings_by_condominium(
     Requires authenticated user with an active role in the target condominium.
     """
     if limit > 500:
-        limit = 500  # Safety cap
-    response = BuildingUseCase().list_by_condominium(
+        limit = 500
+    return BuildingUseCase().list_by_condominium(
         condominium_id=condominium_id,
-        skip=skip,
-        limit=limit,
+        skip=skip, limit=limit,
         status=status,
         include_deleted=include_deleted,
-    )
-    return response.dict()
+    ).dict()
