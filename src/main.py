@@ -22,7 +22,7 @@ load_dotenv(os.path.join(os.path.dirname(__file__), '.env'))
 #
 # MÓDULOS PENDIENTES DE IMPLEMENTAR (documentados en README.md pero sin código Python):
 #   ✅ users/                  — Usuarios del sistema (auth + CRUD)
-#   ❌ user_profiles/         — Perfil humano (nuevo)
+#   ✅ user_profiles/         — Perfil humano (DDD + API)
 #   ❌ core_unit_ownerships/   — Propiedad de unidades (nuevo)
 #   ❌ core_unit_occupancies/ — Ocupación de unidades (nuevo)
 #   ❌ core_condominium_roles/ — Roles administrativos (nuevo)
@@ -72,6 +72,7 @@ from api.unit_occupancies.routes_unit_occupancies import unit_occupancy_routes
 from api.condominium_roles.routes_condominium_roles import condominium_role_routes
 from api.auth.routes_auth import auth_routes
 from api.users.routes_users import user_routes
+from api.user_profiles.routes_user_profiles import user_profile_routes
 from api.example.routes_example import example_routes
 
 
@@ -128,4 +129,5 @@ app.include_router(unit_occupancy_routes)
 app.include_router(condominium_role_routes)
 app.include_router(auth_routes)
 app.include_router(user_routes)
+app.include_router(user_profile_routes)
 app.include_router(example_routes)
