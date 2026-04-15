@@ -64,10 +64,13 @@ class AuthUseCase:
         # Step 1: Fetch user identity (no password leak via timing)
         identity = self._user_repo.get_by_email(email)
 
-        # Step 2: Constant-time dummy for non-existent user
+        # Step 2: Constant-time dummy bcrypt for non-existent user
+        # Runs bcrypt operations to match the timing profile of a real login.
+        # bcrypt.gen_salt() and hashpw are inherently slow, matching real auth timing.
         if identity is None:
-            import hashlib
-            hashlib.sha256(b"__constant_time_dummy__").hexdigest()
+            import bcrypt
+            bcrypt.gensalt(10)
+            bcrypt.hashpw(b"__dummy__", bcrypt.gensalt(10))
             raise InvalidCredentials()
 
         # Step 3: Check account status
