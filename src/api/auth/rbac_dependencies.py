@@ -5,10 +5,12 @@ Each user can have a different role in each condominium.
 These dependencies enforce that the authenticated user has a role
 in the target condominium before allowing access.
 
-Usage:
+Usage in routes:
+    from api.auth.rbac_dependencies import get_condominium_user, CondominiumUserContext
+
     @app.get("/condominiums/{condominium_id}/units")
     def list_units(
-        ctx: CondominiumUserContext = Depends(get_condominium_user()),
+        ctx: CondominiumUserContext = Depends(get_condominium_user),
     ):
         ...
 
@@ -18,14 +20,9 @@ Guards:
     require_any_role(condominium_id) → 403 if no role at all
 """
 from dataclasses import dataclass
-from typing import Optional, Literal
+from typing import Optional
 
-from fastapi import Depends, HTTPException, Header, status, Path, Query
-
-from api.auth.auth_dependencies import get_current_user
-from library.dddpy.auth.domain.user_identity import UserIdentity
-from library.dddpy.core_condominium_roles.infrastructure.condominium_role_query_repository import CondominiumRoleQueryRepositoryImpl
-from library.dddpy.core_user_profiles.infrastructure.user_profile_query_repository import UserProfileQueryRepositoryImpl
+from fastapi import Depends, HTTPException, Path
 
 
 # ── Context dataclass ────────────────────────────────────────────────────────
@@ -33,7 +30,7 @@ from library.dddpy.core_user_profiles.infrastructure.user_profile_query_reposito
 @dataclass
 class CondominiumUserContext:
     """Authenticated user + their role in the target condominium."""
-    user: UserIdentity
+    user: "UserIdentity"  # resolved via lazy import in functions
     role: str  # "super_admin" | "condominium_admin"
     condominium_id: int
     is_super_admin: bool
@@ -52,13 +49,17 @@ def get_condominium_user(
     Must be used together with Depends(get_current_user).
     Raises 403 if the user has no active role in the specified condominium.
 
-    Usage in routes:
-        ctx: CondominiumUserContext = Depends(get_condominium_user)
-
-    Note: This function is NOT async — FastAPI resolves get_current_user first.
+    Note: get_current_user is imported lazily inside the function to avoid
+    loading the JWT module (which requires env vars) at module import time.
     """
+    # Lazy import to avoid triggering JWT env validation at import time
+    from api.auth.auth_dependencies import get_current_user
+    from library.dddpy.core_condominium_roles.infrastructure.condominium_role_query_repository import (
+        CondominiumRoleQueryRepositoryImpl,
+    )
+
     # Get authenticated user (raises 401 if not authenticated)
-    user: UserIdentity = get_current_user()
+    user = get_current_user()
 
     role_repo = CondominiumRoleQueryRepositoryImpl()
     role = role_repo.get_active_by_user_and_condominium(
@@ -68,7 +69,7 @@ def get_condominium_user(
 
     if not role:
         raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
+            status_code=403,
             detail=f"Access denied: no active role in condominium {condominium_id}",
         )
 
@@ -89,9 +90,14 @@ def require_super_admin(condominium_id: int) -> None:
     Guard — raises 403 if user is not super_admin in the given condominium.
 
     Use as a dependency:
-        Depends(require_super_admin(condominium_id))
+        Depends(lambda: require_super_admin(condominium_id))
     """
-    user: UserIdentity = get_current_user()
+    from api.auth.auth_dependencies import get_current_user
+    from library.dddpy.core_condominium_roles.infrastructure.condominium_role_query_repository import (
+        CondominiumRoleQueryRepositoryImpl,
+    )
+
+    user = get_current_user()
 
     role_repo = CondominiumRoleQueryRepositoryImpl()
     role = role_repo.get_active_by_user_and_condominium(
@@ -101,7 +107,7 @@ def require_super_admin(condominium_id: int) -> None:
 
     if not role or role.role != "super_admin":
         raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
+            status_code=403,
             detail="Forbidden: super_admin role required in this condominium",
         )
 
@@ -111,9 +117,14 @@ def require_condominium_admin(condominium_id: int) -> None:
     Guard — raises 403 if user is not super_admin or condominium_admin.
 
     Use as a dependency:
-        Depends(require_condominium_admin(condominium_id))
+        Depends(lambda: require_condominium_admin(condominium_id))
     """
-    user: UserIdentity = get_current_user()
+    from api.auth.auth_dependencies import get_current_user
+    from library.dddpy.core_condominium_roles.infrastructure.condominium_role_query_repository import (
+        CondominiumRoleQueryRepositoryImpl,
+    )
+
+    user = get_current_user()
 
     role_repo = CondominiumRoleQueryRepositoryImpl()
     role = role_repo.get_active_by_user_and_condominium(
@@ -123,7 +134,7 @@ def require_condominium_admin(condominium_id: int) -> None:
 
     if not role or role.role not in ("super_admin", "condominium_admin"):
         raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
+            status_code=403,
             detail="Forbidden: admin role required in this condominium",
         )
 
@@ -133,7 +144,12 @@ def require_any_role(condominium_id: int) -> None:
     Guard — raises 403 if user has no active role in the condominium.
     Alias for the base check in get_condominium_user.
     """
-    user: UserIdentity = get_current_user()
+    from api.auth.auth_dependencies import get_current_user
+    from library.dddpy.core_condominium_roles.infrastructure.condominium_role_query_repository import (
+        CondominiumRoleQueryRepositoryImpl,
+    )
+
+    user = get_current_user()
 
     role_repo = CondominiumRoleQueryRepositoryImpl()
     role = role_repo.get_active_by_user_and_condominium(
@@ -143,6 +159,6 @@ def require_any_role(condominium_id: int) -> None:
 
     if not role:
         raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
+            status_code=403,
             detail=f"Access denied: no active role in condominium {condominium_id}",
         )
