@@ -12,6 +12,7 @@
 # =============================================================================
 
 from fastapi import APIRouter, Request, Depends
+from typing import Optional, Tuple
 
 from library.dddpy.auth.usecase.auth_usecase import AuthUseCase
 from library.dddpy.auth.usecase.auth_cmd_schema import LoginSchema, RefreshSchema, LogoutSchema
@@ -24,7 +25,7 @@ PREFIX = "/auth"
 auth_routes = APIRouter(prefix=PREFIX)
 
 
-def _client_info(request: Request) -> tuple[str | None, str | None]:
+def _client_info(request: Request) -> Tuple[Optional[str], Optional[str]]:
     """Extract user_agent and ip_address from request."""
     user_agent = request.headers.get("user-agent")
     # Try X-Forwarded-For first (behind proxy), then client host

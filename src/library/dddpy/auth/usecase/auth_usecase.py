@@ -14,6 +14,7 @@ Rules:
 """
 import uuid as uuid_lib
 from datetime import datetime
+from typing import Optional
 
 from library.dddpy.auth.domain.auth_exception import (
     InvalidCredentials,
@@ -46,8 +47,8 @@ class AuthUseCase:
         self,
         email: str,
         password: str,
-        user_agent: str | None = None,
-        ip_address: str | None = None,
+        user_agent: Optional[str] = None,
+        ip_address: Optional[str] = None,
     ) -> ResponseSuccessSchema:
         """
         Authenticate user and return token pair.
