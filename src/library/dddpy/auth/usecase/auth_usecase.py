@@ -6,7 +6,9 @@ Coordinates:
   - AuthSessionRepository (manage refresh token sessions)
   - JWTService (create access tokens)
 
-Rules:
+Security hardening:
+  - token_version in JWT payload — validated against DB on every request
+  - logout-all increments token_version, instantly invalidating all active JWTs
   - password_hash NEVER leaves the infrastructure layer
   - Login: same error message whether email exists or not (no user enum)
   - Failed attempts: tracked in users.failed_login_attempts + locked_until
@@ -14,7 +16,7 @@ Rules:
 """
 import uuid as uuid_lib
 from datetime import datetime
-from typing import Optional
+from typing import Optional, Tuple
 
 from library.dddpy.auth.domain.auth_exception import (
     InvalidCredentials,
@@ -62,9 +64,8 @@ class AuthUseCase:
         # Step 1: Fetch user identity (no password leak via timing)
         identity = self._user_repo.get_by_email(email)
 
-        # Step 2: Verify password (constant-time regardless of user existence)
+        # Step 2: Constant-time dummy for non-existent user
         if identity is None:
-            # Constant-time dummy operation to prevent user enum via timing
             import hashlib
             hashlib.sha256(b"__constant_time_dummy__").hexdigest()
             raise InvalidCredentials()
@@ -86,13 +87,16 @@ class AuthUseCase:
         # Step 6: Success — reset failed attempts
         self._user_repo.reset_failed_login(identity.id)
 
-        # Step 7: Generate tokens
+        # Step 7: Get current token_version and generate tokens
+        token_version = self._user_repo.get_token_version(identity.id)
         payload = AccessTokenPayload(
             user_id=identity.id,
             email=identity.email,
             uuid=identity.uuid,
         )
-        access_token, expires_in = JWTService.create_access_token(payload)
+        access_token, expires_in = JWTService.create_access_token(
+            payload, token_version=token_version,
+        )
         refresh_token = str(uuid_lib.uuid4())
 
         # Step 8: Store session
@@ -103,7 +107,7 @@ class AuthUseCase:
             ip_address=ip_address,
         )
 
-        logger.info(f"Login successful for user_id={identity.id}")
+        logger.info(f"Login successful for user_id={identity.id}, token_version={token_version}")
         return ResponseSuccessSchema(
             success=True,
             message="Login successful",
@@ -122,6 +126,7 @@ class AuthUseCase:
         """
         Validate refresh token, rotate session, return new token pair.
         Implements refresh token rotation (old token is NOT reused).
+        Preserves user_agent and ip_address from the original session.
         """
         logger.add_inside_method("refresh")
 
@@ -130,6 +135,10 @@ class AuthUseCase:
         if not session:
             logger.warning("Refresh token not found or expired")
             raise TokenInvalid()
+
+        # Preserve original session metadata for the new session
+        original_user_agent = session.user_agent
+        original_ip_address = session.ip_address
 
         # Fetch user identity
         identity = self._user_repo.get_by_id(session.user_id)
@@ -142,24 +151,27 @@ class AuthUseCase:
         # Revoke old session (rotation — token used only once)
         self._session_repo.revoke_session(session.uuid)
 
-        # Issue new tokens
+        # Issue new tokens with current token_version
+        token_version = self._user_repo.get_token_version(identity.id)
         payload = AccessTokenPayload(
             user_id=identity.id,
             email=identity.email,
             uuid=identity.uuid,
         )
-        access_token, expires_in = JWTService.create_access_token(payload)
+        access_token, expires_in = JWTService.create_access_token(
+            payload, token_version=token_version,
+        )
         new_refresh_token = str(uuid_lib.uuid4())
 
-        # New session with new refresh token
+        # New session — preserve original metadata
         self._session_repo.create_session(
             user_id=identity.id,
             refresh_token=new_refresh_token,
-            user_agent=None,
-            ip_address=None,
+            user_agent=original_user_agent,
+            ip_address=original_ip_address,
         )
 
-        logger.info(f"Token refreshed for user_id={identity.id}")
+        logger.info(f"Token refreshed for user_id={identity.id}, token_version={token_version}")
         return ResponseSuccessSchema(
             success=True,
             message="Token refreshed",
@@ -185,14 +197,28 @@ class AuthUseCase:
         )
 
     def logout_all(self, user_id: int) -> ResponseSuccessSchema:
-        """Revoke ALL sessions for a user."""
+        """
+        Revoke ALL sessions for a user AND increment token_version.
+
+        This immediately invalidates ALL active access tokens for this user,
+        regardless of their expiration time.
+        """
         logger.add_inside_method("logout_all")
+
+        # Revoke all sessions
         count = self._session_repo.revoke_all_user_sessions(user_id)
-        logger.info(f"Revoked {count} sessions for user_id={user_id}")
+
+        # Increment token_version — all existing JWTs become invalid instantly
+        new_version = self._user_repo.increment_token_version(user_id)
+
+        logger.info(
+            f"Revoked {count} sessions and incremented token_version "
+            f"to {new_version} for user_id={user_id}"
+        )
         return ResponseSuccessSchema(
             success=True,
             message=f"All sessions terminated ({count} revoked)",
-            data={"revoked_count": count},
+            data={"revoked_count": count, "token_version": new_version},
         )
 
     # ── Me ───────────────────────────────────────────────────────────────

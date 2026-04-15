@@ -1,8 +1,10 @@
 """
 JWT service — creates and validates access tokens.
 
-SECRET and JWT config come from environment.
-Access token TTL: 15 minutes (900 seconds).
+Security requirements:
+  - JWT_ACCESS_SECRET must be set in environment (no fallback, fails at boot)
+  - JWT_REFRESH_SECRET must be set in environment (no fallback, fails at boot)
+  - Access token TTL: 15 minutes (900 seconds)
 """
 import os
 import jwt
@@ -13,15 +15,31 @@ from library.dddpy.auth.domain.auth_token import AccessTokenPayload
 from library.dddpy.auth.domain.auth_exception import TokenInvalid
 
 
-SECRET = os.environ.get("SECRET", "dev-secret-change-in-production")
-ALGORITHM = "HS256"
+_ACCESS_SECRET = os.environ.get("JWT_ACCESS_SECRET")
+_REFRESH_SECRET = os.environ.get("JWT_REFRESH_SECRET")
+
+if not _ACCESS_SECRET:
+    raise RuntimeError(
+        "JWT_ACCESS_SECRET environment variable is required. "
+        "Set it to a cryptographically strong random string (min 32 chars)."
+    )
+if not _REFRESH_SECRET:
+    raise RuntimeError(
+        "JWT_REFRESH_SECRET environment variable is required. "
+        "Set it to a cryptographically strong random string (min 32 chars)."
+    )
+
 ACCESS_TOKEN_TTL_SECONDS = 900  # 15 minutes
+ALGORITHM = "HS256"
 
 
 class JWTService:
 
     @staticmethod
-    def create_access_token(payload: AccessTokenPayload) -> tuple[str, int]:
+    def create_access_token(
+        payload: AccessTokenPayload,
+        token_version: int,
+    ) -> tuple[str, int]:
         """
         Create a signed JWT access token.
         Returns (token, expires_in_seconds).
@@ -33,22 +51,27 @@ class JWTService:
             "sub": str(payload.user_id),
             "email": payload.email,
             "uuid": payload.uuid,
+            "token_version": token_version,
             "iat": int(now.timestamp()),
             "exp": int(exp.timestamp()),
             "type": "access",
         }
 
-        token = jwt.encode(data, SECRET, algorithm=ALGORITHM)
+        token = jwt.encode(data, _ACCESS_SECRET, algorithm=ALGORITHM)
         return token, ACCESS_TOKEN_TTL_SECONDS
 
     @staticmethod
-    def decode_access_token(token: str) -> AccessTokenPayload:
+    def decode_access_token(
+        token: str,
+    ) -> tuple[AccessTokenPayload, int]:
         """
         Decode and validate an access token.
+
+        Returns (AccessTokenPayload, token_version).
         Raises TokenInvalid on failure.
         """
         try:
-            data = jwt.decode(token, SECRET, algorithms=[ALGORITHM])
+            data = jwt.decode(token, _ACCESS_SECRET, algorithms=[ALGORITHM])
         except jwt.ExpiredSignatureError:
             raise TokenInvalid()
         except jwt.InvalidTokenError:
@@ -57,10 +80,13 @@ class JWTService:
         if data.get("type") != "access":
             raise TokenInvalid()
 
-        return AccessTokenPayload(
-            user_id=int(data["sub"]),
-            email=data["email"],
-            uuid=data["uuid"],
+        return (
+            AccessTokenPayload(
+                user_id=int(data["sub"]),
+                email=data["email"],
+                uuid=data["uuid"],
+            ),
+            data.get("token_version", 0),
         )
 
     @staticmethod

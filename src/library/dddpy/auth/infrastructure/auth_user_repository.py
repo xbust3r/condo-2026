@@ -171,3 +171,31 @@ class AuthUserRepository:
                 return False
             from library.dddpy.shared.utils.password import password
             return password.verify_password(plain_password, row.password_hash)
+
+    def get_token_version(self, user_id: int) -> int:
+        """Fetch current token_version for a user. Default 0 if column missing."""
+        with session_scope() as session:
+            row = session.execute(
+                text("SELECT token_version FROM users WHERE id = :user_id"),
+                {"user_id": user_id},
+            ).fetchone()
+            return row.token_version if row and row.token_version is not None else 0
+
+    def increment_token_version(self, user_id: int) -> int:
+        """
+        Increment token_version and return the new value.
+        Call this on logout-all, password reset, account suspension/lock.
+        """
+        with session_scope() as session:
+            session.execute(
+                text("UPDATE users SET token_version = token_version + 1 WHERE id = :user_id"),
+                {"user_id": user_id},
+            )
+            session.commit()
+            row = session.execute(
+                text("SELECT token_version FROM users WHERE id = :user_id"),
+                {"user_id": user_id},
+            ).fetchone()
+            new_version = row.token_version if row else 0
+            logger.info(f"Incremented token_version to {new_version} for user_id={user_id}")
+            return new_version
