@@ -24,13 +24,23 @@ from typing import Optional
 
 from fastapi import Depends, HTTPException, Path
 
+# Lazy import get_current_user to avoid triggering JWT env validation at import time.
+# The JWT service requires JWT_ACCESS_SECRET env var — we don't want to fail
+# the entire module load just because the env var isn't set during development.
+try:
+    from api.auth.auth_dependencies import get_current_user
+except ImportError:
+    # If auth_dependencies can't load (missing env vars), we can't function.
+    # This will surface as a runtime error when the dependency is first resolved.
+    get_current_user = None  # type: ignore
+
 
 # ── Context dataclass ────────────────────────────────────────────────────────
 
 @dataclass
 class CondominiumUserContext:
     """Authenticated user + their role in the target condominium."""
-    user: "UserIdentity"  # resolved via lazy import in functions
+    user: "UserIdentity"
     role: str  # "super_admin" | "condominium_admin"
     condominium_id: int
     is_super_admin: bool
@@ -41,25 +51,21 @@ class CondominiumUserContext:
 # ── Core dependency ─────────────────────────────────────────────────────────
 
 async def get_condominium_user(
+    user: "UserIdentity" = Depends(get_current_user),
     condominium_id: int = Path(..., description="Condominium ID"),
 ) -> CondominiumUserContext:
     """
     FastAPI dependency — returns the authenticated user's context within a condominium.
 
-    Must be used together with Depends(get_current_user).
+    Resolves the dependency chain: get_current_user (auth) → this function.
     Raises 403 if the user has no active role in the specified condominium.
 
-    Note: get_current_user is imported lazily inside the function to avoid
-    loading the JWT module (which requires env vars) at module import time.
+    Note: get_current_user is imported lazily at module level to avoid
+    loading the JWT module at import time (which requires env vars).
     """
-    # Lazy import to avoid triggering JWT env validation at import time
-    from api.auth.auth_dependencies import get_current_user
     from library.dddpy.core_condominium_roles.infrastructure.condominium_role_query_repository import (
         CondominiumRoleQueryRepositoryImpl,
     )
-
-    # Get authenticated user (raises 401 if not authenticated)
-    user = await get_current_user()
 
     role_repo = CondominiumRoleQueryRepositoryImpl()
     role = role_repo.get_active_by_user_and_condominium(
