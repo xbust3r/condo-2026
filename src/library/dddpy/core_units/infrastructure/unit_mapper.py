@@ -26,6 +26,7 @@ class UnitMapper:
             floor_label=db_unit.floor_label,
             occupancy_status=db_unit.occupancy_status,
             sort_order=db_unit.sort_order,
+            condominium_coefficient=db_unit.condominium_coefficient,
             status=db_unit.status,
             created_at=db_unit.created_at,
             updated_at=db_unit.updated_at,
@@ -54,4 +55,5 @@ class UnitMapper:
             created_at=entity.created_at,
             updated_at=entity.updated_at,
             deleted_at=entity.deleted_at,
+            condominium_coefficient=entity.condominium_coefficient,
         )

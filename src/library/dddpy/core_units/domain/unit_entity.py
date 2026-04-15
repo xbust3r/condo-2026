@@ -29,6 +29,7 @@ class UnitEntity:
         floor_number: Optional[int] = None,
         floor_label: Optional[str] = None,
         occupancy_status: str = "vacant",
+        condominium_coefficient: Optional[Decimal] = None,
         sort_order: int = 0,
         status: int = 1,
         created_at: Optional[datetime] = None,
@@ -48,6 +49,7 @@ class UnitEntity:
         self.floor_number = floor_number
         self.floor_label = floor_label
         self.occupancy_status = occupancy_status
+        self.condominium_coefficient = condominium_coefficient
         self.sort_order = sort_order
         self.status = status
         self.created_at = created_at
@@ -60,6 +62,8 @@ class UnitEntity:
             raise ValueError("private_area must be >= 0")
         if self.coefficient is not None and (self.coefficient < 0 or self.coefficient > 100):
             raise ValueError("coefficient must be between 0 and 100")
+        if self.condominium_coefficient is not None and (self.condominium_coefficient < 0 or self.condominium_coefficient > 100):
+            raise ValueError("condominium_coefficient must be between 0 and 100")
         if self.sort_order < 0:
             raise ValueError("sort_order must be >= 0")
         if self.occupancy_status not in self.VALID_OCCUPANCY_STATUSES:
@@ -82,6 +86,7 @@ class UnitEntity:
             "floor_number": self.floor_number,
             "floor_label": self.floor_label,
             "occupancy_status": self.occupancy_status,
+            "condominium_coefficient": float(self.condominium_coefficient) if self.condominium_coefficient else None,
             "sort_order": self.sort_order,
             "status": self.status,
             "created_at": self.created_at.isoformat() if self.created_at else None,

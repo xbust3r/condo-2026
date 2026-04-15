@@ -19,6 +19,7 @@ class DBUnits(Base):
     floor_label = Column(String(30), nullable=True)
     occupancy_status = Column(String(30), nullable=False, server_default='vacant')
     sort_order = Column(Integer, nullable=False, server_default='0')
+    condominium_coefficient = Column(DECIMAL(9, 6), nullable=True)
     status = Column(Integer, nullable=False, server_default='1')
     created_at = Column(DateTime, nullable=False, server_default=func.now())
     updated_at = Column(DateTime, nullable=False, server_default=func.now(), onupdate=func.now())

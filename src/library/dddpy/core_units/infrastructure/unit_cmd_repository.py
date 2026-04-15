@@ -44,6 +44,7 @@ class UnitCmdRepositoryImpl(UnitCmdRepository):
                     floor_label=data.floor_label,
                     occupancy_status=data.occupancy_status,
                     sort_order=data.sort_order,
+                    condominium_coefficient=data.condominium_coefficient,
                 )
                 session.add(db_unit)
                 session.flush()
@@ -98,6 +99,8 @@ class UnitCmdRepositoryImpl(UnitCmdRepository):
                     db_unit.sort_order = data.sort_order
                 if data.status is not None:
                     db_unit.status = data.status
+                if data.condominium_coefficient is not None:
+                    db_unit.condominium_coefficient = data.condominium_coefficient
 
                 session.flush()
                 session.refresh(db_unit)

@@ -18,6 +18,7 @@ class CreateUnitData:
     floor_label: Optional[str] = None
     occupancy_status: str = "vacant"
     sort_order: int = 0
+    condominium_coefficient: Optional[Decimal] = None
 
 
 @dataclass(frozen=True)
@@ -35,3 +36,4 @@ class UpdateUnitData:
     occupancy_status: Optional[str] = None
     sort_order: Optional[int] = None
     status: Optional[int] = None
+    condominium_coefficient: Optional[Decimal] = None

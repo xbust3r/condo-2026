@@ -44,6 +44,10 @@ class CreateUnitSchema(BaseModel):
         description="Occupancy status: vacant|occupied|reserved|maintenance|blocked",
     )
     sort_order: int = Field(0, ge=0, description="Visual ordering within building")
+    condominium_coefficient: Optional[float] = Field(
+        None, ge=0, le=100,
+        description="Condominium participation coefficient 0-100 — for maintenance fee calculation",
+    )
 
 
 class UpdateUnitSchema(BaseModel):
@@ -70,3 +74,7 @@ class UpdateUnitSchema(BaseModel):
         return value
     sort_order: Optional[int] = Field(None, ge=0)
     status: Optional[int] = Field(None, ge=0)
+    condominium_coefficient: Optional[float] = Field(
+        None, ge=0, le=100,
+        description="Condominium participation coefficient 0-100",
+    )

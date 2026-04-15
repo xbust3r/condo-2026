@@ -93,6 +93,7 @@ class UnitCmdUseCase:
             floor_label=schema.floor_label,
             occupancy_status=schema.occupancy_status,
             sort_order=schema.sort_order,
+            condominium_coefficient=Decimal(str(schema.condominium_coefficient)) if schema.condominium_coefficient is not None else None,
         )
         return self.repository.create(data)
 
@@ -123,6 +124,7 @@ class UnitCmdUseCase:
             occupancy_status=schema.occupancy_status,
             sort_order=schema.sort_order,
             status=schema.status,
+            condominium_coefficient=Decimal(str(schema.condominium_coefficient)) if schema.condominium_coefficient is not None else None,
         )
         return self.repository.update(id, data)
 
