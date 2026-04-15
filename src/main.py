@@ -73,6 +73,7 @@ from api.condominium_roles.routes_condominium_roles import condominium_role_rout
 from api.auth.routes_auth import auth_routes
 from api.users.routes_users import user_routes
 from api.user_profiles.routes_user_profiles import user_profile_routes
+from api.contexts.routes_contexts import context_routes
 from api.example.routes_example import example_routes
 
 
@@ -130,4 +131,5 @@ app.include_router(condominium_role_routes)
 app.include_router(auth_routes)
 app.include_router(user_routes)
 app.include_router(user_profile_routes)
+app.include_router(context_routes)
 app.include_router(example_routes)
