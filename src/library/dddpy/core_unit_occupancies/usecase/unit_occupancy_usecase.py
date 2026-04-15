@@ -10,6 +10,9 @@ from library.dddpy.core_unit_occupancies.usecase.unit_occupancy_cmd_schema impor
     CreateUnitOccupancySchema,
     UpdateUnitOccupancySchema,
 )
+from library.dddpy.core_unit_occupancies.domain.unit_occupancy_entity import (
+    UnitOccupancyEntity,
+)
 from library.dddpy.core_unit_occupancies.domain.unit_occupancy_exception import (
     UnitOccupancyNotFound,
     DuplicateOccupancyRecord,
