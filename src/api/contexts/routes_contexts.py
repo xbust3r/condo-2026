@@ -10,7 +10,7 @@
 from fastapi import APIRouter, Depends
 
 from api.contexts.context_usecase import ContextUseCase
-from library.dddpy.auth.auth_dependencies import get_current_user
+from api.auth.auth_dependencies import get_current_user
 from library.dddpy.auth.domain.user_identity import UserIdentity
 from library.dddpy.shared.decorators.api_handler import api_handler
 
