@@ -65,8 +65,8 @@ class AuthUseCase:
         # Step 2: Verify password (constant-time regardless of user existence)
         if identity is None:
             # Constant-time dummy operation to prevent user enum via timing
-            from library.dddpy.shared.utils.password import password
-            password.bcrypt_password("__dummy__")
+            import hashlib
+            hashlib.sha256(b"__constant_time_dummy__").hexdigest()
             raise InvalidCredentials()
 
         # Step 3: Check account status
