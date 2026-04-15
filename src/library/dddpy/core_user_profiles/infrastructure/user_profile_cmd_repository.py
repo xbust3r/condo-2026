@@ -74,30 +74,45 @@ class UserProfileCmdRepositoryImpl(UserProfileCmdRepository):
         phone: Optional[str] = None,
         birth_date: Optional[date] = None,
     ) -> None:
-        """Update a user's profile."""
+        """
+        Update a user's profile — only sets fields that are explicitly provided (not None).
+        Fields passed as None are preserved as-is in the database.
+        """
+        set_clauses = []
+        params = {"user_id": user_id}
+
+        if first_name is not None:
+            set_clauses.append("first_name = :first_name")
+            params["first_name"] = first_name
+        if last_name is not None:
+            set_clauses.append("last_name = :last_name")
+            params["last_name"] = last_name
+        if document_type is not None:
+            set_clauses.append("document_type = :document_type")
+            params["document_type"] = document_type
+        if document_number is not None:
+            set_clauses.append("document_number = :document_number")
+            params["document_number"] = document_number
+        if phone is not None:
+            set_clauses.append("phone = :phone")
+            params["phone"] = phone
+        if birth_date is not None:
+            set_clauses.append("birth_date = :birth_date")
+            params["birth_date"] = birth_date
+
+        if not set_clauses:
+            logger.info(f"No fields to update for user_id={user_id}")
+            return
+
+        set_clauses.append("updated_at = NOW()")
+        sql = text(f"""
+            UPDATE user_profiles
+            SET {', '.join(set_clauses)}
+            WHERE user_id = :user_id
+              AND deleted_at IS NULL
+        """)
+
         with session_scope() as session:
-            session.execute(
-                text("""
-                    UPDATE user_profiles
-                    SET first_name = :first_name,
-                        last_name = :last_name,
-                        document_type = :document_type,
-                        document_number = :document_number,
-                        phone = :phone,
-                        birth_date = :birth_date,
-                        updated_at = NOW()
-                    WHERE user_id = :user_id
-                      AND deleted_at IS NULL
-                """),
-                {
-                    "user_id": user_id,
-                    "first_name": first_name,
-                    "last_name": last_name,
-                    "document_type": document_type,
-                    "document_number": document_number,
-                    "phone": phone,
-                    "birth_date": birth_date,
-                },
-            )
+            session.execute(sql, params)
             session.commit()
             logger.info(f"Updated profile for user_id={user_id}")
