@@ -5,7 +5,7 @@ from pydantic import BaseModel, Field, EmailStr, validator
 from typing import Optional
 
 
-_VALID_STATUSES = {"active", "suspended", "inactive", "locked"}
+_VALID_STATUSES = {"active", "pending", "suspended", "inactive", "locked"}
 
 
 class CreateUserSchema(BaseModel):
@@ -16,7 +16,7 @@ class CreateUserSchema(BaseModel):
 
 class UpdateUserSchema(BaseModel):
     email: Optional[EmailStr] = Field(None, description="New email address")
-    status: Optional[str] = Field(None, description="New status: active|suspended|inactive")
+    status: Optional[str] = Field(None, description="New status: active|pending|suspended|inactive")
 
     @validator("status")
     def validate_status(cls, value):

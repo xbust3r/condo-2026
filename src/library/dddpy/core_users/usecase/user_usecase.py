@@ -3,7 +3,7 @@ User use case — orchestrates all user operations.
 
 Coordinates UserCmdRepositoryImpl (write) + UserQueryRepositoryImpl (read).
 """
-from typing import Optional, List, Tuple
+from typing import Optional
 
 from library.dddpy.core_users.domain.user_entity import UserEntity
 from library.dddpy.core_users.domain.user_exception import (
@@ -22,6 +22,8 @@ from library.dddpy.shared.utils.password import password
 
 
 logger = Logger("UserUseCase")
+
+_VALID_STATUSES = {"active", "pending", "suspended", "inactive", "locked"}
 
 
 class UserUseCase:
@@ -117,13 +119,19 @@ class UserUseCase:
         if not user:
             raise UserNotFound(f"User with id={user_id} not found")
 
-        email = schema.email if schema.email is not None else user.email
-        status = schema.status if schema.status is not None else user.status
+        new_email = schema.email if schema.email is not None else user.email
+        new_status = schema.status if schema.status is not None else user.status
 
-        if status not in {"active", "suspended", "inactive", "locked"}:
-            raise UserInvalidStatus(f"Invalid status: {status}")
+        if new_status not in _VALID_STATUSES:
+            raise UserInvalidStatus(f"Invalid status: {new_status}")
 
-        self._cmd.update(user_id=user_id, email=email, status=status)
+        # Check for duplicate email (excluding current user)
+        if new_email != user.email:
+            existing = self._query.get_by_email(new_email)
+            if existing and existing.id != user_id:
+                raise UserAlreadyExists(f"Email {new_email} is already in use by another user")
+
+        self._cmd.update(user_id=user_id, email=new_email, status=new_status)
 
         updated_user = self._query.get_by_id(user_id)
         logger.info(f"User updated: id={user_id}")
@@ -137,18 +145,25 @@ class UserUseCase:
     # ── Delete / Restore ─────────────────────────────────────────────────
 
     def soft_delete(self, user_id: int) -> ResponseSuccessSchema:
-        """Soft delete a user."""
+        """
+        Soft delete a user AND increment token_version.
+        This immediately invalidates all active JWTs for this user.
+        """
         user = self._query.get_by_id(user_id, include_deleted=False)
         if not user:
             raise UserNotFound(f"User with id={user_id} not found")
 
         self._cmd.soft_delete(user_id)
-        logger.info(f"User soft deleted: id={user_id}")
+        new_version = self._cmd.increment_token_version(user_id)
+
+        logger.info(
+            f"User soft deleted: id={user_id}, token_version incremented to {new_version}"
+        )
 
         return ResponseSuccessSchema(
             success=True,
             message=UserSuccessMessage.SOFT_DELETED,
-            data={"id": user_id},
+            data={"id": user_id, "token_version": new_version},
         )
 
     def restore(self, user_id: int) -> ResponseSuccessSchema:

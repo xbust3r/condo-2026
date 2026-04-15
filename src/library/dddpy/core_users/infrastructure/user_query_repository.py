@@ -45,28 +45,7 @@ class UserQueryRepositoryImpl(UserQueryRepository):
             if not row:
                 return None
 
-            profile_fields = (
-                row.profile_uuid, row.first_name, row.last_name,
-                row.document_type, row.document_number, row.phone,
-            )
-
-            entity = UserMapper.from_row_brief(row)
-            if any(profile_fields):
-                # Build a pseudo-row for profile fields
-                class _ProfileRow:
-                    pass
-                pr = _ProfileRow()
-                pr.uuid = row.profile_uuid
-                pr.first_name = row.first_name
-                pr.last_name = row.last_name
-                pr.document_type = row.document_type
-                pr.document_number = row.document_number
-                pr.phone = row.phone
-                entity = UserMapper.from_row(row, pr)
-            else:
-                entity = UserMapper.from_row_brief(row)
-
-            return entity
+            return UserMapper.from_row_with_profile(row)
 
     def get_by_uuid(
         self, uuid: str, include_deleted: bool = False,
@@ -96,20 +75,10 @@ class UserQueryRepositoryImpl(UserQueryRepository):
             if not row:
                 return None
 
-            class _ProfileRow:
-                pass
-            pr = _ProfileRow()
-            pr.uuid = row.profile_uuid
-            pr.first_name = row.first_name
-            pr.last_name = row.last_name
-            pr.document_type = row.document_type
-            pr.document_number = row.document_number
-            pr.phone = row.phone
-
-            return UserMapper.from_row(row, pr)
+            return UserMapper.from_row_with_profile(row)
 
     def get_by_email(self, email: str) -> Optional[UserEntity]:
-        """Get a user by email address (only active users)."""
+        """Get a user by email address (only active, non-deleted users)."""
         with session_scope() as session:
             row = session.execute(
                 text("""

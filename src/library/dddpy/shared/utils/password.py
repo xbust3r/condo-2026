@@ -22,24 +22,25 @@ class password():
         return stats.strength()
     
     @staticmethod
-    def bcrypt_password(password):
-        salt=bcrypt.gensalt(10)
-        new_password=bcrypt.hashpw(password.encode('utf-8'), salt)
-        return new_password
+    def bcrypt_password(password: str) -> str:
+        """Hash a password and return the hash as a string."""
+        salt = bcrypt.gensalt(10)
+        hashed = bcrypt.hashpw(password.encode('utf-8'), salt)
+        return hashed.decode('utf-8')
 
     @staticmethod
-    def generate(password):
-        salt=bcrypt.gensalt()
-        hashed=bcrypt.hashpw(password.encode(), salt)
-        return hashed
-    
+    def generate(password: str) -> str:
+        """Hash a password using default salt and return as string."""
+        salt = bcrypt.gensalt()
+        hashed = bcrypt.hashpw(password.encode('utf-8'), salt)
+        return hashed.decode('utf-8')
+
     @staticmethod
     def verify_password(plain_password: str, hashed_password: str) -> bool:
         """
         Verify if the provided plain text password matches the stored hashed password.
-        
-        :param plain_password: The plain text password to verify
-        :param hashed_password: The stored hashed password
-        :return: True if the passwords match, False otherwise
+        Normalizes hashed_password to bytes before comparison.
         """
-        return bcrypt.checkpw(plain_password.encode('utf-8'), hashed_password.encode('utf-8'))
+        if isinstance(hashed_password, str):
+            hashed_password = hashed_password.encode('utf-8')
+        return bcrypt.checkpw(plain_password.encode('utf-8'), hashed_password)
