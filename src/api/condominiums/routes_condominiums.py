@@ -11,11 +11,16 @@
 # =============================================================================
 
 from fastapi import APIRouter, Query
-from typing import Optional
+from typing import Optional, List
 
 from library.dddpy.core_condominiums.usecase.condominium_usecase import CondominiumUseCase
 from library.dddpy.core_condominiums.usecase.condominium_cmd_schema import CreateCondominiumSchema, UpdateCondominiumSchema
+from library.dddpy.core_condominium_roles.infrastructure.condominium_role_query_repository import CondominiumRoleQueryRepositoryImpl
+from library.dddpy.core_users.infrastructure.user_query_repository import UserQueryRepositoryImpl
+from library.dddpy.core_user_profiles.infrastructure.user_profile_query_repository import UserProfileQueryRepositoryImpl
+from library.dddpy.core_condominiums.domain.condominium_exception import CondominiumNotFound
 from library.dddpy.shared.decorators.api_handler import api_handler
+from library.dddpy.shared.schemas.response_schema import ResponseSuccessSchema
 
 
 PREFIX = "/condominiums"
@@ -71,6 +76,53 @@ def get_condominium_by_uuid(uuid: str) -> dict:
 def get_condominium_by_code(code: str) -> dict:
     response = CondominiumUseCase().get_by_code(code)
     return response.dict()
+
+
+@condominium_routes.get("/{id}/admins")
+@api_handler
+def get_condominium_admins(id: int) -> dict:
+    """
+    Get all users with roles in a condominium, including their profile and role details.
+    Returns active roles only.
+    """
+    # Verify condominium exists
+    condo = CondominiumUseCase().get_by_id(id)
+    if not condo.data:
+        raise CondominiumNotFound()
+
+    role_repo = CondominiumRoleQueryRepositoryImpl()
+    user_repo = UserQueryRepositoryImpl()
+    profile_repo = UserProfileQueryRepositoryImpl()
+
+    roles, _ = role_repo.list_by_condominium(
+        condominium_id=id,
+        status="active",
+        include_deleted=False,
+        limit=500,
+    )
+
+    # Group by user
+    users_map: dict = {}
+    for role in roles:
+        if role.user_id not in users_map:
+            user = user_repo.get_by_id(role.user_id, include_deleted=False)
+            profile = profile_repo.get_by_user_id(role.user_id)
+            users_map[role.user_id] = {
+                "user": user.to_dict() if user else None,
+                "profile": profile.to_dict() if profile else None,
+                "roles": [],
+            }
+        users_map[role.user_id]["roles"].append(role.to_dict())
+
+    return ResponseSuccessSchema(
+        success=True,
+        message="Condominium admins retrieved",
+        data={
+            "condominium": condo.data,
+            "admins": list(users_map.values()),
+            "count": len(users_map),
+        },
+    ).dict()
 
 
 @condominium_routes.post("")
