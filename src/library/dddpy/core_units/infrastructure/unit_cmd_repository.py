@@ -36,7 +36,7 @@ class UnitCmdRepositoryImpl(UnitCmdRepository):
                     unit_type_id=data.unit_type_id,
                     unit_number=data.unit_number,
                     code=data.code,
-                    name=data.name,
+                    name=data.name if data.name is not None else data.unit_number,
                     description=data.description,
                     private_area=data.private_area,
                     coefficient=data.coefficient,
@@ -52,17 +52,29 @@ class UnitCmdRepositoryImpl(UnitCmdRepository):
                 logger.info(f"Unit created with id={db_unit.id}")
                 return UnitMapper.to_domain(db_unit)
         except IntegrityError as e:
+            mysql_code = e.orig.args[0] if hasattr(e, 'orig') and hasattr(e.orig, 'args') else None
             error_str = str(e).lower()
-            if "unit_number" in error_str or "ux_core_units_building_unit_number" in error_str:
-                logger.warning(
-                    f"Duplicate unit_number={data.unit_number} in building_id={data.building_id}"
-                )
-                raise RepeatedUnitUnitNumber()
-            if "code" in error_str or "ux_core_units_building_code" in error_str:
-                logger.warning(
-                    f"Duplicate code={data.code} in building_id={data.building_id}"
-                )
-                raise RepeatedUnitCode()
+            # 1062 = duplicate key (including unique constraint violations)
+            if mysql_code == 1062:
+                if 'ux_core_units_building_unit_number' in error_str or (
+                    'unit_number' in error_str and 'ux_core_units_building_code' not in error_str
+                ):
+                    logger.warning(
+                        f"Duplicate unit_number={data.unit_number} in building_id={data.building_id}"
+                    )
+                    raise RepeatedUnitUnitNumber()
+                if 'ux_core_units_building_code' in error_str or (
+                    'code' in error_str and 'building_id' in error_str
+                ):
+                    logger.warning(
+                        f"Duplicate code={data.code} in building_id={data.building_id}"
+                    )
+                    raise RepeatedUnitCode()
+                # Fall-through for other 1062 (let it bubble)
+            # 1048 = column cannot be null (NOT NULL constraint violation)
+            if mysql_code == 1048:
+                logger.error(f"NOT NULL constraint violation: {e}")
+                raise
             logger.error(f"Unexpected IntegrityError creating unit: {e}")
             raise
 
@@ -107,14 +119,20 @@ class UnitCmdRepositoryImpl(UnitCmdRepository):
                 logger.info(f"Unit updated id={id}")
                 return UnitMapper.to_domain(db_unit)
         except IntegrityError as e:
+            mysql_code = e.orig.args[0] if hasattr(e, 'orig') and hasattr(e.orig, 'args') else None
             error_str = str(e).lower()
-            if "unit_number" in error_str or "ux_core_units_building_unit_number" in error_str:
-                logger.warning(f"IntegrityError: duplicate unit_number during update id={id}")
-                raise RepeatedUnitUnitNumber()
-            if "code" in error_str or "ux_core_units_building_code" in error_str:
-                logger.warning(f"IntegrityError: duplicate code during update id={id}")
-                raise RepeatedUnitCode()
-            logger.error(f"Unexpected IntegrityError updating unit id={id}: {e}")
+            if mysql_code == 1062:
+                if 'ux_core_units_building_unit_number' in error_str or (
+                    'unit_number' in error_str and 'ux_core_units_building_code' not in error_str
+                ):
+                    logger.warning(f"IntegrityError: duplicate unit_number during update id={id}")
+                    raise RepeatedUnitUnitNumber()
+                if 'ux_core_units_building_code' in error_str or (
+                    'code' in error_str and 'building_id' in error_str
+                ):
+                    logger.warning(f"IntegrityError: duplicate code during update id={id}")
+                    raise RepeatedUnitCode()
+            logger.error(f"IntegrityError updating unit id={id}: {e}")
             raise
 
     def soft_delete(self, id: int) -> bool:

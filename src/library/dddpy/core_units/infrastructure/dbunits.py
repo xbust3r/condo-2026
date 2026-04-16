@@ -9,8 +9,8 @@ class DBUnits(Base):
     uuid = Column(String(36), nullable=False, unique=True)
     building_id = Column(BigInteger, nullable=False, index=True)
     unit_type_id = Column(BigInteger, nullable=True, index=True)
-    unit_number = Column(String(50), nullable=True)  # NOT NULL enforced at app layer
-    code = Column(String(50), nullable=True)
+    unit_number = Column(String(50), nullable=True)  # NOT NULL enforced at app layer (code fallback)
+    code = Column(String(50), nullable=False)  # NOT NULL enforced at DB level
     name = Column(String(255), nullable=True)
     description = Column(Text, nullable=True)
     private_area = Column(DECIMAL(12, 4), nullable=True)
