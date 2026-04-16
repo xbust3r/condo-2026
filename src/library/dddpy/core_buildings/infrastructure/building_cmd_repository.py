@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, Dict, Any
 from datetime import datetime
 import uuid as uuid_lib
 from sqlalchemy.exc import IntegrityError
@@ -124,3 +124,24 @@ class BuildingCmdRepositoryImpl(BuildingCmdRepository):
             session.flush()
             logger.info(f"Building hard deleted id={id}")
             return True
+
+    def update_computed_fields(self, id: int, stats: Dict[str, Any]) -> Optional[BuildingEntity]:
+        """
+        Update computed stats for a building from unit aggregation.
+        Sets built_area, coefficient, floors_count, basements_count, units_planned.
+        """
+        logger.info(f"Updating computed fields for building id={id}: {stats}")
+        with session_scope() as session:
+            db_building = session.query(DBBuildings).filter(DBBuildings.id == id).first()
+            if not db_building:
+                logger.warning(f"Building not found for computed update id={id}")
+                return None
+            db_building.built_area = stats.get("built_area")
+            db_building.coefficient = stats.get("coefficient_sum")
+            db_building.floors_count = stats.get("floors_count", 0)
+            db_building.basements_count = stats.get("basements_count", 0)
+            db_building.units_planned = stats.get("units_count", 0)
+            session.flush()
+            session.refresh(db_building)
+            logger.info(f"Computed fields updated for building id={id}")
+            return BuildingMapper.to_domain(db_building)

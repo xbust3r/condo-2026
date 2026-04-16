@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, Dict, Any
 from decimal import Decimal
 
 from library.dddpy.core_buildings.usecase.building_cmd_schema import CreateBuildingSchema, UpdateBuildingSchema
@@ -110,3 +110,7 @@ class BuildingCmdUseCase:
     def hard_delete(self, id: int) -> bool:
         logger.info(f"Delegating building hard delete for id={id}")
         return self.repository.hard_delete(id)
+
+    def update_computed_fields(self, id: int, stats: Dict[str, Any]) -> Optional[BuildingEntity]:
+        logger.info(f"Delegating computed fields update for building id={id}")
+        return self.repository.update_computed_fields(id, stats)

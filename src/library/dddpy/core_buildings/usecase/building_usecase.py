@@ -318,6 +318,39 @@ class BuildingUseCase:
             },
         )
 
+    # ── Recalculate computed fields ───────────────────────────────────────
+
+    def recalculate(self, id: int):
+        """
+        Recalculate and persist computed unit stats into the building record.
+        Updates: built_area, coefficient, floors_count, basements_count, units_planned.
+        """
+        logger.add_inside_method("recalculate")
+        building = self.building_query_usecase.get_by_id(id)
+        if not building:
+            logger.warning(f"Building not found for recalculate id={id}")
+            raise BuildingNotFound()
+
+        from library.dddpy.core_units.infrastructure.unit_query_repository import (
+            UnitQueryRepositoryImpl,
+        )
+        unit_repo = UnitQueryRepositoryImpl()
+        stats = unit_repo.get_stats_per_building([id])
+        building_stats = stats.get(id, {})
+
+        updated = self.building_cmd_usecase.update_computed_fields(id, building_stats)
+        if not updated:
+            raise BuildingNotFound()
+
+        building_dict = updated.to_dict()
+        _enrich_building_with_type(building_dict)
+        _enrich_building_with_unit_stats(building_dict, stats)
+        return ResponseSuccessSchema(
+            success=True,
+            message="Building stats recalculated and persisted",
+            data=building_dict,
+        )
+
     # ── Hard delete ────────────────────────────────────────────────────────
 
     def hard_delete(self, id: int):

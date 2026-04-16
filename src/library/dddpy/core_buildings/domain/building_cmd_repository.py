@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Optional
+from typing import Optional, Dict, Any
 
 from library.dddpy.core_buildings.domain.building_entity import BuildingEntity
 from library.dddpy.core_buildings.domain.building_data import CreateBuildingData, UpdateBuildingData
@@ -29,4 +29,9 @@ class BuildingCmdRepository(ABC):
     @abstractmethod
     def hard_delete(self, id: int) -> bool:
         """Physical delete. Only allowed if building has no active units."""
+        pass
+
+    @abstractmethod
+    def update_computed_fields(self, id: int, stats: Dict[str, Any]) -> Optional[BuildingEntity]:
+        """Update computed stats (built_area, coefficient, floors_count, basements_count, units_planned)."""
         pass

@@ -163,6 +163,28 @@ def list_buildings(
     ).dict()
 
 
+@building_routes.post("/{building_id}/recalculate")
+@api_handler
+def recalculate_building(
+    building_id: int,
+    user: UserIdentity = Depends(get_current_user),
+) -> dict:
+    """Recalculate and persist computed stats for a building.
+
+    Computes from all active units belonging to this building:
+      - built_area:      sum of private_area
+      - coefficient:     sum of unit coefficients (tower participation)
+      - floors_count:    count of distinct floor numbers >= 0
+      - basements_count: count of distinct floor numbers < 0
+      - units_planned:   count of active units
+
+    Requires authenticated user with an active role in the building's condominium.
+    """
+    condominium_id = _get_building_condominium_id(building_id)
+    require_condominium_role(user, condominium_id)
+    return BuildingUseCase().recalculate(building_id).dict()
+
+
 @building_routes.get("/condominium/{condominium_id}")
 @api_handler
 def list_buildings_by_condominium(
