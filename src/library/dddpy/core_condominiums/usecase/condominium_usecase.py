@@ -32,9 +32,14 @@ def _enrich_condominium_with_unit_stats(condo_dict: dict) -> dict:
         )
         unit_repo = UnitQueryRepositoryImpl()
         stats = unit_repo.get_condominium_stats(condo_id)
+        # registered_built_area: stored field (official catastro / land registry)
+        # total_area: computed from unit private_areas sum
+        condo_dict["registered_built_area"] = round(float(condo_dict["built_area"]), 4) if condo_dict.get("built_area") else None
         condo_dict["total_area"] = round(stats["built_area"], 4) if stats["built_area"] else None
         condo_dict["condominium_coefficient"] = round(stats["condominium_coefficient_sum"], 6) if stats["condominium_coefficient_sum"] else None
         condo_dict["total_units"] = stats["units_count"]
+        # Remove raw built_area key (replaced by registered_built_area + total_area)
+        condo_dict.pop("built_area", None)
         # Count buildings
         try:
             from library.dddpy.core_buildings.infrastructure.building_query_repository import (
