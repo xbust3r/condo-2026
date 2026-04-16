@@ -1,3 +1,10 @@
+"""
+Condominium Role UseCase — fachada que orquesta cmd + query.
+
+Incluye validaciones RBAC:
+  RBAC-01: condominium_admin = 1 por condominio (no duplicado)
+  RBAC-02: super_admin no asignable via API (solo seed DB)
+"""
 from typing import Optional
 
 from library.dddpy.core_condominium_roles.usecase.condominium_role_cmd_usecase import CondominiumRoleCmdUseCase
@@ -23,17 +30,60 @@ logger = Logger("CondominiumRoleUseCase")
 
 
 class CondominiumRoleUseCase:
+
+    SYSTEM_ROLES: set[str] = {"super_admin"}
+
     def __init__(self):
         logger.add_inside_method("__init__")
         self.role_cmd_usecase: CondominiumRoleCmdUseCase = condominium_role_cmd_usecase_factory()
         self.role_query_usecase: CondominiumRoleQueryUseCase = condominium_role_query_usecase_factory()
         logger.info("CondominiumRoleUseCase initialized")
 
+    def _check_super_admin_block(self, role: str) -> None:
+        """Raise PermissionError if attempting to assign a system role."""
+        if role in self.SYSTEM_ROLES:
+            logger.warning(f"Blocked assignment of system role: {role}")
+            raise PermissionError(
+                f"Role '{role}' is a system role and cannot be assigned via API. "
+                "Contact an administrator."
+            )
+
+    def _check_condominium_admin_unique(
+        self, condominium_id: int, role: str, exclude_id: Optional[int] = None
+    ) -> None:
+        """
+        Ensure only one active condominium_admin per condominium.
+
+        RBAC-01: condominium_admin = 1 por condominio.
+        """
+        if role != "condominium_admin":
+            return
+
+        roles, total = self.role_query_usecase.list_by_condominium(
+            condominium_id=condominium_id,
+            role="condominium_admin",
+            status="active",
+            include_deleted=False,
+        )
+        for r in roles:
+            if exclude_id is not None and r.id == exclude_id:
+                continue
+            if r.is_active():
+                raise DuplicateRoleAssignment(
+                    f"Ya existe un condominium_admin activo en condominio {condominium_id}"
+                )
+
     # ── Create ─────────────────────────────────────────────────────────────
 
     def create(self, data: CreateCondominiumRoleSchema):
         logger.add_inside_method("create")
         logger.info(f"Creating condominium role with data: {data}")
+
+        # RBAC-02: block super_admin assignment
+        self._check_super_admin_block(data.role)
+
+        # RBAC-01: block duplicate condominium_admin
+        self._check_condominium_admin_unique(data.condominium_id, data.role)
 
         existing = self.role_query_usecase.get_active_by_user_and_condominium(
             data.user_id, data.condominium_id
@@ -88,6 +138,17 @@ class CondominiumRoleUseCase:
         if not existing:
             logger.warning(f"Condominium role not found for update id={id}")
             raise CondominiumRoleNotFound()
+
+        # RBAC-02: block super_admin assignment on update
+        if data.role is not None:
+            self._check_super_admin_block(data.role)
+
+        # RBAC-01: block duplicate condominium_admin on update
+        if data.role == "condominium_admin" or existing.role == "condominium_admin":
+            target_role = data.role if data.role is not None else existing.role
+            self._check_condominium_admin_unique(
+                existing.condominium_id, target_role, exclude_id=id
+            )
 
         updated_role = self.role_cmd_usecase.update(id, data)
         if not updated_role:

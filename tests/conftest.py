@@ -16,7 +16,8 @@ _mock_session.__exit__ = MagicMock(return_value=False)
 @pytest.fixture(autouse=True)
 def mock_session_scope():
     """Auto-apply session_scope mock to all tests."""
-    with patch("library.dddpy.shared.mysql.session_manager.session_scope") as mock:
+    import library.dddpy.shared.mysql.session_manager as _sm
+    with patch.object(_sm, "session_scope") as mock:
         mock.return_value = _mock_session
         yield mock
 

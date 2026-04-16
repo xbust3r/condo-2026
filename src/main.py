@@ -70,6 +70,8 @@ from api.unit_types.routes_unit_types import unit_type_routes
 from api.unit_ownerships.routes_unit_ownerships import unit_ownership_routes
 from api.unit_occupancies.routes_unit_occupancies import unit_occupancy_routes
 from api.condominium_roles.routes_condominium_roles import condominium_role_routes
+from api.permissions.routes_permissions import permission_routes
+from api.role_permissions.routes_role_permissions import role_permission_routes
 from api.auth.routes_auth import auth_routes
 from api.users.routes_users import user_routes
 from api.user_profiles.routes_user_profiles import user_profile_routes
@@ -128,6 +130,8 @@ app.include_router(unit_type_routes)
 app.include_router(unit_ownership_routes)
 app.include_router(unit_occupancy_routes)
 app.include_router(condominium_role_routes)
+app.include_router(permission_routes)
+app.include_router(role_permission_routes)
 app.include_router(auth_routes)
 app.include_router(user_routes)
 app.include_router(user_profile_routes)

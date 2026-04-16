@@ -36,6 +36,8 @@ class CondominiumRoleCmdRepositoryImpl(CondominiumRoleCmdRepository):
                     user_id=data.user_id,
                     role=data.role,
                     status=data.status,
+                    scope=data.scope,
+                    building_id=data.building_id,
                     start_date=data.start_date,
                     end_date=data.end_date,
                 )
@@ -74,6 +76,10 @@ class CondominiumRoleCmdRepositoryImpl(CondominiumRoleCmdRepository):
                     db_role.role = data.role
                 if data.status is not None:
                     db_role.status = data.status
+                if data.scope is not None:
+                    db_role.scope = data.scope
+                if data.building_id is not None:
+                    db_role.building_id = data.building_id
                 if data.end_date is not None:
                     db_role.end_date = data.end_date
 

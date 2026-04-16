@@ -1,4 +1,10 @@
+"""
+DB Condominium Role Model — SQLAlchemy model for core_condominium_roles table.
+
+Includes scope and building_id from migration 021.
+"""
 from sqlalchemy import Column, BigInteger, String, Date, DateTime, ForeignKey, func
+
 from library.dddpy.shared.mysql.base import Base
 
 
@@ -21,6 +27,8 @@ class DBCondominiumRoles(Base):
     )
     role = Column(String(40), nullable=False, index=True)
     status = Column(String(30), nullable=False, server_default='active', index=True)
+    scope = Column(String(20), nullable=False, server_default='condominium')
+    building_id = Column(BigInteger, ForeignKey('core_buildings.id', name='fk_condominium_roles_building', ondelete='SET NULL'), nullable=True)
     start_date = Column(Date, nullable=True)
     end_date = Column(Date, nullable=True)
     created_at = Column(DateTime, nullable=False, server_default=func.now())

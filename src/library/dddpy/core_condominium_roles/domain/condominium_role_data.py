@@ -10,6 +10,8 @@ class CreateCondominiumRoleData:
     user_id: int
     role: str
     status: str = "active"
+    scope: str = "condominium"
+    building_id: Optional[int] = None
     start_date: Optional[date] = None
     end_date: Optional[date] = None
 
@@ -19,4 +21,6 @@ class UpdateCondominiumRoleData:
     """Data required to update an existing condominium role assignment."""
     role: Optional[str] = None
     status: Optional[str] = None
+    scope: Optional[str] = None
+    building_id: Optional[int] = None
     end_date: Optional[date] = None

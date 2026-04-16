@@ -7,8 +7,9 @@ class CondominiumRoleNotFound(DomainException):
 
 
 class DuplicateRoleAssignment(DomainException):
-    def __init__(self):
-        super().__init__("User already has an active role assignment for this condominium", status_code=409)
+    def __init__(self, message: str | None = None):
+        detail = message or "User already has an active role assignment for this condominium"
+        super().__init__(detail, status_code=409)
 
 
 class RoleIsSystem(DomainException):

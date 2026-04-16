@@ -1,3 +1,8 @@
+"""
+Condominium Role Entity — Dominio para core_condominium_roles.
+
+v2 — incluye scope y building_id desde migración 021.
+"""
 from datetime import datetime, date
 from typing import Optional, Dict, Any
 
@@ -5,16 +10,19 @@ from typing import Optional, Dict, Any
 class CondominiumRoleEntity:
     """Entidad de dominio para asignaciones de rol en condominios."""
 
-    VALID_ROLES = {
+    VALID_ROLES: set[str] = {
         "super_admin",
         "condominium_admin",
-        "building_manager",
+        "board_member",
+        "finance_reviewer",
         "security_staff",
         "maintenance_staff",
-        "support_staff",
+        "operations_staff",
     }
 
-    VALID_STATUSES = {"active", "inactive", "historical"}
+    VALID_SCOPES: set[str] = {"condominium", "unit", "building"}
+
+    VALID_STATUSES: set[str] = {"active", "inactive", "historical"}
 
     def __init__(
         self,
@@ -24,6 +32,8 @@ class CondominiumRoleEntity:
         user_id: int,
         role: str,
         status: str = "active",
+        scope: str = "condominium",
+        building_id: Optional[int] = None,
         start_date: Optional[date] = None,
         end_date: Optional[date] = None,
         created_at: Optional[datetime] = None,
@@ -36,6 +46,8 @@ class CondominiumRoleEntity:
         self.user_id = user_id
         self.role = role
         self.status = status
+        self.scope = scope
+        self.building_id = building_id
         self.start_date = start_date
         self.end_date = end_date
         self.created_at = created_at
@@ -47,6 +59,10 @@ class CondominiumRoleEntity:
         if self.role not in self.VALID_ROLES:
             raise ValueError(
                 f"role must be one of: {', '.join(sorted(self.VALID_ROLES))}"
+            )
+        if self.scope not in self.VALID_SCOPES:
+            raise ValueError(
+                f"scope must be one of: {', '.join(sorted(self.VALID_SCOPES))}"
             )
         if self.status not in self.VALID_STATUSES:
             raise ValueError(
@@ -64,6 +80,8 @@ class CondominiumRoleEntity:
             "user_id": self.user_id,
             "role": self.role,
             "status": self.status,
+            "scope": self.scope,
+            "building_id": self.building_id,
             "start_date": self.start_date.isoformat() if self.start_date else None,
             "end_date": self.end_date.isoformat() if self.end_date else None,
             "created_at": self.created_at.isoformat() if self.created_at else None,
