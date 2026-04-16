@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, List, Dict, Any
 
 from library.dddpy.core_buildings.usecase.building_cmd_usecase import BuildingCmdUseCase
 from library.dddpy.core_buildings.usecase.building_query_usecase import BuildingQueryUseCase
@@ -53,6 +53,36 @@ def _enrich_building_with_type(building_dict: dict) -> dict:
     return building_dict
 
 
+def _enrich_building_with_unit_stats(
+    building_dict: dict,
+    stats: Dict[int, Dict[str, Any]],
+) -> dict:
+    """
+    Attach computed unit statistics to a building dict.
+
+    Adds:
+      - built_area:            sum of unit private_areas
+      - coefficient:            sum of unit tower coefficients (sums to 1.0 per building)
+      - condominium_coefficient: sum of unit condominium coefficients
+      - units_planned:          count of active units
+      - floors_count:           count of distinct non-negative floor numbers
+      - basements_count:        count of distinct negative floor numbers
+    """
+    bid = building_dict.get("id")
+    if bid is None or bid not in stats:
+        # No units yet — leave computed fields as-is (None or 0)
+        return building_dict
+
+    s = stats[bid]
+    building_dict["built_area"] = round(s["built_area"], 4) if s["built_area"] else None
+    building_dict["coefficient"] = round(s["coefficient_sum"], 6) if s["coefficient_sum"] else None
+    building_dict["condominium_coefficient"] = round(s["condominium_coefficient_sum"], 6) if s["condominium_coefficient_sum"] else None
+    building_dict["units_planned"] = s["units_count"]
+    building_dict["floors_count"] = s["floors_count"]
+    building_dict["basements_count"] = s["basements_count"]
+    return building_dict
+
+
 class BuildingUseCase:
     def __init__(self):
         logger.add_inside_method("__init__")
@@ -95,6 +125,13 @@ class BuildingUseCase:
             raise BuildingNotFound()
         building_dict = building.to_dict()
         _enrich_building_with_type(building_dict)
+        # Enrich with computed unit stats
+        from library.dddpy.core_units.infrastructure.unit_query_repository import (
+            UnitQueryRepositoryImpl,
+        )
+        unit_repo = UnitQueryRepositoryImpl()
+        stats = unit_repo.get_stats_per_building([id])
+        _enrich_building_with_unit_stats(building_dict, stats)
         return ResponseSuccessSchema(
             success=True,
             message=BuildingSuccessMessage.RETRIEVED,
@@ -109,6 +146,13 @@ class BuildingUseCase:
             raise BuildingNotFound()
         building_dict = building.to_dict()
         _enrich_building_with_type(building_dict)
+        # Enrich with computed unit stats
+        from library.dddpy.core_units.infrastructure.unit_query_repository import (
+            UnitQueryRepositoryImpl,
+        )
+        unit_repo = UnitQueryRepositoryImpl()
+        stats = unit_repo.get_stats_per_building([building.id])
+        _enrich_building_with_unit_stats(building_dict, stats)
         return ResponseSuccessSchema(
             success=True,
             message=BuildingSuccessMessage.RETRIEVED,
@@ -205,7 +249,18 @@ class BuildingUseCase:
             status=status,
             include_deleted=include_deleted,
         )
-        items = [_enrich_building_with_type(b.to_dict()) for b in buildings]
+        building_dicts = [b.to_dict() for b in buildings]
+        # Batch-fetch unit stats for all buildings
+        if buildings:
+            from library.dddpy.core_units.infrastructure.unit_query_repository import (
+                UnitQueryRepositoryImpl,
+            )
+            unit_repo = UnitQueryRepositoryImpl()
+            b_ids = [b.id for b in buildings]
+            stats = unit_repo.get_stats_per_building(b_ids)
+            for bd in building_dicts:
+                _enrich_building_with_unit_stats(bd, stats)
+        items = [_enrich_building_with_type(bd) for bd in building_dicts]
         return ResponseSuccessSchema(
             success=True,
             message=BuildingSuccessMessage.LISTED,
@@ -239,7 +294,18 @@ class BuildingUseCase:
             status=status,
             include_deleted=include_deleted,
         )
-        items = [_enrich_building_with_type(b.to_dict()) for b in buildings]
+        building_dicts = [b.to_dict() for b in buildings]
+        # Batch-fetch unit stats for all buildings in condominium
+        if buildings:
+            from library.dddpy.core_units.infrastructure.unit_query_repository import (
+                UnitQueryRepositoryImpl,
+            )
+            unit_repo = UnitQueryRepositoryImpl()
+            b_ids = [b.id for b in buildings]
+            stats = unit_repo.get_stats_per_building(b_ids)
+            for bd in building_dicts:
+                _enrich_building_with_unit_stats(bd, stats)
+        items = [_enrich_building_with_type(bd) for bd in building_dicts]
         return ResponseSuccessSchema(
             success=True,
             message=BuildingSuccessMessage.LIST_BY_CONDOMINIUM,

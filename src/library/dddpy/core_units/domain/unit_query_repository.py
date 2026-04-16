@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Optional, List
+from typing import Optional, List, Dict, Any
 
 from library.dddpy.core_units.domain.unit_entity import UnitEntity
 
@@ -69,4 +69,14 @@ class UnitQueryRepository(ABC):
     @abstractmethod
     def count_active_residents(self, unit_id: int) -> int:
         """Count active residents for a unit. Used before hard delete."""
+        pass
+
+    @abstractmethod
+    def get_stats_per_building(self, building_ids: List[int]) -> Dict[int, Dict[str, Any]]:
+        """Compute aggregated unit statistics per building."""
+        pass
+
+    @abstractmethod
+    def get_condominium_stats(self, condominium_id: int) -> Dict[str, Any]:
+        """Compute aggregated unit statistics for all buildings in a condominium."""
         pass

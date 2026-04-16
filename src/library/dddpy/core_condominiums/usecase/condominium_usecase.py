@@ -12,6 +12,51 @@ from library.dddpy.shared.logging.logging import Logger
 logger = Logger("CondominiumUseCase")
 
 
+def _enrich_condominium_with_unit_stats(condo_dict: dict) -> dict:
+    """
+    Compute and attach unit/building statistics to a condominium dict.
+
+    Adds:
+      - built_area:             sum of all unit private_areas
+      - condominium_coefficient: sum of all unit condominium_coefficients (should be 100%)
+      - units_count:            total active units in the condominium
+      - buildings_count:         total active buildings in the condominium
+    """
+    condo_id = condo_dict.get("id")
+    if condo_id is None:
+        return condo_dict
+
+    try:
+        from library.dddpy.core_units.infrastructure.unit_query_repository import (
+            UnitQueryRepositoryImpl,
+        )
+        unit_repo = UnitQueryRepositoryImpl()
+        stats = unit_repo.get_condominium_stats(condo_id)
+        condo_dict["built_area"] = round(stats["built_area"], 4) if stats["built_area"] else None
+        condo_dict["condominium_coefficient"] = round(stats["condominium_coefficient_sum"], 6) if stats["condominium_coefficient_sum"] else None
+        condo_dict["units_count"] = stats["units_count"]
+        # Count buildings
+        try:
+            from library.dddpy.core_buildings.infrastructure.building_query_repository import (
+                BuildingQueryRepositoryImpl,
+            )
+            from library.dddpy.shared.mysql.session_manager import session_scope
+            from library.dddpy.core_buildings.infrastructure.dbbuildings import DBBuildings
+            with session_scope() as session:
+                count = session.query(DBBuildings).filter(
+                    DBBuildings.condominium_id == condo_id,
+                    DBBuildings.status == 1,
+                    DBBuildings.deleted_at.is_(None)
+                ).count()
+            condo_dict["buildings_count"] = count
+        except Exception:
+            condo_dict["buildings_count"] = 0
+    except Exception as e:
+        logger.warning(f"Could not compute condominium stats for id={condo_id}: {e}")
+
+    return condo_dict
+
+
 class CondominiumUseCase:
     def __init__(self):
         logger.add_inside_method("__init__")
@@ -41,10 +86,12 @@ class CondominiumUseCase:
         if not condominium:
             logger.warning(f"Condominium not found by id={id}")
             raise CondominiumNotFound()
+        condo_dict = condominium.to_dict()
+        _enrich_condominium_with_unit_stats(condo_dict)
         success = ResponseSuccessSchema(
             success=True,
             message=CondominiumSuccessMessage.RETRIEVED,
-            data=condominium.to_dict(),
+            data=condo_dict,
         )
         logger.info(f"{success.message} by id={id}")
         return success
@@ -55,10 +102,12 @@ class CondominiumUseCase:
         if not condominium:
             logger.warning(f"Condominium not found by uuid={uuid}")
             raise CondominiumNotFound()
+        condo_dict = condominium.to_dict()
+        _enrich_condominium_with_unit_stats(condo_dict)
         success = ResponseSuccessSchema(
             success=True,
             message=CondominiumSuccessMessage.RETRIEVED,
-            data=condominium.to_dict(),
+            data=condo_dict,
         )
         logger.info(f"{success.message} by uuid={uuid}")
         return success
@@ -69,10 +118,12 @@ class CondominiumUseCase:
         if not condominium:
             logger.warning(f"Condominium not found by code={code}")
             raise CondominiumNotFound()
+        condo_dict = condominium.to_dict()
+        _enrich_condominium_with_unit_stats(condo_dict)
         success = ResponseSuccessSchema(
             success=True,
             message=CondominiumSuccessMessage.RETRIEVED,
-            data=condominium.to_dict(),
+            data=condo_dict,
         )
         logger.info(f"{success.message} by code={code}")
         return success

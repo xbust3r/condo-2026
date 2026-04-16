@@ -120,7 +120,7 @@ class BuildingQueryRepositoryImpl(BuildingQueryRepository):
             with session_scope() as session:
                 # Raw SQL to avoid import of core_unities that may not exist yet
                 result = session.execute(
-                    text("SELECT COUNT(*) FROM core_unities WHERE building_id = :building_id AND status = 1 AND deleted_at IS NULL"),
+                    text("SELECT COUNT(*) FROM core_units WHERE building_id = :building_id AND status = 1 AND deleted_at IS NULL"),
                     {"building_id": building_id}
                 )
                 count = result.scalar() or 0

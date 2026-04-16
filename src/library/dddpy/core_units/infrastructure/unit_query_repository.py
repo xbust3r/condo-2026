@@ -1,5 +1,5 @@
-from typing import Optional, List, Tuple
-from sqlalchemy import func, and_
+from typing import Optional, List, Tuple, Dict, Any
+from sqlalchemy import func, and_, text
 
 from library.dddpy.core_units.domain.unit_entity import UnitEntity
 from library.dddpy.core_units.domain.unit_query_repository import UnitQueryRepository
@@ -198,3 +198,99 @@ class UnitQueryRepositoryImpl(UnitQueryRepository):
             if not db_unit:
                 return None
             return UnitMapper.to_domain(db_unit)
+
+    def get_stats_per_building(self, building_ids: List[int]) -> Dict[int, Dict[str, Any]]:
+        """
+        Compute aggregated unit statistics per building.
+        Returns a dict: {building_id: {built_area, coefficient_sum,
+                                      condominium_coefficient_sum, units_count,
+                                      floors_count, basements_count}}
+        Active units only (status=1, deleted_at IS NULL).
+        """
+        logger.info(f"Computing unit stats for {len(building_ids)} buildings")
+        if not building_ids:
+            return {}
+        stats: Dict[int, Dict[str, Any]] = {bid: {
+            "built_area": 0.0,
+            "coefficient_sum": 0.0,
+            "condominium_coefficient_sum": 0.0,
+            "units_count": 0,
+            "floors_count": 0,
+            "basements_count": 0,
+        } for bid in building_ids}
+
+        try:
+            with session_scope() as session:
+                result = session.execute(
+                    text("""
+                        SELECT
+                            building_id,
+                            COUNT(*) as units_count,
+                            COALESCE(SUM(private_area), 0) as built_area,
+                            COALESCE(SUM(coefficient), 0) as coefficient_sum,
+                            COALESCE(SUM(condominium_coefficient), 0) as ccoeff_sum,
+                            COUNT(DISTINCT CASE WHEN floor_number IS NOT NULL AND floor_number >= 0 THEN floor_number END) as floors_count,
+                            COUNT(DISTINCT CASE WHEN floor_number IS NOT NULL AND floor_number < 0 THEN floor_number END) as basements_count
+                        FROM core_units
+                        WHERE building_id IN :building_ids
+                          AND status = 1
+                          AND deleted_at IS NULL
+                        GROUP BY building_id
+                    """),
+                    {"building_ids": tuple(building_ids)}
+                )
+                for row in result:
+                    bid = row[0]
+                    if bid in stats:
+                        stats[bid] = {
+                            "built_area": float(row[2]) if row[2] else 0.0,
+                            "coefficient_sum": float(row[3]) if row[3] else 0.0,
+                            "condominium_coefficient_sum": float(row[4]) if row[4] else 0.0,
+                            "units_count": int(row[1]) if row[1] else 0,
+                            "floors_count": int(row[5]) if row[5] else 0,
+                            "basements_count": int(row[6]) if row[6] else 0,
+                        }
+        except Exception as e:
+            logger.warning(f"Could not compute unit stats: {e}")
+        return stats
+
+    def get_condominium_stats(self, condominium_id: int) -> Dict[str, Any]:
+        """
+        Compute aggregated stats across all buildings in a condominium.
+        Returns: {built_area, coefficient_sum, condominium_coefficient_sum, units_count}
+        """
+        logger.info(f"Computing stats for condominium_id={condominium_id}")
+        try:
+            with session_scope() as session:
+                result = session.execute(
+                    text("""
+                        SELECT
+                            COUNT(u.id) as units_count,
+                            COALESCE(SUM(u.private_area), 0) as built_area,
+                            COALESCE(SUM(u.coefficient), 0) as coefficient_sum,
+                            COALESCE(SUM(u.condominium_coefficient), 0) as ccoeff_sum
+                        FROM core_units u
+                        JOIN core_buildings b ON u.building_id = b.id
+                        WHERE b.condominium_id = :condo_id
+                          AND u.status = 1
+                          AND u.deleted_at IS NULL
+                          AND b.deleted_at IS NULL
+                    """),
+                    {"condo_id": condominium_id}
+                )
+                row = result.first()
+                if row:
+                    return {
+                        "built_area": float(row[1]) if row[1] else 0.0,
+                        "coefficient_sum": float(row[2]) if row[2] else 0.0,
+                        "condominium_coefficient_sum": float(row[3]) if row[3] else 0.0,
+                        "units_count": int(row[0]) if row[0] else 0,
+                    }
+        except Exception as e:
+            logger.warning(f"Could not compute condominium stats: {e}")
+        return {
+            "built_area": 0.0,
+            "coefficient_sum": 0.0,
+            "condominium_coefficient_sum": 0.0,
+            "units_count": 0,
+        }
