@@ -1,3 +1,5 @@
+from typing import Optional
+
 from library.dddpy.shared.decorators.domain_exception import DomainException
 
 
@@ -7,7 +9,7 @@ class CondominiumRoleNotFound(DomainException):
 
 
 class DuplicateRoleAssignment(DomainException):
-    def __init__(self, message: str | None = None):
+    def __init__(self, message: Optional[str] = None):
         detail = message or "User already has an active role assignment for this condominium"
         super().__init__(detail, status_code=409)
 

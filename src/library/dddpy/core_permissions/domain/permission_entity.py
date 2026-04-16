@@ -2,7 +2,7 @@
 Permission Entity — Dominio para core_permissions.
 """
 from datetime import datetime
-from typing import Dict, Any
+from typing import Dict, Any, Optional
 
 
 class PermissionEntity:
@@ -15,8 +15,8 @@ class PermissionEntity:
         resource: str,
         action: str,
         scope_default: str = "condominium",
-        description: str | None = None,
-        created_at: datetime | None = None,
+        description: Optional[str] = None,
+        created_at: Optional[datetime] = None,
     ) -> None:
         self.id = id
         self.code = code
