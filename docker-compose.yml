@@ -3,6 +3,10 @@ services:
   backend:
     image: ${IMAGE_DEV}
     container_name: ${CONTAINER_NAME}
+    networks:
+      default:
+        aliases:
+          - condopy-api
 
 networks:
   default:
