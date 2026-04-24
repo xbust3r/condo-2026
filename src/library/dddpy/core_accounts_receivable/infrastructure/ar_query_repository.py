@@ -14,7 +14,7 @@ from library.dddpy.core_accounts_receivable.infrastructure.ar_mapper import ARMa
 from library.dddpy.core_users.infrastructure.dbuser import DBUser
 from library.dddpy.core_units.infrastructure.dbunits import DBUnits as DBUnit
 from library.dddpy.core_condominiums.infrastructure.dbcondominiums import DBCondominiums as DBCondominium
-from library.dddpy.core_charges.infrastructure.dbcharges import DBCharges as DBCharge
+from library.dddpy.core_charges.infrastructure.dbcharge import DBCharge
 from library.dddpy.shared.mysql.session_manager import session_scope
 from library.dddpy.shared.logging.logging import Logger
 

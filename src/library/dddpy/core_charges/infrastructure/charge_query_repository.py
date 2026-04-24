@@ -7,7 +7,7 @@ from library.dddpy.core_charges.domain.charge_query_repository import (
     ChargeQueryRepository,
 )
 from library.dddpy.core_charges.domain.charge_entity import ChargeEntity
-from library.dddpy.core_charges.infrastructure.dbcharges import DBCharges as DBCharge
+from library.dddpy.core_charges.infrastructure.dbcharge import DBCharge
 from library.dddpy.core_charges.infrastructure.charge_mapper import ChargeMapper
 from library.dddpy.core_charge_types.infrastructure.dbcharge_type import DBChargeType
 from library.dddpy.core_condominiums.infrastructure.dbcondominiums import DBCondominiums as DBCondominium

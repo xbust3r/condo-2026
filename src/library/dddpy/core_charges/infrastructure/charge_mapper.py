@@ -1,7 +1,7 @@
 """
 Charge Mapper — transforms between DB model and domain entity.
 """
-from library.dddpy.core_charges.infrastructure.dbcharges import DBCharges as DBCharge
+from library.dddpy.core_charges.infrastructure.dbcharge import DBCharge
 from library.dddpy.core_charges.domain.charge_entity import ChargeEntity
 
 
