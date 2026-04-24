@@ -3,6 +3,8 @@ Condominium Role Mapper - Transforma entre DB model y Domain entity.
 
 v2 — incluye scope y building_id desde migración 021.
 """
+from typing import Optional
+
 from library.dddpy.core_condominium_roles.infrastructure.dbcondominium_role import DBCondominiumRoles
 from library.dddpy.core_condominium_roles.domain.condominium_role_entity import CondominiumRoleEntity
 
@@ -28,6 +30,18 @@ class CondominiumRoleMapper:
             updated_at=db_role.updated_at,
             deleted_at=db_role.deleted_at,
         )
+
+    @staticmethod
+    def to_domain_enriched(
+        db_role: DBCondominiumRoles,
+        user_full_name: Optional[str] = None,
+        condominium_name: Optional[str] = None,
+    ) -> CondominiumRoleEntity:
+        """Convierte modelo DB a entidad de dominio con datos enriquecidos de join."""
+        entity = CondominiumRoleMapper.to_domain(db_role)
+        entity.user_full_name = user_full_name
+        entity.condominium_name = condominium_name
+        return entity
 
     @staticmethod
     def to_infrastructure(entity: CondominiumRoleEntity) -> DBCondominiumRoles:

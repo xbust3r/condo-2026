@@ -145,3 +145,31 @@ class UnitOccupancyCmdRepositoryImpl(UnitOccupancyCmdRepository):
                 DBUnitOccupancy.id == occupancy_id
             ).first()
             return db_occ.unit_id if db_occ else None
+
+    def soft_delete_by_user(self, user_id: int) -> int:
+        """
+        USR-01 cascade: mark all active occupancies for a user as inactive.
+        Sets status='inactive', end_date=today, deleted_at=now.
+        Returns count of affected rows.
+        """
+        logger.info(f"USR-01 cascade: soft-deleting occupancies for user_id={user_id}")
+        count = 0
+        with session_scope() as session:
+            rows = (
+                session.query(DBUnitOccupancy)
+                .filter(
+                    DBUnitOccupancy.user_id == user_id,
+                    DBUnitOccupancy.status == "active",
+                    DBUnitOccupancy.deleted_at.is_(None),
+                )
+                .all()
+            )
+            today = datetime.utcnow().date()
+            for row in rows:
+                row.status = "inactive"
+                row.end_date = today
+                row.deleted_at = datetime.utcnow()
+                count += 1
+            session.flush()
+            logger.info(f"USR-01 cascade: {count} occupancies marked inactive for user_id={user_id}")
+            return count

@@ -30,3 +30,8 @@ class CondominiumRoleCmdRepository(ABC):
     def hard_delete(self, id: int) -> bool:
         """Physical delete."""
         pass
+
+    @abstractmethod
+    def soft_delete_by_user(self, user_id: int) -> int:
+        """Soft-delete all active roles for a user. Returns count of affected rows."""
+        pass

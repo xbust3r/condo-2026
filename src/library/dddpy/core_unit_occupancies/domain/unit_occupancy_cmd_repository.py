@@ -40,3 +40,8 @@ class UnitOccupancyCmdRepository(ABC):
     def get_unit_id(self, occupancy_id: int) -> Optional[int]:
         """Get unit_id for an existing occupancy record."""
         pass
+
+    @abstractmethod
+    def soft_delete_by_user(self, user_id: int) -> int:
+        """Mark all active occupancies for a user as inactive (cascade on user soft-delete). Returns count."""
+        pass

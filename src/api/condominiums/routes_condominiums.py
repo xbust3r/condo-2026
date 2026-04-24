@@ -183,6 +183,23 @@ def get_condominium_admins(id: int) -> dict:
     ).dict()
 
 
+@condominium_routes.get("/{id}/summary")
+@api_handler
+def get_condominium_summary(id: int) -> dict:
+    """
+    Consolidated summary for a condominium.
+
+    Returns:
+      - Condominium identity + unit/building stats
+      - AR financial summary:
+          total_debt, total_pending,
+          overdue_count, overdue_30_days_count,
+          overdue_amount
+    """
+    response = CondominiumUseCase().get_summary(id)
+    return response.dict()
+
+
 @condominium_routes.post("")
 @api_handler
 def create_condominium(request: CreateCondominiumSchema) -> dict:

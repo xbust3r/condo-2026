@@ -195,6 +195,42 @@ class CondominiumUseCase:
         logger.info(f"{success.message} for id={id}")
         return success
 
+    def get_summary(self, id: int) -> ResponseSuccessSchema:
+        """
+        Return a consolidated financial + operational summary for a condominium.
+
+        Includes:
+          - Condominium identity data (with unit/building stats)
+          - AR summary: total_debt, total_pending, overdue_count, overdue_30_days_count
+          - overdue_amount: total outstanding balance for overdue AR
+        """
+        logger.add_inside_method("get_summary")
+
+        # Verify condominium exists
+        condominium = self.condominium_query_usecase.get_by_id(id)
+        if not condominium:
+            logger.warning(f"Condominium not found for summary id={id}")
+            raise CondominiumNotFound()
+
+        condo_dict = condominium.to_dict()
+        _enrich_condominium_with_unit_stats(condo_dict)
+
+        # AR financial summary
+        from library.dddpy.core_accounts_receivable.infrastructure.ar_query_repository import (
+            ARQueryRepositoryImpl,
+        )
+        ar_repo = ARQueryRepositoryImpl()
+        ar_summary = ar_repo.get_summary_by_condominium(id)
+
+        return ResponseSuccessSchema(
+            success=True,
+            message="Condominium summary retrieved",
+            data={
+                "condominium": condo_dict,
+                "financial": ar_summary,
+            },
+        )
+
     def list_all(self, skip: int = 0, limit: int = 100, status: Optional[int] = None, city: Optional[str] = None, country: Optional[str] = None, include_deleted: bool = False):
         logger.add_inside_method("list_all")
         condominiums, total = self.condominium_query_usecase.list_all(

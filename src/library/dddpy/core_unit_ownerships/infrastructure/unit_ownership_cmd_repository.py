@@ -138,3 +138,31 @@ class UnitOwnershipCmdRepositoryImpl(UnitOwnershipCmdRepository):
             if not db_record:
                 return None
             return UnitOwnershipMapper.to_domain(db_record)
+
+    def soft_delete_by_user(self, user_id: int) -> int:
+        """
+        USR-01 cascade: mark all active ownerships for a user as historical.
+        Sets status='historical', end_date=today, deleted_at=now.
+        Returns count of affected rows.
+        """
+        logger.info(f"USR-01 cascade: soft-deleting ownerships for user_id={user_id}")
+        count = 0
+        with session_scope() as session:
+            rows = (
+                session.query(DBUnitOwnership)
+                .filter(
+                    DBUnitOwnership.user_id == user_id,
+                    DBUnitOwnership.status == "active",
+                    DBUnitOwnership.deleted_at.is_(None),
+                )
+                .all()
+            )
+            today = datetime.utcnow().date()
+            for row in rows:
+                row.status = "historical"
+                row.end_date = today
+                row.deleted_at = datetime.utcnow()
+                count += 1
+            session.flush()
+            logger.info(f"USR-01 cascade: {count} ownerships marked historical for user_id={user_id}")
+            return count

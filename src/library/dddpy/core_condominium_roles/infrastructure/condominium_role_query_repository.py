@@ -1,10 +1,11 @@
 from typing import Optional, List, Tuple
-from sqlalchemy import and_
+from sqlalchemy import and_, text
 
 from library.dddpy.core_condominium_roles.domain.condominium_role_entity import CondominiumRoleEntity
 from library.dddpy.core_condominium_roles.domain.condominium_role_query_repository import CondominiumRoleQueryRepository
 from library.dddpy.core_condominium_roles.infrastructure.dbcondominium_role import DBCondominiumRoles
 from library.dddpy.core_condominium_roles.infrastructure.condominium_role_mapper import CondominiumRoleMapper
+from library.dddpy.core_condominiums.infrastructure.dbcondominiums import DBCondominiums
 from library.dddpy.shared.mysql.session_manager import session_scope
 from library.dddpy.shared.logging.logging import Logger
 
@@ -16,6 +17,45 @@ class CondominiumRoleQueryRepositoryImpl(CondominiumRoleQueryRepository):
 
     def __init__(self):
         logger.info("CondominiumRoleQueryRepositoryImpl initialized")
+
+    def _bulk_enrich(self, rows: List[DBCondominiumRoles]) -> List[CondominiumRoleEntity]:
+        """Apply user_full_name + condominium_name enrichment to a list of role rows."""
+        if not rows:
+            return []
+
+        user_ids = list({r.user_id for r in rows})
+        condo_ids = list({r.condominium_id for r in rows})
+
+        with session_scope() as session:
+            # Fetch profiles via raw SQL (user_profiles has first_name, last_name keyed by user_id)
+            user_names: dict[int, str] = {}
+            if user_ids:
+                placeholders = ", ".join([f":u{i}" for i in range(len(user_ids))])
+                sql = f"SELECT user_id, first_name, last_name FROM user_profiles WHERE user_id IN ({placeholders})"
+                params = {f"u{i}": uid for i, uid in enumerate(user_ids)}
+                result = session.execute(text(sql), params)
+                for row in result:
+                    uid, fname, lname = row[0], row[1], row[2]
+                    user_names[uid] = f"{fname or ''} {lname or ''}".strip()
+
+            # Fetch condominiums via SQLAlchemy
+            condos: dict[int, DBCondominiums] = {}
+            if condo_ids:
+                condos = {c.id: c for c in session.query(DBCondominiums).filter(DBCondominiums.id.in_(condo_ids)).all()}
+
+            result_entities = []
+            for row in rows:
+                user_full_name = user_names.get(row.user_id)
+                condo = condos.get(row.condominium_id)
+                condominium_name = condo.name if condo else None
+
+                entity = CondominiumRoleMapper.to_domain_enriched(
+                    row,
+                    user_full_name=user_full_name,
+                    condominium_name=condominium_name,
+                )
+                result_entities.append(entity)
+            return result_entities
 
     def get_by_id(self, id: int) -> Optional[CondominiumRoleEntity]:
         logger.debug(f"Fetching condominium role by id={id}")
@@ -30,7 +70,8 @@ class CondominiumRoleQueryRepositoryImpl(CondominiumRoleQueryRepository):
             )
             if not db_role:
                 return None
-            return CondominiumRoleMapper.to_domain(db_role)
+            enriched = self._bulk_enrich([db_role])
+            return enriched[0] if enriched else None
 
     def get_by_uuid(self, uuid: str) -> Optional[CondominiumRoleEntity]:
         logger.debug(f"Fetching condominium role by uuid={uuid}")
@@ -45,7 +86,8 @@ class CondominiumRoleQueryRepositoryImpl(CondominiumRoleQueryRepository):
             )
             if not db_role:
                 return None
-            return CondominiumRoleMapper.to_domain(db_role)
+            enriched = self._bulk_enrich([db_role])
+            return enriched[0] if enriched else None
 
     def get_active_by_user_and_condominium(
         self, user_id: int, condominium_id: int
@@ -68,7 +110,8 @@ class CondominiumRoleQueryRepositoryImpl(CondominiumRoleQueryRepository):
             )
             if not db_role:
                 return None
-            return CondominiumRoleMapper.to_domain(db_role)
+            enriched = self._bulk_enrich([db_role])
+            return enriched[0] if enriched else None
 
     def list_all(
         self,
@@ -109,7 +152,7 @@ class CondominiumRoleQueryRepositoryImpl(CondominiumRoleQueryRepository):
                 .limit(limit)
                 .all()
             )
-            return [CondominiumRoleMapper.to_domain(r) for r in results], total
+            return self._bulk_enrich(results), total
 
     def list_by_condominium(
         self,
@@ -141,7 +184,7 @@ class CondominiumRoleQueryRepositoryImpl(CondominiumRoleQueryRepository):
                 .limit(limit)
                 .all()
             )
-            return [CondominiumRoleMapper.to_domain(r) for r in results], total
+            return self._bulk_enrich(results), total
 
     def list_by_user(
         self,
@@ -170,7 +213,7 @@ class CondominiumRoleQueryRepositoryImpl(CondominiumRoleQueryRepository):
                 .limit(limit)
                 .all()
             )
-            return [CondominiumRoleMapper.to_domain(r) for r in results], total
+            return self._bulk_enrich(results), total
 
     def _get_by_id_any_status(self, id: int) -> Optional[CondominiumRoleEntity]:
         """Re-fetch entity ignoring soft-delete filter. For use after mutations."""
@@ -179,4 +222,5 @@ class CondominiumRoleQueryRepositoryImpl(CondominiumRoleQueryRepository):
             db_role = session.query(DBCondominiumRoles).filter(DBCondominiumRoles.id == id).first()
             if not db_role:
                 return None
-            return CondominiumRoleMapper.to_domain(db_role)
+            enriched = self._bulk_enrich([db_role])
+            return enriched[0] if enriched else None

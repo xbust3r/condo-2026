@@ -25,6 +25,12 @@ load_dotenv(os.path.join(os.path.dirname(__file__), '.env'))
 #   ✅ core_unit_occupancies/  — Ocupación de unidades (DDD completo)
 #   ✅ core_condominium_roles/ — Roles administrativos (DDD completo)
 #   ✅ core_occupancy_types/   — Catálogo de tipos de ocupación (DDD completo)
+#   ✅ core_charge_types/     — Catálogo de tipos de cargo (DDD completo)
+#   ✅ core_charges/          — Cargos recurrentes y extraordinarios (DDD completo)
+#   ✅ core_accounts_receivable/ — Cuentas por cobrar (DDD completo)
+#   ✅ core_receipts/          — Recibos de pago (DDD completo)
+#   ✅ core_payments/         — Pagos contra AR (DDD completo)
+#   ✅ core_ledger_entries/  — Libro mayor por unidad (DDD completo)
 #
 # ESTRUCTURA DDD ESPERADA POR MÓDULO:
 #   {modulo}/
@@ -77,6 +83,12 @@ from api.users.routes_users import user_routes
 from api.user_profiles.routes_user_profiles import user_profile_routes
 from api.contexts.routes_contexts import context_routes
 from api.example.routes_example import example_routes
+from api.charge_types.routes_charge_types import charge_type_routes
+from api.charges.routes_charges import charge_routes
+from api.accounts_receivable.routes_accounts_receivable import ar_routes
+from api.receipts.routes_receipts import receipt_routes
+from api.payments.routes_payments import payment_routes
+from api.ledger_entries.routes_ledger import ledger_routes
 
 
 app = FastAPI(
@@ -132,6 +144,12 @@ app.include_router(unit_ownership_routes)
 app.include_router(unit_occupancy_routes)
 app.include_router(condominium_role_routes)
 app.include_router(occupancy_type_routes)
+app.include_router(charge_type_routes)
+app.include_router(charge_routes)
+app.include_router(ar_routes)
+app.include_router(receipt_routes)
+app.include_router(payment_routes)
+app.include_router(ledger_routes)
 app.include_router(permission_routes)
 app.include_router(role_permission_routes)
 app.include_router(auth_routes)

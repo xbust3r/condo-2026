@@ -39,6 +39,9 @@ class CondominiumRoleEntity:
         created_at: Optional[datetime] = None,
         updated_at: Optional[datetime] = None,
         deleted_at: Optional[datetime] = None,
+        # Enrichment fields (populated on query)
+        user_full_name: Optional[str] = None,
+        condominium_name: Optional[str] = None,
     ) -> None:
         self.id = id
         self.uuid = uuid
@@ -53,6 +56,9 @@ class CondominiumRoleEntity:
         self.created_at = created_at
         self.updated_at = updated_at
         self.deleted_at = deleted_at
+        # Enrichment
+        self.user_full_name = user_full_name
+        self.condominium_name = condominium_name
 
     def _validate_invariants(self) -> None:
         """Validate business invariants. Raises ValueError if invalid."""
@@ -87,6 +93,9 @@ class CondominiumRoleEntity:
             "created_at": self.created_at.isoformat() if self.created_at else None,
             "updated_at": self.updated_at.isoformat() if self.updated_at else None,
             "deleted_at": self.deleted_at.isoformat() if self.deleted_at else None,
+            # Enrichment
+            "user_full_name": self.user_full_name,
+            "condominium_name": self.condominium_name,
         }
 
     def is_deleted(self) -> bool:

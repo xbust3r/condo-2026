@@ -1,5 +1,5 @@
 """
-UnitOwnership Mapper - Transforma entre DB model y Domain entity.
+UnitOwnership Mapper — transforms between DB model and domain entity.
 """
 from library.dddpy.core_unit_ownerships.infrastructure.dbunit_ownership import DBUnitOwnership
 from library.dddpy.core_unit_ownerships.domain.unit_ownership_entity import UnitOwnershipEntity
@@ -26,6 +26,24 @@ class UnitOwnershipMapper:
             updated_at=db_ownership.updated_at,
             deleted_at=db_ownership.deleted_at,
         )
+
+    @staticmethod
+    def to_domain_enriched(
+        db_ownership: DBUnitOwnership,
+        unit_code: str = None,
+        building_name: str = None,
+        condominium_name: str = None,
+        user_email: str = None,
+        user_full_name: str = None,
+    ) -> UnitOwnershipEntity:
+        """Convierte modelo DB a entidad de dominio con datos enriquecidos de join."""
+        entity = UnitOwnershipMapper.to_domain(db_ownership)
+        entity.unit_code = unit_code
+        entity.building_name = building_name
+        entity.condominium_name = condominium_name
+        entity.user_email = user_email
+        entity.user_full_name = user_full_name
+        return entity
 
     @staticmethod
     def to_infrastructure(entity: UnitOwnershipEntity) -> DBUnitOwnership:

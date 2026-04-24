@@ -219,6 +219,9 @@ class UserUseCase:
         """
         Soft delete a user AND increment token_version.
         This immediately invalidates all active JWTs for this user.
+
+        USR-01 cascade: also closes active roles, ownerships, and occupancies
+        for this user to prevent orphan records.
         """
         user = self._query.get_by_id(user_id, include_deleted=False)
         if not user:
@@ -227,14 +230,44 @@ class UserUseCase:
         self._cmd.soft_delete(user_id)
         new_version = self._cmd.increment_token_version(user_id)
 
+        # USR-01 cascade: roles → soft-delete
+        from library.dddpy.core_condominium_roles.infrastructure.condominium_role_cmd_repository import (
+            CondominiumRoleCmdRepositoryImpl,
+        )
+        role_repo = CondominiumRoleCmdRepositoryImpl()
+        roles_count = role_repo.soft_delete_by_user(user_id)
+
+        # USR-01 cascade: ownerships → historical + end_date
+        from library.dddpy.core_unit_ownerships.infrastructure.unit_ownership_cmd_repository import (
+            UnitOwnershipCmdRepositoryImpl,
+        )
+        ownership_repo = UnitOwnershipCmdRepositoryImpl()
+        ownerships_count = ownership_repo.soft_delete_by_user(user_id)
+
+        # USR-01 cascade: occupancies → inactive + end_date
+        from library.dddpy.core_unit_occupancies.infrastructure.unit_occupancy_cmd_repository import (
+            UnitOccupancyCmdRepositoryImpl,
+        )
+        occupancy_repo = UnitOccupancyCmdRepositoryImpl()
+        occupancies_count = occupancy_repo.soft_delete_by_user(user_id)
+
         logger.info(
-            f"User soft deleted: id={user_id}, token_version incremented to {new_version}"
+            f"User soft deleted: id={user_id}, token_version={new_version}, "
+            f"cascade: roles={roles_count}, ownerships={ownerships_count}, occupancies={occupancies_count}"
         )
 
         return ResponseSuccessSchema(
             success=True,
             message=UserSuccessMessage.SOFT_DELETED,
-            data={"id": user_id, "token_version": new_version},
+            data={
+                "id": user_id,
+                "token_version": new_version,
+                "cascade": {
+                    "roles_closed": roles_count,
+                    "ownerships_historical": ownerships_count,
+                    "occupancies_inactive": occupancies_count,
+                },
+            },
         )
 
     def restore(self, user_id: int) -> ResponseSuccessSchema:

@@ -135,6 +135,18 @@ class UnitOccupancyUseCase:
             logger.warning(f"Unit occupancy not found for update id={id}")
             raise UnitOccupancyNotFound()
 
+        # OCC-01: if is_primary is being set to True, validate no other active primary
+        if data.is_primary is True:
+            active_count = self.unit_occupancy_query_usecase.count_active_by_unit(existing.unit_id)
+            if active_count > 0:
+                existing_primary = self._get_primary_for_unit(existing.unit_id)
+                if existing_primary and existing_primary.id != id:
+                    logger.warning(
+                        f"OCC-01 violation: unit_id={existing.unit_id} already has "
+                        f"a primary occupancy (id={existing_primary.id}), cannot set id={id} as primary"
+                    )
+                    raise PrimaryOccupancyConflict()
+
         updated_occupancy = self.unit_occupancy_cmd_usecase.update(id, data)
         occ_dict = updated_occupancy.to_dict()
         return ResponseSuccessSchema(

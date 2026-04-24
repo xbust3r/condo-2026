@@ -1,4 +1,5 @@
 from typing import Optional
+from datetime import date
 
 from library.dddpy.core_unit_ownerships.usecase.unit_ownership_cmd_usecase import UnitOwnershipCmdUseCase
 from library.dddpy.core_unit_ownerships.usecase.unit_ownership_query_usecase import UnitOwnershipQueryUseCase
@@ -13,6 +14,7 @@ from library.dddpy.core_unit_ownerships.usecase.unit_ownership_cmd_schema import
 from library.dddpy.core_unit_ownerships.domain.unit_ownership_exception import (
     UnitOwnershipNotFound,
     DuplicateOwnershipRecord,
+    OwnershipPercentageSumExceeded,
 )
 from library.dddpy.core_unit_ownerships.domain.unit_ownership_success import UnitOwnershipSuccessMessage
 from library.dddpy.shared.schemas.response_schema import ResponseSuccessSchema
@@ -35,6 +37,7 @@ class UnitOwnershipUseCase:
         logger.add_inside_method("create")
         logger.info(f"Creating unit ownership with data: {data}")
 
+        # Duplicate check: same user + unit (covers OWN-02)
         existing = self.unit_ownership_query_usecase.get_active_by_unit_and_user(
             data.unit_id, data.user_id
         )
@@ -44,6 +47,13 @@ class UnitOwnershipUseCase:
                 f"and user_id={data.user_id}"
             )
             raise DuplicateOwnershipRecord()
+
+        # OWN-01: validate total ownership percentage ≤ 100
+        self._validate_ownership_percentage(
+            unit_id=data.unit_id,
+            new_percentage=float(data.ownership_percentage),
+            exclude_id=None,
+        )
 
         new_ownership = self.unit_ownership_cmd_usecase.create(data)
         return ResponseSuccessSchema(
@@ -88,6 +98,14 @@ class UnitOwnershipUseCase:
         if not existing:
             logger.warning(f"Unit ownership not found for update id={id}")
             raise UnitOwnershipNotFound()
+
+        # OWN-01: if percentage is being changed, re-validate total
+        if data.ownership_percentage is not None:
+            self._validate_ownership_percentage(
+                unit_id=existing.unit_id,
+                new_percentage=float(data.ownership_percentage),
+                exclude_id=id,
+            )
 
         updated_ownership = self.unit_ownership_cmd_usecase.update(id, data)
         return ResponseSuccessSchema(
@@ -248,3 +266,39 @@ class UnitOwnershipUseCase:
                 "limit": limit,
             },
         )
+
+    # ── Internal validators ─────────────────────────────────────────────
+
+    def _validate_ownership_percentage(
+        self,
+        unit_id: int,
+        new_percentage: float,
+        exclude_id: Optional[int] = None,
+    ) -> None:
+        """
+        OWN-01: Sum of all active ownership percentages for a unit must not exceed 100%.
+
+        Args:
+            unit_id:          Unit to validate
+            new_percentage:    Percentage being added/updated
+            exclude_id:       Ownership record id to exclude (for updates)
+        """
+        active_ownerships = self.unit_ownership_cmd_usecase.find_active_by_unit(unit_id)
+
+        current_sum = sum(
+            float(o.ownership_percentage)
+            for o in active_ownerships
+            if exclude_id is None or o.id != exclude_id
+        )
+
+        proposed_total = current_sum + new_percentage
+        if proposed_total > 100:
+            logger.warning(
+                f"OWN-01 violation: unit_id={unit_id}, current_sum={current_sum}%, "
+                f"new={new_percentage}%, total={proposed_total}% > 100%"
+            )
+            raise OwnershipPercentageSumExceeded(
+                unit_id=unit_id,
+                current_sum=current_sum,
+                additional=new_percentage,
+            )

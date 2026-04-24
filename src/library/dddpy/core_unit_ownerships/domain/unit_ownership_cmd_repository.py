@@ -35,3 +35,8 @@ class UnitOwnershipCmdRepository(ABC):
     def get_by_id_any_status(self, id: int) -> Optional[UnitOwnershipEntity]:
         """Get ownership record by id ignoring deleted_at filter. For use in mutations."""
         pass
+
+    @abstractmethod
+    def soft_delete_by_user(self, user_id: int) -> int:
+        """Mark all active ownerships for a user as historical (cascade on user soft-delete). Returns count."""
+        pass

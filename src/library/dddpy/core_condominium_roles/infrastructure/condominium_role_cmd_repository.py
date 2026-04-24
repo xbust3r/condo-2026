@@ -126,3 +126,23 @@ class CondominiumRoleCmdRepositoryImpl(CondominiumRoleCmdRepository):
             session.flush()
             logger.info(f"Condominium role hard deleted id={id}")
             return True
+
+    def soft_delete_by_user(self, user_id: int) -> int:
+        """Soft-delete all active roles for a user. Returns count of affected rows."""
+        logger.info(f"Cascade soft-delete roles for user_id={user_id}")
+        count = 0
+        with session_scope() as session:
+            rows = (
+                session.query(DBCondominiumRoles)
+                .filter(
+                    DBCondominiumRoles.user_id == user_id,
+                    DBCondominiumRoles.deleted_at.is_(None),
+                )
+                .all()
+            )
+            for row in rows:
+                row.deleted_at = datetime.utcnow()
+                count += 1
+            session.flush()
+            logger.info(f"Cascade: {count} roles soft-deleted for user_id={user_id}")
+            return count
