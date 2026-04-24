@@ -32,6 +32,7 @@ from library.dddpy.auth.usecase.auth_cmd_schema import (
     ForgotPasswordSchema,
     ResetPasswordSchema,
     VerifyEmailSchema,
+    ChangePasswordSchema,
 )
 from library.dddpy.auth.domain.user_identity import UserIdentity
 from library.dddpy.auth.domain.auth_exception import RateLimitExceeded
