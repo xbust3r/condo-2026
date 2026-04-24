@@ -133,8 +133,40 @@ class IncidentCmdUseCase:
         except ValueError as e:
             raise IncidentValidationError(str(e))
 
-        return self.repository.create(entity)
+        result_entity = self.repository.create(entity)
+        result_entity.id = entity.id  # ensure id is set on returned entity
+        logger.info(f"Incident created id={result_entity.id}")
 
+        # ── Notification integration (Sprint 9 hotfix) ──────────────────────
+        # Notify reporter that their incident was created
+        try:
+            from library.dddpy.core_notifications.usecase.notification_cmd_schema import (
+                CreateNotificationSchema,
+            )
+            from library.dddpy.core_notifications.usecase.notification_factory import (
+                notification_cmd_usecase_factory,
+            )
+            notif_cmd = notification_cmd_usecase_factory()
+            notif_cmd.create(
+                CreateNotificationSchema(
+                    user_id=reported_by_user_id,
+                    channel="in_app",
+                    type="incident_created",
+                    resource_type="incident",
+                    resource_id=result_entity.id,
+                    title=f"Incidencia creada: {data.title}",
+                    body=f"Tu incidencia ha sido registrada con estado 'pending'. ID #{result_entity.id}",
+                    metadata={
+                        "condominium_id": data.condominium_id,
+                        "unit_id": data.unit_id,
+                        "priority": data.priority,
+                    },
+                )
+            )
+        except Exception:
+            logger.warning(f"Failed to create notification for incident, user_id={reported_by_user_id}")
+
+        return result_entity
     def update(self, id: int, data: UpdateIncidentSchema, requesting_user_id: int) -> IncidentEntity:
         """
         Update an existing incident.
@@ -211,6 +243,7 @@ class IncidentCmdUseCase:
         if not existing:
             raise IncidentNotFound()
 
+        previous_assignee = existing.assigned_to_user_id
         existing.assigned_to_user_id = assigned_to_user_id
         # Optionally set status to open if still pending
         if existing.status == IncidentStatus.PENDING:
@@ -219,6 +252,32 @@ class IncidentCmdUseCase:
         result = self.repository.update(id, existing)
         if result is None:
             raise IncidentNotFound()
+
+
+        # ── Notification integration (Sprint 9 hotfix) ──────────────────────
+        try:
+            from library.dddpy.core_notifications.usecase.notification_cmd_schema import (
+                CreateNotificationSchema,
+            )
+            from library.dddpy.core_notifications.usecase.notification_factory import (
+                notification_cmd_usecase_factory,
+            )
+            notif_cmd = notification_cmd_usecase_factory()
+            notif_cmd.create(
+                CreateNotificationSchema(
+                    user_id=assigned_to_user_id,
+                    channel="in_app",
+                    type="incident_assigned",
+                    resource_type="incident",
+                    resource_id=id,
+                    title=f"Incidencia asignada: {existing.title}",
+                    body=f"Se te ha asignado la incidencia #{id} (prioridad: {existing.priority})",
+                    metadata={"condominium_id": existing.condominium_id},
+                )
+            )
+        except Exception:
+            logger.warning(f"Failed to notify assignee user_id={assigned_to_user_id}")
+
         return result
 
     def escalate(self, id: int) -> IncidentEntity:
@@ -255,6 +314,33 @@ class IncidentCmdUseCase:
         result = self.repository.update(id, existing)
         if result is None:
             raise IncidentNotFound()
+
+
+        # ── Notification integration (Sprint 9 hotfix) ──────────────────────
+        # Notify reporter that their incident was resolved
+        try:
+            from library.dddpy.core_notifications.usecase.notification_cmd_schema import (
+                CreateNotificationSchema,
+            )
+            from library.dddpy.core_notifications.usecase.notification_factory import (
+                notification_cmd_usecase_factory,
+            )
+            notif_cmd = notification_cmd_usecase_factory()
+            notif_cmd.create(
+                CreateNotificationSchema(
+                    user_id=existing.reported_by_user_id,
+                    channel="in_app",
+                    type="incident_completed",
+                    resource_type="incident",
+                    resource_id=id,
+                    title=f"Incidencia #{id} resuelta",
+                    body=f"Tu incidencia '{existing.title}' ha sido marcada como resuelta.",
+                    metadata={"condominium_id": existing.condominium_id},
+                )
+            )
+        except Exception:
+            logger.warning(f"Failed to notify reporter user_id={existing.reported_by_user_id}")
+
         return result
 
     def close(self, id: int) -> IncidentEntity:
@@ -264,14 +350,46 @@ class IncidentCmdUseCase:
         if not existing:
             raise IncidentNotFound()
 
+
         # INC-04: must have completed_date
         if existing.completed_date is None:
             raise IncidentValidationError("Cannot close incident without completed_date (mark as complete first)")
+
 
         existing.status = IncidentStatus.CLOSED
         result = self.repository.update(id, existing)
         if result is None:
             raise IncidentNotFound()
+
+        # ── Notification integration (Sprint 9 hotfix) ──────────────────────
+        # Notify reporter that their incident was closed
+        try:
+            from library.dddpy.core_notifications.usecase.notification_cmd_schema import (
+                CreateNotificationSchema,
+            )
+            from library.dddpy.core_notifications.usecase.notification_factory import (
+                notification_cmd_usecase_factory,
+            )
+            notif_cmd = notification_cmd_usecase_factory()
+            notif_cmd.create(
+                CreateNotificationSchema(
+                    user_id=existing.reported_by_user_id,
+                    channel="in_app",
+                    type="incident_closed",
+                    resource_type="incident",
+                    resource_id=id,
+                    title=f"Incidencia #{id} cerrada",
+                    body=f"Tu incidencia '{existing.title}' ha sido cerrada.",
+                    metadata={
+                        "condominium_id": existing.condominium_id,
+                        "resolved_by": "admin",
+                    },
+                )
+            )
+        except Exception:
+            logger.warning(f"Failed to notify close for incident id={id}")
+
+
         return result
 
     def cancel(self, id: int) -> IncidentEntity:

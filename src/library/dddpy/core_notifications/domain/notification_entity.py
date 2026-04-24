@@ -14,6 +14,8 @@ class NotificationChannel:
 
 class NotificationType:
     ANNOUNCEMENT_PUBLISHED = "announcement_published"
+    ANNOUNCEMENT_UPDATED = "announcement_updated"
+    INCIDENT_CREATED = "incident_created"
     INCIDENT_ASSIGNED = "incident_assigned"
     INCIDENT_COMPLETED = "incident_completed"
     INCIDENT_CLOSED = "incident_closed"
@@ -22,6 +24,8 @@ class NotificationType:
 
     ALL = {
         ANNOUNCEMENT_PUBLISHED,
+        ANNOUNCEMENT_UPDATED,
+        INCIDENT_CREATED,
         INCIDENT_ASSIGNED,
         INCIDENT_COMPLETED,
         INCIDENT_CLOSED,

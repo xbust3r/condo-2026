@@ -78,6 +78,35 @@ class AnnouncementUseCase:
         entity_id = self._cmd_repo.create(entity)
         entity.id = entity_id
         logger.info(f"Announcement created id={entity_id}")
+
+        # ── Notification integration (Sprint 9 hotfix) ──────────────────────
+        # Notify author with confirmation of publication
+        try:
+            from library.dddpy.core_notifications.usecase.notification_cmd_schema import (
+                CreateNotificationSchema,
+            )
+            from library.dddpy.core_notifications.usecase.notification_factory import (
+                notification_cmd_usecase_factory,
+            )
+            notif_cmd = notification_cmd_usecase_factory()
+            notif_cmd.create(
+                CreateNotificationSchema(
+                    user_id=author_user_id,
+                    channel="in_app",
+                    type="announcement_published",
+                    resource_type="announcement",
+                    resource_id=entity_id,
+                    title=f"Anuncio publicado: {title.strip()}",
+                    body=content.strip()[:200] if len(content.strip()) > 200 else content.strip(),
+                    metadata={
+                        "condominium_id": condominium_id,
+                        "author_user_id": author_user_id,
+                    },
+                )
+            )
+        except Exception:
+            logger.warning("Failed to create notification for announcement_id={entity_id}")
+
         return ResponseSuccessSchema(
             success=True,
             message="Announcement created",
@@ -204,6 +233,32 @@ class AnnouncementUseCase:
         self._cmd_repo.update(entity)
         # Re-fetch with enrichment
         updated = self._query_repo.get_by_id(id)
+
+        # ── Notification integration (Sprint 9 hotfix) ──────────────────────
+        # Notify author that their announcement was updated
+        try:
+            from library.dddpy.core_notifications.usecase.notification_cmd_schema import (
+                CreateNotificationSchema,
+            )
+            from library.dddpy.core_notifications.usecase.notification_factory import (
+                notification_cmd_usecase_factory,
+            )
+            notif_cmd = notification_cmd_usecase_factory()
+            notif_cmd.create(
+                CreateNotificationSchema(
+                    user_id=existing.author_user_id,
+                    channel="in_app",
+                    type="announcement_updated",
+                    resource_type="announcement",
+                    resource_id=id,
+                    title=f"Tu anuncio fue actualizado: {updated.title}",
+                    body=updated.content[:200] if len(updated.content) > 200 else updated.content,
+                    metadata={"condominium_id": updated.condominium_id},
+                )
+            )
+        except Exception:
+            logger.warning(f"Failed to create notification for announcement_id={id}")
+
         return ResponseSuccessSchema(
             success=True,
             message="Announcement updated",
