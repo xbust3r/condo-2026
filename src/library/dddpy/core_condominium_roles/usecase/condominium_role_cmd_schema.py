@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field, validator, model_validator
+from pydantic import BaseModel, Field, validator, root_validator
 from typing import Optional, Any
 from datetime import date
 
@@ -65,39 +65,33 @@ class CreateCondominiumRoleSchema(BaseModel):
         return value
 
     # Cross-field validators (run after individual field validators)
-    @model_validator(mode="after")
-    def validate_end_date_after_start(self) -> "CreateCondominiumRoleSchema":
-        if self.end_date is not None and self.start_date is not None:
-            if self.end_date < self.start_date:
+    @root_validator(skip_on_failure=True)
+    def validate_end_date_after_start(cls, values):
+        if values.get('end_date') is not None and values.get('start_date') is not None:
+            if values.get('end_date') < values.get('start_date'):
                 raise ValueError("end_date cannot be before start_date")
-        return self
+        return values
 
-    @model_validator(mode="after")
-    def validate_historical_requires_end_date(self) -> "CreateCondominiumRoleSchema":
+    @root_validator(skip_on_failure=True)
+    def validate_historical_requires_end_date(cls, values):
         """Historical roles must have an end_date set."""
-        if self.status == "historical" and self.end_date is None:
-            raise ValueError(
-                "end_date is required when status is 'historical'"
-            )
-        return self
+        if values.get('status') == "historical" and values.get('end_date') is None:
+            raise ValueError("end_date is required when status is 'historical'")
+        return values
 
-    @model_validator(mode="after")
-    def validate_scope_building_requires_building_id(self) -> "CreateCondominiumRoleSchema":
+    @root_validator(skip_on_failure=True)
+    def validate_scope_building_requires_building_id(cls, values):
         """Scope 'building' requires building_id."""
-        if self.scope == "building" and self.building_id is None:
-            raise ValueError(
-                "building_id is required when scope is 'building'"
-            )
-        return self
+        if values.get('scope') == "building" and values.get('building_id') is None:
+            raise ValueError("building_id is required when scope is 'building'")
+        return values
 
-    @model_validator(mode="after")
-    def validate_scope_unit_requires_unit_id(self) -> "CreateCondominiumRoleSchema":
+    @root_validator(skip_on_failure=True)
+    def validate_scope_unit_requires_unit_id(cls, values):
         """Scope 'unit' requires unit_id."""
-        if self.scope == "unit" and self.unit_id is None:
-            raise ValueError(
-                "unit_id is required when scope is 'unit'"
-            )
-        return self
+        if values.get('scope') == "unit" and values.get('unit_id') is None:
+            raise ValueError("unit_id is required when scope is 'unit'")
+        return values
 
 
 class UpdateCondominiumRoleSchema(BaseModel):
@@ -132,25 +126,21 @@ class UpdateCondominiumRoleSchema(BaseModel):
             )
         return value
 
-    @model_validator(mode="after")
-    def validate_scope_building_requires_building_id(self) -> "UpdateCondominiumRoleSchema":
-        if self.scope == "building" and self.building_id is None:
-            raise ValueError(
-                "building_id is required when scope is 'building'"
-            )
-        return self
+    @root_validator(skip_on_failure=True)
+    def validate_scope_building_requires_building_id(cls, values):
+        if values.get('scope') == "building" and values.get('building_id') is None:
+            raise ValueError("building_id is required when scope is 'building'")
+        return values
 
-    @model_validator(mode="after")
-    def validate_scope_unit_requires_unit_id(self) -> "UpdateCondominiumRoleSchema":
-        if self.scope == "unit" and self.unit_id is None:
-            raise ValueError(
-                "unit_id is required when scope is 'unit'"
-            )
-        return self
+    @root_validator(skip_on_failure=True)
+    def validate_scope_unit_requires_unit_id(cls, values):
+        if values.get('scope') == "unit" and values.get('unit_id') is None:
+            raise ValueError("unit_id is required when scope is 'unit'")
+        return values
 
-    @model_validator(mode="after")
-    def validate_status_historical_requires_end_date(self) -> "UpdateCondominiumRoleSchema":
+    @root_validator(skip_on_failure=True)
+    def validate_status_historical_requires_end_date(cls, values):
         """For update, we can only validate end_date requirement when status is being set to historical AND end_date not provided."""
-        if self.status == "historical" and self.end_date is None:
+        if values.get('status') == "historical" and values.get('end_date') is None:
             raise ValueError("end_date is required when status is set to 'historical'")
-        return self
+        return values
