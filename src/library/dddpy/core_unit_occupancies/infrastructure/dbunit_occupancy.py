@@ -19,7 +19,12 @@ class DBUnitOccupancy(Base):
         nullable=False,
         index=True,
     )
-    occupancy_type = Column(String(40), nullable=False)
+    occupancy_type_id = Column(
+        BigInteger,
+        ForeignKey('core_occupancy_types.id', name='fk_unit_occupancies_occupancy_type'),
+        nullable=False,
+        index=True,
+    )
     status = Column(String(30), nullable=False, server_default='active')
     start_date = Column(Date, nullable=False)
     end_date = Column(Date, nullable=True)

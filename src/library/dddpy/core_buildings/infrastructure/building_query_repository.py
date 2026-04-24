@@ -144,3 +144,22 @@ class BuildingQueryRepositoryImpl(BuildingQueryRepository):
                 logger.warning(f"Building not found by id={id}")
                 return None
             return BuildingMapper.to_domain(db_building)
+
+    def get_building_ids_by_condominiums(
+        self,
+        condominium_ids: List[int],
+    ) -> List[int]:
+        """Get all building IDs belonging to given condominium_ids."""
+        logger.info(f"Fetching building IDs for condominium_ids={condominium_ids}")
+        if not condominium_ids:
+            return []
+        with session_scope() as session:
+            results = (
+                session.query(DBBuildings.id)
+                .filter(
+                    DBBuildings.condominium_id.in_(condominium_ids),
+                    DBBuildings.deleted_at.is_(None),
+                )
+                .all()
+            )
+            return [r[0] for r in results]

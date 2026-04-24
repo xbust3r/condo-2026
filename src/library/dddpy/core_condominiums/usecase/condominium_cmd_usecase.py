@@ -33,6 +33,7 @@ class CondominiumCmdUseCase:
             country=schema.country,
             contact_email=schema.contact_email,
             contact_phone=schema.contact_phone,
+            theme_id=schema.theme_id,
         )
         return self.repository.create(data)
 
@@ -52,6 +53,7 @@ class CondominiumCmdUseCase:
             contact_email=schema.contact_email,
             contact_phone=schema.contact_phone,
             status=schema.status,
+            theme_id=schema.theme_id,
         )
         return self.repository.update(id, data)
 

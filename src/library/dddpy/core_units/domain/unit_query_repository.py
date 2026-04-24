@@ -77,6 +77,21 @@ class UnitQueryRepository(ABC):
         pass
 
     @abstractmethod
+    def list_units_for_buildings(
+        self,
+        skip: int = 0,
+        limit: int = 100,
+        building_ids: Optional[List[int]] = None,
+        building_id: Optional[int] = None,
+        unit_type_id: Optional[int] = None,
+        occupancy_status: Optional[str] = None,
+        status: Optional[int] = None,
+        include_deleted: bool = False,
+    ) -> tuple[List[UnitEntity], int]:
+        """List units scoped to specific building_ids (for RBAC-filtered listing)."""
+        pass
+
+    @abstractmethod
     def get_condominium_stats(self, condominium_id: int) -> Dict[str, Any]:
         """Compute aggregated unit statistics for all buildings in a condominium."""
         pass

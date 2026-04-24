@@ -8,8 +8,9 @@ from library.dddpy.core_unit_occupancies.domain.unit_occupancy_cmd_repository im
 from library.dddpy.core_unit_occupancies.domain.unit_occupancy_entity import UnitOccupancyEntity
 from library.dddpy.core_unit_occupancies.domain.unit_occupancy_data import CreateUnitOccupancyData, UpdateUnitOccupancyData
 from library.dddpy.core_unit_occupancies.domain.unit_occupancy_exception import (
-    InvalidOccupancyType,
+    OccupancyTypeNotFoundInCatalog,
     InvalidOccupancyStatus,
+    PrimaryOccupancyConflict,
 )
 from library.dddpy.shared.logging.logging import Logger
 
@@ -19,16 +20,27 @@ logger = Logger("UnitOccupancyCmdUseCase")
 
 class UnitOccupancyCmdUseCase:
 
-    VALID_OCCUPANCY_TYPES = {"resident_owner", "tenant", "family_member", "office_user", "occasional_user"}
     VALID_STATUSES = {"active", "inactive", "historical", "pending"}
 
     def __init__(self, repository: UnitOccupancyCmdRepository):
         self.repository = repository
         logger.info("UnitOccupancyCmdUseCase initialized")
 
-    def _validate_occupancy_type(self, occupancy_type: str) -> None:
-        if occupancy_type not in self.VALID_OCCUPANCY_TYPES:
-            raise InvalidOccupancyType(occupancy_type)
+    def _get_occupancy_type_from_catalog(self, occupancy_type_id: int) -> dict:
+        """Look up occupancy type from the catalog. Raises OccupancyTypeNotFoundInCatalog if not found/inactive."""
+        from library.dddpy.core_occupancy_types.usecase.occupancy_type_usecase import OccupancyTypeUseCase
+        try:
+            ot = OccupancyTypeUseCase().get_by_id(occupancy_type_id)
+            if not ot.is_active_type():
+                raise OccupancyTypeNotFoundInCatalog(occupancy_type_id)
+            return {
+                "code": ot.code,
+                "name": ot.name,
+                "requires_authorization": ot.requires_authorization,
+                "allows_primary": ot.allows_primary,
+            }
+        except Exception:
+            raise OccupancyTypeNotFoundInCatalog(occupancy_type_id)
 
     def _validate_status(self, status: str) -> None:
         if status not in self.VALID_STATUSES:
@@ -52,20 +64,100 @@ class UnitOccupancyCmdUseCase:
             from library.dddpy.core_unit_occupancies.domain.unit_occupancy_exception import UserNotFoundForOccupancy
             raise UserNotFoundForOccupancy()
 
+    def _check_primary_conflict(self, unit_id: int, exclude_id: Optional[int] = None) -> None:
+        """Check if another primary occupancy exists for this unit."""
+        existing = self.repository.find_primary_by_unit(unit_id)
+        if existing and (exclude_id is None or existing.id != exclude_id):
+            raise PrimaryOccupancyConflict()
+
+    def _validate_authorized_by(self, authorized_by_user_id: Optional[int], unit_id: int) -> None:
+        """
+        Validate authorized_by_user_id if provided.
+
+        Phase 1d: The authorizer must be either:
+        1. An active owner of the unit (has active ownership_percentage > 0)
+        2. Or have a role in the condominium that grants authorization rights
+           (condominium_admin, board_member, super_admin)
+
+        Raises UnauthorizedOccupancy if the authorizer is not valid.
+        """
+        if authorized_by_user_id is None:
+            return
+
+        # Check 1: Is this user an active owner of this unit?
+        from library.dddpy.core_unit_ownerships.infrastructure.unit_ownership_query_repository import (
+            UnitOwnershipQueryRepositoryImpl,
+        )
+        ownership_repo = UnitOwnershipQueryRepositoryImpl()
+        try:
+            active_ownerships, _ = ownership_repo.list_all(
+                unit_id=unit_id,
+                user_id=authorized_by_user_id,
+                status="active",
+                include_deleted=False,
+            )
+            if active_ownerships:
+                # User is an active owner — authorization valid
+                return
+        except Exception:
+            pass
+
+        # Check 2: Does this user have an authorization-granting role?
+        from library.dddpy.core_condominium_roles.infrastructure.condominium_role_query_repository import (
+            CondominiumRoleQueryRepositoryImpl,
+        )
+        # First we need condominium_id from unit
+        from library.dddpy.core_units.infrastructure.unit_query_repository import (
+            UnitQueryRepositoryImpl,
+        )
+        try:
+            unit_repo = UnitQueryRepositoryImpl()
+            unit = unit_repo.get_by_id(unit_id)
+            if not unit:
+                return  # Unit validation already handled elsewhere
+
+            role_repo = CondominiumRoleQueryRepositoryImpl()
+            roles, _ = role_repo.list_all(
+                user_id=authorized_by_user_id,
+                condominium_id=unit.condominium_id,
+                status="active",
+                include_deleted=False,
+            )
+            AUTH_ROLES = {"super_admin", "condominium_admin", "board_member", "finance_reviewer"}
+            for role in roles:
+                if role.role in AUTH_ROLES:
+                    return  # User has authorization-granting role
+        except Exception:
+            pass
+
+        # No valid authorization found — raise
+        from library.dddpy.core_unit_occupancies.domain.unit_occupancy_exception import UnauthorizedOccupancy
+        raise UnauthorizedOccupancy()
+
     def create(self, schema: CreateUnitOccupancySchema) -> UnitOccupancyEntity:
         logger.info(
             f"Delegating unit occupancy creation unit_id={schema.unit_id}, "
-            f"user_id={schema.user_id}, occupancy_type={schema.occupancy_type}"
+            f"user_id={schema.user_id}, occupancy_type_id={schema.occupancy_type_id}"
         )
-        self._validate_occupancy_type(schema.occupancy_type)
+        # Validate against catalog — NOT enum
+        ot = self._get_occupancy_type_from_catalog(schema.occupancy_type_id)
         self._validate_status(schema.status)
         self._validate_unit_exists(schema.unit_id)
         self._validate_user_exists(schema.user_id)
 
+        # Validate primary occupancy rule
+        if schema.is_primary and not ot["allows_primary"]:
+            raise ValueError(f"Occupancy type id={schema.occupancy_type_id} does not allow primary occupancy")
+        if schema.is_primary:
+            self._check_primary_conflict(schema.unit_id)
+
+        # Phase 1d: validate authorized_by_user_id has real relation (owner or auth role)
+        self._validate_authorized_by(schema.authorized_by_user_id, schema.unit_id)
+
         data = CreateUnitOccupancyData(
             unit_id=schema.unit_id,
             user_id=schema.user_id,
-            occupancy_type=schema.occupancy_type,
+            occupancy_type_id=schema.occupancy_type_id,
             status=schema.status,
             start_date=schema.start_date,
             end_date=schema.end_date,
@@ -78,13 +170,22 @@ class UnitOccupancyCmdUseCase:
     def update(self, id: int, schema: UpdateUnitOccupancySchema) -> Optional[UnitOccupancyEntity]:
         logger.info(f"Delegating unit occupancy update for id={id}")
 
-        if schema.occupancy_type is not None:
-            self._validate_occupancy_type(schema.occupancy_type)
+        if schema.occupancy_type_id is not None:
+            ot = self._get_occupancy_type_from_catalog(schema.occupancy_type_id)
+            if schema.is_primary and not ot["allows_primary"]:
+                raise ValueError(f"Occupancy type id={schema.occupancy_type_id} does not allow primary occupancy")
         if schema.status is not None:
             self._validate_status(schema.status)
+        if schema.is_primary:
+            self._check_primary_conflict(schema.unit_id or self.repository.get_unit_id(id), exclude_id=id)
+
+        # Phase 1d: validate authorized_by_user_id has real relation (owner or auth role)
+        unit_id_for_auth = schema.unit_id if schema.unit_id is not None else self.repository.get_unit_id(id)
+        if unit_id_for_auth is not None:
+            self._validate_authorized_by(schema.authorized_by_user_id, unit_id_for_auth)
 
         data = UpdateUnitOccupancyData(
-            occupancy_type=schema.occupancy_type,
+            occupancy_type_id=schema.occupancy_type_id,
             status=schema.status,
             start_date=schema.start_date,
             end_date=schema.end_date,

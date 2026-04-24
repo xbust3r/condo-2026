@@ -158,6 +158,56 @@ class UnitQueryRepositoryImpl(UnitQueryRepository):
             )
             return [UnitMapper.to_domain(u) for u in results], total
 
+    def list_units_for_buildings(
+        self,
+        skip: int = 0,
+        limit: int = 100,
+        building_ids: Optional[List[int]] = None,
+        building_id: Optional[int] = None,
+        unit_type_id: Optional[int] = None,
+        occupancy_status: Optional[str] = None,
+        status: Optional[int] = None,
+        include_deleted: bool = False,
+    ) -> Tuple[List[UnitEntity], int]:
+        """
+        List units filtered to specific building_ids (RBAC scope).
+        building_ids=None means use building_id single filter.
+        """
+        logger.debug(
+            f"Listing units for building_ids={building_ids}, "
+            f"building_id={building_id}, skip={skip}, limit={limit}"
+        )
+        with session_scope() as session:
+            query = session.query(DBUnits)
+
+            if not include_deleted:
+                query = query.filter(DBUnits.deleted_at.is_(None))
+
+            if building_ids is not None:
+                if not building_ids:
+                    # Empty scope → return nothing
+                    return [], 0
+                query = query.filter(DBUnits.building_id.in_(building_ids))
+            elif building_id is not None:
+                query = query.filter(DBUnits.building_id == building_id)
+
+            if unit_type_id is not None:
+                query = query.filter(DBUnits.unit_type_id == unit_type_id)
+            if occupancy_status is not None:
+                query = query.filter(DBUnits.occupancy_status == occupancy_status)
+            if status is not None:
+                query = query.filter(DBUnits.status == status)
+
+            total = query.count()
+            results = (
+                query
+                .order_by(DBUnits.building_id, DBUnits.sort_order)
+                .offset(skip)
+                .limit(limit)
+                .all()
+            )
+            return [UnitMapper.to_domain(u) for u in results], total
+
     def count_active_residents(self, unit_id: int) -> int:
         """Count active residents for a unit. Returns 0 if table doesn't exist yet."""
         logger.debug(f"Counting active residents for unit_id={unit_id}")

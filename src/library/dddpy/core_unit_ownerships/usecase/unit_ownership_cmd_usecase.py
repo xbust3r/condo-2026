@@ -11,6 +11,7 @@ from library.dddpy.core_unit_ownerships.domain.unit_ownership_exception import (
     InvalidOwnershipType,
     InvalidOwnershipStatus,
     InvalidOwnershipPercentage,
+    OwnershipPercentageSumExceeded,
     UnitNotFoundForOwnership,
     UserNotFoundForOwnership,
 )
@@ -63,6 +64,31 @@ class UnitOwnershipCmdUseCase:
         except Exception:
             raise UserNotFoundForOwnership()
 
+    def _validate_percentage_sum(
+        self,
+        unit_id: int,
+        new_percentage: float,
+        exclude_id: int | None = None,
+    ) -> None:
+        """
+        Validates that adding new_percentage to active ownerships for unit_id
+        does not exceed 100%.
+        Raises OwnershipPercentageSumExceeded if the sum would exceed 100.
+        """
+        active = self.repository.find_active_by_unit(unit_id)
+        current_sum = sum(float(o.ownership_percentage) for o in active)
+        if exclude_id is not None:
+            # Subtract the current value of the record being updated
+            for o in active:
+                if o.id == exclude_id:
+                    current_sum -= float(o.ownership_percentage)
+                    break
+        proposed_sum = current_sum + new_percentage
+        if proposed_sum > 100:
+            raise OwnershipPercentageSumExceeded(
+                unit_id, round(current_sum, 2), round(new_percentage, 2)
+            )
+
     def create(self, schema: CreateUnitOwnershipSchema) -> UnitOwnershipEntity:
         logger.info(
             f"Delegating unit ownership creation unit_id={schema.unit_id}, "
@@ -79,6 +105,9 @@ class UnitOwnershipCmdUseCase:
 
         if schema.end_date is not None and schema.end_date < schema.start_date:
             raise InvalidOwnershipPercentage("end_date must be on or after start_date")
+
+        # Phase 1d: validate percentage sum does not exceed 100%
+        self._validate_percentage_sum(schema.unit_id, schema.ownership_percentage)
 
         data = CreateUnitOwnershipData(
             unit_id=schema.unit_id,
@@ -106,6 +135,17 @@ class UnitOwnershipCmdUseCase:
         if schema.end_date is not None and schema.start_date is not None:
             if schema.end_date < schema.start_date:
                 raise InvalidOwnershipPercentage("end_date must be on or after start_date")
+
+        # Phase 1d: validate percentage sum on update if percentage is changing
+        if schema.ownership_percentage is not None:
+            # Get current entity to know unit_id
+            existing = self.repository.get_by_id_any_status(id)
+            if existing:
+                self._validate_percentage_sum(
+                    existing.unit_id,
+                    schema.ownership_percentage,
+                    exclude_id=id,
+                )
 
         data = UpdateUnitOwnershipData(
             ownership_type=schema.ownership_type,

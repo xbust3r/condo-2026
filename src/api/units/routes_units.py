@@ -86,11 +86,47 @@ def get_unit(
     return unit_resp.dict()
 
 
+@unit_routes.get("/{id}/consolidated-view")
+@api_handler
+def get_unit_consolidated_view(
+    id: int,
+    user: UserIdentity = Depends(get_current_user),
+) -> dict:
+    """
+    Phase 1e — Consolidated view of a unit.
+
+    Returns:
+      - unit data (with building + type enrichment)
+      - active ownerships (user, percentage, type)
+      - active occupancies (user, occupancy type, authorized_by)
+      - warnings (ownership sum, primary occupancy conflicts)
+    Requires authenticated user with role in the condominium.
+    """
+    unit_resp = UnitUseCase().get_by_id(id)
+    unit_data = unit_resp.data
+    if not unit_data:
+        from library.dddpy.core_units.domain.unit_exception import UnitNotFound
+        raise UnitNotFound()
+    condominium_id = _get_building_condominium_id(unit_data["building_id"])
+    require_condominium_role(user, condominium_id)
+    return UnitUseCase().get_consolidated_view(id)
+
+
 @unit_routes.get("/uuid/{uuid}")
 @api_handler
-def get_unit_by_uuid(uuid: str) -> dict:
-    """Get a unit by its UUID. No RBAC — public lookup."""
-    return UnitUseCase().get_by_uuid(uuid).dict()
+def get_unit_by_uuid(
+    uuid: str,
+    user: UserIdentity = Depends(get_current_user),
+) -> dict:
+    """Get a unit by its UUID. Requires authenticated user with role in the unit's condominium."""
+    unit_resp = UnitUseCase().get_by_uuid(uuid)
+    unit_data = unit_resp.data
+    if not unit_data:
+        from library.dddpy.core_units.domain.unit_exception import UnitNotFound
+        raise UnitNotFound()
+    condominium_id = _get_building_condominium_id(unit_data["building_id"])
+    require_condominium_role(user, condominium_id)
+    return unit_resp.dict()
 
 
 @unit_routes.put("/{id}")
@@ -175,14 +211,81 @@ def list_units(
     ),
     status: Optional[int] = Query(None, description="Filter by status (1=active, 0=inactive)"),
     include_deleted: bool = Query(False, description="Include soft-deleted records"),
+    user: UserIdentity = Depends(get_current_user),
 ) -> dict:
-    """List all units with optional filters. No RBAC — admin-level list."""
+    """
+    List all units with optional filters.
+    Requires authentication. Returns only units in buildings where the user has an active role.
+    If building_id is provided, validates access to that building's condominium.
+    """
     if limit > 500:
         limit = 500
-    return UnitUseCase().list_all(
+
+    # Get user's accessible condominium_ids from their roles
+    from library.dddpy.core_condominium_roles.infrastructure.condominium_role_query_repository import (
+        CondominiumRoleQueryRepositoryImpl,
+    )
+    from library.dddpy.core_buildings.infrastructure.building_query_repository import (
+        BuildingQueryRepositoryImpl,
+    )
+
+    role_repo = CondominiumRoleQueryRepositoryImpl()
+    building_repo = BuildingQueryRepositoryImpl()
+
+    # Get all active condominium_ids for this user
+    roles, _ = role_repo.list_by_user(user.id, skip=0, limit=1000, status="active", include_deleted=False)
+    condominium_ids = list(set(r.condominium_id for r in roles))
+
+    if not condominium_ids:
+        # User has no active roles — deny access
+        from fastapi import HTTPException
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Access denied: no active role in any condominium",
+        )
+
+    # Get buildings for those condominiums
+    building_ids = building_repo.get_building_ids_by_condominiums(condominium_ids)
+
+    if not building_ids:
+        # No buildings in user's condominiums → empty list
+        from library.dddpy.shared.schemas.response_schema import ResponseSuccessSchema
+        from library.dddpy.core_units.domain.unit_success import UnitSuccessMessage
+        return ResponseSuccessSchema(
+            success=True,
+            message=UnitSuccessMessage.LISTED,
+            data={
+                "items": [],
+                "total": 0,
+                "skip": skip,
+                "limit": limit,
+                "filters": {
+                    "building_id": building_id,
+                    "unit_type_id": unit_type_id,
+                    "occupancy_status": occupancy_status,
+                    "status": status,
+                    "include_deleted": include_deleted,
+                },
+            },
+        ).dict()
+
+    # Validate specific building_id if provided
+    if building_id is not None:
+        if building_id not in building_ids:
+            from fastapi import HTTPException
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail=f"Access denied: no role in building's condominium (building_id={building_id})",
+            )
+    else:
+        # No specific building → filter to all accessible buildings
+        pass  # building_ids list used in query
+
+    return UnitUseCase().list_units_for_buildings(
         skip=skip,
         limit=limit,
-        building_id=building_id,
+        building_ids=building_ids if building_id is None else None,
+        building_id=building_id,  # if specific, use it (already validated)
         unit_type_id=unit_type_id,
         occupancy_status=occupancy_status,
         status=status,

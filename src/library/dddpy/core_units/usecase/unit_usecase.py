@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, List
 
 from library.dddpy.core_units.usecase.unit_cmd_usecase import UnitCmdUseCase
 from library.dddpy.core_units.usecase.unit_query_usecase import UnitQueryUseCase
@@ -53,6 +53,29 @@ def _enrich_unit_with_type(unit_dict: dict) -> dict:
     return unit_dict
 
 
+def _enrich_unit_with_building(unit_dict: dict) -> dict:
+    """
+    Fetch building data and attach building_name to unit dict (BE-U-04).
+    Adds: building_name (or None if not found).
+    """
+    building_id = unit_dict.get("building_id")
+    if building_id is None:
+        unit_dict["building_name"] = None
+        return unit_dict
+
+    try:
+        from library.dddpy.core_buildings.usecase.building_usecase import (
+            BuildingUseCase,
+        )
+        response = BuildingUseCase().get_by_id(building_id)
+        building_data = response.data
+        unit_dict["building_name"] = building_data.get("name") if building_data else None
+    except Exception:
+        unit_dict["building_name"] = None
+
+    return unit_dict
+
+
 class UnitUseCase:
     def __init__(self):
         logger.add_inside_method("__init__")
@@ -95,6 +118,7 @@ class UnitUseCase:
             raise UnitNotFound()
         unit_dict = unit.to_dict()
         _enrich_unit_with_type(unit_dict)
+        _enrich_unit_with_building(unit_dict)
         return ResponseSuccessSchema(
             success=True,
             message=UnitSuccessMessage.RETRIEVED,
@@ -109,11 +133,21 @@ class UnitUseCase:
             raise UnitNotFound()
         unit_dict = unit.to_dict()
         _enrich_unit_with_type(unit_dict)
+        _enrich_unit_with_building(unit_dict)
         return ResponseSuccessSchema(
             success=True,
             message=UnitSuccessMessage.RETRIEVED,
             data=unit_dict,
         )
+
+    def get_consolidated_view(self, unit_id: int) -> dict:
+        """
+        Phase 1e — Consolidated view of a unit.
+
+        Returns unit + active owners + active occupants + warnings.
+        """
+        logger.add_inside_method("get_consolidated_view")
+        return self.unit_query_usecase.get_consolidated_view(unit_id)
 
     # ── Update ────────────────────────────────────────────────────────────
 
@@ -215,6 +249,7 @@ class UnitUseCase:
         status: Optional[int] = None,
         include_deleted: bool = False,
     ):
+        """List units for building_id filter (single building)."""
         logger.add_inside_method("list_all")
         if limit > 500:
             limit = 500
@@ -227,7 +262,7 @@ class UnitUseCase:
             status=status,
             include_deleted=include_deleted,
         )
-        items = [_enrich_unit_with_type(u.to_dict()) for u in units]
+        items = [_enrich_unit_with_type(_enrich_unit_with_building(u.to_dict())) for u in units]
         return ResponseSuccessSchema(
             success=True,
             message=UnitSuccessMessage.LISTED,
@@ -238,6 +273,55 @@ class UnitUseCase:
                 "limit": limit,
                 "filters": {
                     "building_id": building_id,
+                    "unit_type_id": unit_type_id,
+                    "occupancy_status": occupancy_status,
+                    "status": status,
+                    "include_deleted": include_deleted,
+                },
+            },
+        )
+
+    def list_units_for_buildings(
+        self,
+        skip: int = 0,
+        limit: int = 100,
+        building_ids: Optional[List[int]] = None,
+        building_id: Optional[int] = None,
+        unit_type_id: Optional[int] = None,
+        occupancy_status: Optional[str] = None,
+        status: Optional[int] = None,
+        include_deleted: bool = False,
+    ):
+        """
+        List units scoped to a set of building_ids.
+        Used by BE-U-02 for RBAC-filtered listing.
+        building_ids=None means no scope restriction (use with building_id filter).
+        """
+        logger.add_inside_method("list_units_for_buildings")
+        if limit > 500:
+            limit = 500
+        units, total = self.unit_query_usecase.list_units_for_buildings(
+            skip=skip,
+            limit=limit,
+            building_ids=building_ids,
+            building_id=building_id,
+            unit_type_id=unit_type_id,
+            occupancy_status=occupancy_status,
+            status=status,
+            include_deleted=include_deleted,
+        )
+        items = [_enrich_unit_with_type(_enrich_unit_with_building(u.to_dict())) for u in units]
+        return ResponseSuccessSchema(
+            success=True,
+            message=UnitSuccessMessage.LISTED,
+            data={
+                "items": items,
+                "total": total,
+                "skip": skip,
+                "limit": limit,
+                "filters": {
+                    "building_id": building_id,
+                    "building_ids_count": len(building_ids) if building_ids else 0,
                     "unit_type_id": unit_type_id,
                     "occupancy_status": occupancy_status,
                     "status": status,
@@ -266,7 +350,7 @@ class UnitUseCase:
             status=status,
             include_deleted=include_deleted,
         )
-        items = [_enrich_unit_with_type(u.to_dict()) for u in units]
+        items = [_enrich_unit_with_type(_enrich_unit_with_building(u.to_dict())) for u in units]
         return ResponseSuccessSchema(
             success=True,
             message=UnitSuccessMessage.LIST_BY_BUILDING,

@@ -116,3 +116,25 @@ class UnitOwnershipCmdRepositoryImpl(UnitOwnershipCmdRepository):
             session.flush()
             logger.info(f"Unit ownership restored id={id}")
             return True
+
+    def find_active_by_unit(self, unit_id: int) -> list[UnitOwnershipEntity]:
+        """Find all active (non-deleted, non-historical) ownerships for a unit."""
+        with session_scope() as session:
+            db_records = (
+                session.query(DBUnitOwnership)
+                .filter(
+                    DBUnitOwnership.unit_id == unit_id,
+                    DBUnitOwnership.status == "active",
+                    DBUnitOwnership.deleted_at.is_(None),
+                )
+                .all()
+            )
+            return [UnitOwnershipMapper.to_domain(r) for r in db_records]
+
+    def get_by_id_any_status(self, id: int) -> Optional[UnitOwnershipEntity]:
+        """Get ownership record by id ignoring deleted_at filter."""
+        with session_scope() as session:
+            db_record = session.query(DBUnitOwnership).filter(DBUnitOwnership.id == id).first()
+            if not db_record:
+                return None
+            return UnitOwnershipMapper.to_domain(db_record)

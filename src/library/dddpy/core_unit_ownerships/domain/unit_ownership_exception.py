@@ -14,6 +14,16 @@ class DuplicateOwnershipRecord(DomainException):
         )
 
 
+class OwnershipPercentageSumExceeded(DomainException):
+    def __init__(self, unit_id: int, current_sum: float, additional: float):
+        super().__init__(
+            f"Ownership percentages for unit_id={unit_id} would exceed 100%. "
+            f"Current active sum: {current_sum}%, attempting to add: {additional}%. "
+            f"Total would be: {current_sum + additional}%.",
+            status_code=400,
+        )
+
+
 class InvalidOwnershipPercentage(DomainException):
     def __init__(self, message: str):
         super().__init__(message, status_code=400)

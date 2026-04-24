@@ -19,13 +19,12 @@ load_dotenv(os.path.join(os.path.dirname(__file__), '.env'))
 #   ✅ core_buildings_types/ — Catálogo de tipos de edificio con scope global/custom (DDD completo)
 #   ✅ core_units/         — Unidades inmobiliarias (domain + infrastructure + usecase + api/routes)
 #   ✅ core_unit_types/    — Catálogo de tipos de unidad con scope global/custom (DDD completo)
-#
-# MÓDULOS PENDIENTES DE IMPLEMENTAR (documentados en README.md pero sin código Python):
-#   ✅ users/                  — Usuarios del sistema (auth + CRUD)
-#   ✅ user_profiles/         — Perfil humano (DDD + API)
-#   ❌ core_unit_ownerships/   — Propiedad de unidades (nuevo)
-#   ❌ core_unit_occupancies/ — Ocupación de unidades (nuevo)
-#   ❌ core_condominium_roles/ — Roles administrativos (nuevo)
+#   ✅ users/              — Usuarios del sistema (auth + CRUD)
+#   ✅ user_profiles/      — Perfil humano (DDD + API)
+#   ✅ core_unit_ownerships/   — Propiedad de unidades (DDD completo)
+#   ✅ core_unit_occupancies/  — Ocupación de unidades (DDD completo)
+#   ✅ core_condominium_roles/ — Roles administrativos (DDD completo)
+#   ✅ core_occupancy_types/   — Catálogo de tipos de ocupación (DDD completo)
 #
 # ESTRUCTURA DDD ESPERADA POR MÓDULO:
 #   {modulo}/
@@ -66,10 +65,11 @@ from api.condominiums.routes_condominiums import condominium_routes
 from api.buildings.routes_buildings import building_routes
 from api.buildings_types.routes_building_types import building_type_routes
 from api.units.routes_units import unit_routes
-from api.unit_types.routes_unit_types import unit_type_routes
+from api.unit_types.routes_unit_types import unit_type_routes, public_unit_type_routes
 from api.unit_ownerships.routes_unit_ownerships import unit_ownership_routes
 from api.unit_occupancies.routes_unit_occupancies import unit_occupancy_routes
 from api.condominium_roles.routes_condominium_roles import condominium_role_routes
+from api.occupancy_types.routes_occupancy_types import occupancy_type_routes
 from api.permissions.routes_permissions import permission_routes
 from api.role_permissions.routes_role_permissions import role_permission_routes
 from api.auth.routes_auth import auth_routes
@@ -127,9 +127,11 @@ app.include_router(building_routes)
 app.include_router(building_type_routes)
 app.include_router(unit_routes)
 app.include_router(unit_type_routes)
+app.include_router(public_unit_type_routes)
 app.include_router(unit_ownership_routes)
 app.include_router(unit_occupancy_routes)
 app.include_router(condominium_role_routes)
+app.include_router(occupancy_type_routes)
 app.include_router(permission_routes)
 app.include_router(role_permission_routes)
 app.include_router(auth_routes)

@@ -191,23 +191,30 @@ class PermissionService:
         """
         Calculate the effective resident context for a user in a unit.
 
-        Checks core_unit_occupancies for a primary active occupancy of type
-        'resident_owner' or 'tenant' and returns the resident context dict.
+        Checks core_unit_occupancies for a PRIMARY active occupancy of type
+        'resident_owner' (id=1) or 'tenant' (id=2) and returns the resident context dict.
         """
         logger.debug(f"get_effective_resident_context user={user_id} unit={unit_id}")
 
-        occ = self._occupancy_repo.get_active_by_unit_and_user(
-            unit_id=unit_id, user_id=user_id
+        # Query with is_primary=True filter to ensure we get only primary occupancies
+        occupancies, _ = self._occupancy_repo.list_all(
+            unit_id=unit_id,
+            user_id=user_id,
+            is_primary=True,
+            status="active",
+            include_deleted=False,
+            limit=1,
         )
-        if not occ:
+        if not occupancies:
             return None
 
-        if occ.occupancy_type not in ("resident_owner", "tenant"):
+        occ = occupancies[0]
+        if occ.occupancy_type_id not in (1, 2):
             return None
 
         return {
             "role": "resident",
             "scope": "unit",
             "unit_id": unit_id,
-            "occupancy_type": occ.occupancy_type,
+            "occupancy_type_id": occ.occupancy_type_id,
         }

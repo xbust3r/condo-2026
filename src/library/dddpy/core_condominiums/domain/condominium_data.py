@@ -18,6 +18,7 @@ class CreateCondominiumData:
     country: Optional[str] = None
     contact_email: Optional[str] = None
     contact_phone: Optional[str] = None
+    theme_id: Optional[str] = None
 
 
 @dataclass(frozen=True)
@@ -34,4 +35,5 @@ class UpdateCondominiumData:
     country: Optional[str] = None
     contact_email: Optional[str] = None
     contact_phone: Optional[str] = None
+    theme_id: Optional[str] = None
     status: Optional[int] = None

@@ -14,11 +14,10 @@ class DuplicateOccupancyRecord(DomainException):
         )
 
 
-class InvalidOccupancyType(DomainException):
-    def __init__(self, occupancy_type: str):
-        valid = {"resident_owner", "tenant", "family_member", "office_user", "occasional_user"}
+class OccupancyTypeNotFoundInCatalog(DomainException):
+    def __init__(self, occupancy_type_id: int):
         super().__init__(
-            f"Occupancy type '{occupancy_type}' is not allowed. Valid values: {', '.join(sorted(valid))}",
+            f"Occupancy type id={occupancy_type_id} not found or inactive in catalog",
             status_code=400,
         )
 

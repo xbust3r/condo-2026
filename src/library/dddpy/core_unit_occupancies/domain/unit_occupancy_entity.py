@@ -5,7 +5,6 @@ from typing import Optional, Dict, Any
 class UnitOccupancyEntity:
     """Entidad de dominio para la ocupación de unidades inmobiliarias."""
 
-    VALID_OCCUPANCY_TYPES = {"resident_owner", "tenant", "family_member", "office_user", "occasional_user"}
     VALID_STATUSES = {"active", "inactive", "historical", "pending"}
 
     def __init__(
@@ -14,7 +13,7 @@ class UnitOccupancyEntity:
         uuid: str,
         unit_id: int,
         user_id: int,
-        occupancy_type: str,
+        occupancy_type_id: int,
         status: str,
         start_date: date,
         end_date: Optional[date] = None,
@@ -24,12 +23,17 @@ class UnitOccupancyEntity:
         created_at: Optional[datetime] = None,
         updated_at: Optional[datetime] = None,
         deleted_at: Optional[datetime] = None,
+        # Enriched fields from catalog join
+        occupancy_type_code: Optional[str] = None,
+        occupancy_type_name: Optional[str] = None,
+        requires_authorization: Optional[bool] = None,
+        allows_primary: Optional[bool] = None,
     ) -> None:
         self.id = id
         self.uuid = uuid
         self.unit_id = unit_id
         self.user_id = user_id
-        self.occupancy_type = occupancy_type
+        self.occupancy_type_id = occupancy_type_id
         self.status = status
         self.start_date = start_date
         self.end_date = end_date
@@ -39,13 +43,14 @@ class UnitOccupancyEntity:
         self.created_at = created_at
         self.updated_at = updated_at
         self.deleted_at = deleted_at
+        # Catalog enrichment
+        self.occupancy_type_code = occupancy_type_code
+        self.occupancy_type_name = occupancy_type_name
+        self.requires_authorization = requires_authorization
+        self.allows_primary = allows_primary
 
     def _validate_invariants(self) -> None:
         """Validate business invariants. Raises ValueError if invalid."""
-        if self.occupancy_type not in self.VALID_OCCUPANCY_TYPES:
-            raise ValueError(
-                f"occupancy_type must be one of: {', '.join(sorted(self.VALID_OCCUPANCY_TYPES))}"
-            )
         if self.status not in self.VALID_STATUSES:
             raise ValueError(
                 f"status must be one of: {', '.join(sorted(self.VALID_STATUSES))}"
@@ -59,7 +64,7 @@ class UnitOccupancyEntity:
             "uuid": self.uuid,
             "unit_id": self.unit_id,
             "user_id": self.user_id,
-            "occupancy_type": self.occupancy_type,
+            "occupancy_type_id": self.occupancy_type_id,
             "status": self.status,
             "start_date": self.start_date.isoformat() if self.start_date else None,
             "end_date": self.end_date.isoformat() if self.end_date else None,
@@ -69,6 +74,11 @@ class UnitOccupancyEntity:
             "created_at": self.created_at.isoformat() if self.created_at else None,
             "updated_at": self.updated_at.isoformat() if self.updated_at else None,
             "deleted_at": self.deleted_at.isoformat() if self.deleted_at else None,
+            # Catalog enrichment
+            "occupancy_type_code": self.occupancy_type_code,
+            "occupancy_type_name": self.occupancy_type_name,
+            "requires_authorization": self.requires_authorization,
+            "allows_primary": self.allows_primary,
         }
 
     def is_deleted(self) -> bool:

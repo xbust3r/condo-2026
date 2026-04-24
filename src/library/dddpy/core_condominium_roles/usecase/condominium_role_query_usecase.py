@@ -37,6 +37,7 @@ class CondominiumRoleQueryUseCase:
         condominium_id: Optional[int] = None,
         user_id: Optional[int] = None,
         role: Optional[str] = None,
+        scope: Optional[str] = None,
         status: Optional[str] = None,
         include_deleted: bool = False,
     ) -> Tuple[List[CondominiumRoleEntity], int]:
@@ -47,6 +48,7 @@ class CondominiumRoleQueryUseCase:
             condominium_id=condominium_id,
             user_id=user_id,
             role=role,
+            scope=scope,
             status=status,
             include_deleted=include_deleted,
         )

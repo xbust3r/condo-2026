@@ -67,6 +67,21 @@ def get_user(id: int) -> dict:
     return response.dict()
 
 
+@user_routes.get("/{id}/consolidated-view")
+@api_handler
+def get_user_consolidated_view(id: int) -> dict:
+    """
+    Phase 1e — Consolidated view of a user.
+
+    Returns:
+      - user + profile data
+      - active roles (condominium, building, unit level)
+      - active ownerships (unit, percentage, type)
+      - active occupancies (unit, occupancy type, is_primary)
+    """
+    return UserUseCase().get_consolidated_view(id)
+
+
 @user_routes.get("/uuid/{uuid}")
 @api_handler
 def get_user_by_uuid(uuid: str) -> dict:

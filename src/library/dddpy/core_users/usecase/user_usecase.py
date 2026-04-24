@@ -111,6 +111,77 @@ class UserUseCase:
             },
         )
 
+    def get_consolidated_view(self, user_id: int) -> dict:
+        """
+        Phase 1e: Get a consolidated view of a user.
+
+        Returns user + profile + roles + ownerships + occupancies
+        all merged into a single response dict.
+        """
+        user = self._query.get_by_id(user_id, include_deleted=False)
+        if not user:
+            raise UserNotFound(f"User with id={user_id} not found")
+
+        # 1. User data
+        result = {
+            "user": user.to_dict(),
+        }
+
+        # 1b. Profile data
+        from library.dddpy.core_user_profiles.infrastructure.user_profile_query_repository import (
+            UserProfileQueryRepositoryImpl,
+        )
+        profile_repo = UserProfileQueryRepositoryImpl()
+        profile = profile_repo.get_by_user_id(user_id)
+        result["profile"] = profile.to_dict() if profile else None
+
+        # 2. Active roles for this user
+        from library.dddpy.core_condominium_roles.infrastructure.condominium_role_query_repository import (
+            CondominiumRoleQueryRepositoryImpl,
+        )
+        role_repo = CondominiumRoleQueryRepositoryImpl()
+        roles, total_roles = role_repo.list_all(
+            user_id=user_id,
+            status="active",
+            include_deleted=False,
+        )
+        result["roles"] = {
+            "items": [r.to_dict() for r in roles],
+            "total": total_roles,
+        }
+
+        # 3. Active ownerships for this user
+        from library.dddpy.core_unit_ownerships.infrastructure.unit_ownership_query_repository import (
+            UnitOwnershipQueryRepositoryImpl,
+        )
+        ownership_repo = UnitOwnershipQueryRepositoryImpl()
+        ownerships, total_ownerships = ownership_repo.list_by_user(
+            user_id=user_id,
+            status="active",
+            include_deleted=False,
+        )
+        result["ownerships"] = {
+            "items": [o.to_dict() for o in ownerships],
+            "total": total_ownerships,
+        }
+
+        # 4. Active occupancies for this user
+        from library.dddpy.core_unit_occupancies.infrastructure.unit_occupancy_query_repository import (
+            UnitOccupancyQueryRepositoryImpl,
+        )
+        occupancy_repo = UnitOccupancyQueryRepositoryImpl()
+        occupancies, total_occupancies = occupancy_repo.list_by_user(
+            user_id=user_id,
+            status="active",
+            include_deleted=False,
+        )
+        result["occupancies"] = {
+            "items": [o.to_dict() for o in occupancies],
+            "total": total_occupancies,
+        }
+
+        return result
+
     # ── Update ───────────────────────────────────────────────────────────
 
     def update(self, user_id: int, schema: UpdateUserSchema) -> ResponseSuccessSchema:

@@ -100,6 +100,7 @@ class CondominiumRoleCmdUseCase:
             status=schema.status,
             scope=schema.scope,
             building_id=schema.building_id,
+            unit_id=schema.unit_id,
             start_date=schema.start_date,
             end_date=schema.end_date,
         )
@@ -136,6 +137,7 @@ class CondominiumRoleCmdUseCase:
             status=schema.status,
             scope=schema.scope,
             building_id=schema.building_id,
+            unit_id=schema.unit_id,
             end_date=schema.end_date,
         )
         return self.repository.update(id, data)

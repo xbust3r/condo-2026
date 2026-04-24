@@ -40,6 +40,7 @@ class CondominiumCmdRepositoryImpl(CondominiumCmdRepository):
                     country=data.country,
                     contact_email=data.contact_email,
                     contact_phone=data.contact_phone,
+                    theme_id=data.theme_id,
                 )
                 session.add(db_condominium)
                 session.flush()
@@ -86,6 +87,8 @@ class CondominiumCmdRepositoryImpl(CondominiumCmdRepository):
                 db_condominium.contact_phone = data.contact_phone
             if data.status is not None:
                 db_condominium.status = data.status
+            if data.theme_id is not None:
+                db_condominium.theme_id = data.theme_id
             session.flush()
             session.refresh(db_condominium)
             logger.info(f"Condominium updated id={id}")

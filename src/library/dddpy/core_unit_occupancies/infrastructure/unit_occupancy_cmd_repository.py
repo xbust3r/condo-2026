@@ -2,6 +2,7 @@ from typing import Optional
 from datetime import datetime
 import uuid as uuid_lib
 from sqlalchemy.exc import IntegrityError
+from sqlalchemy import and_
 
 from library.dddpy.core_unit_occupancies.domain.unit_occupancy_entity import UnitOccupancyEntity
 from library.dddpy.core_unit_occupancies.domain.unit_occupancy_data import CreateUnitOccupancyData, UpdateUnitOccupancyData
@@ -26,7 +27,7 @@ class UnitOccupancyCmdRepositoryImpl(UnitOccupancyCmdRepository):
     def create(self, data: CreateUnitOccupancyData) -> UnitOccupancyEntity:
         logger.info(
             f"Creating unit occupancy unit_id={data.unit_id}, user_id={data.user_id}, "
-            f"occupancy_type={data.occupancy_type}"
+            f"occupancy_type_id={data.occupancy_type_id}"
         )
         try:
             with session_scope() as session:
@@ -34,7 +35,7 @@ class UnitOccupancyCmdRepositoryImpl(UnitOccupancyCmdRepository):
                     uuid=str(uuid_lib.uuid4()),
                     unit_id=data.unit_id,
                     user_id=data.user_id,
-                    occupancy_type=data.occupancy_type,
+                    occupancy_type_id=data.occupancy_type_id,
                     status=data.status,
                     start_date=data.start_date,
                     end_date=data.end_date,
@@ -48,7 +49,6 @@ class UnitOccupancyCmdRepositoryImpl(UnitOccupancyCmdRepository):
                 logger.info(f"Unit occupancy created with id={db_occupancy.id}")
                 return UnitOccupancyMapper.to_domain(db_occupancy)
         except IntegrityError as e:
-            error_str = str(e).lower()
             logger.warning(f"IntegrityError creating unit occupancy: {e}")
             raise DuplicateOccupancyRecord()
 
@@ -61,8 +61,8 @@ class UnitOccupancyCmdRepositoryImpl(UnitOccupancyCmdRepository):
                     logger.warning(f"Unit occupancy not found for update id={id}")
                     return None
 
-                if data.occupancy_type is not None:
-                    db_occupancy.occupancy_type = data.occupancy_type
+                if data.occupancy_type_id is not None:
+                    db_occupancy.occupancy_type_id = data.occupancy_type_id
                 if data.status is not None:
                     db_occupancy.status = data.status
                 if data.start_date is not None:
@@ -81,7 +81,6 @@ class UnitOccupancyCmdRepositoryImpl(UnitOccupancyCmdRepository):
                 logger.info(f"Unit occupancy updated id={id}")
                 return UnitOccupancyMapper.to_domain(db_occupancy)
         except IntegrityError as e:
-            error_str = str(e).lower()
             logger.warning(f"IntegrityError updating unit occupancy id={id}: {e}")
             raise DuplicateOccupancyRecord()
 
@@ -120,3 +119,29 @@ class UnitOccupancyCmdRepositoryImpl(UnitOccupancyCmdRepository):
             session.flush()
             logger.info(f"Unit occupancy hard deleted id={id}")
             return True
+
+    def find_primary_by_unit(self, unit_id: int) -> Optional[UnitOccupancyEntity]:
+        """Find active primary occupancy for a unit."""
+        with session_scope() as session:
+            db_occ = (
+                session.query(DBUnitOccupancy)
+                .filter(
+                    and_(
+                        DBUnitOccupancy.unit_id == unit_id,
+                        DBUnitOccupancy.is_primary == True,
+                        DBUnitOccupancy.deleted_at.is_(None),
+                    )
+                )
+                .first()
+            )
+            if db_occ:
+                return UnitOccupancyMapper.to_domain(db_occ)
+            return None
+
+    def get_unit_id(self, occupancy_id: int) -> Optional[int]:
+        """Get unit_id for an existing occupancy record."""
+        with session_scope() as session:
+            db_occ = session.query(DBUnitOccupancy.id, DBUnitOccupancy.unit_id).filter(
+                DBUnitOccupancy.id == occupancy_id
+            ).first()
+            return db_occ.unit_id if db_occ else None

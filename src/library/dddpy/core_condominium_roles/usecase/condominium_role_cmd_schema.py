@@ -1,5 +1,5 @@
-from pydantic import BaseModel, Field, validator
-from typing import Optional
+from pydantic import BaseModel, Field, validator, model_validator
+from typing import Optional, Any
 from datetime import date
 
 
@@ -33,6 +33,10 @@ class CreateCondominiumRoleSchema(BaseModel):
         None,
         description="Building ID for building-scoped roles (maintenance_staff, operations_staff)",
     )
+    unit_id: Optional[int] = Field(
+        None,
+        description="Unit ID for unit-scoped roles",
+    )
     start_date: Optional[date] = Field(None, description="Start date of the role assignment")
     end_date: Optional[date] = Field(None, description="End date of the role assignment (nullable)")
 
@@ -60,12 +64,40 @@ class CreateCondominiumRoleSchema(BaseModel):
             )
         return value
 
-    @validator("end_date")
-    def validate_end_date(cls, value, values):
-        start = values.get("start_date")
-        if value is not None and start is not None and value < start:
-            raise ValueError("end_date cannot be before start_date")
-        return value
+    # Cross-field validators (run after individual field validators)
+    @model_validator(mode="after")
+    def validate_end_date_after_start(self) -> "CreateCondominiumRoleSchema":
+        if self.end_date is not None and self.start_date is not None:
+            if self.end_date < self.start_date:
+                raise ValueError("end_date cannot be before start_date")
+        return self
+
+    @model_validator(mode="after")
+    def validate_historical_requires_end_date(self) -> "CreateCondominiumRoleSchema":
+        """Historical roles must have an end_date set."""
+        if self.status == "historical" and self.end_date is None:
+            raise ValueError(
+                "end_date is required when status is 'historical'"
+            )
+        return self
+
+    @model_validator(mode="after")
+    def validate_scope_building_requires_building_id(self) -> "CreateCondominiumRoleSchema":
+        """Scope 'building' requires building_id."""
+        if self.scope == "building" and self.building_id is None:
+            raise ValueError(
+                "building_id is required when scope is 'building'"
+            )
+        return self
+
+    @model_validator(mode="after")
+    def validate_scope_unit_requires_unit_id(self) -> "CreateCondominiumRoleSchema":
+        """Scope 'unit' requires unit_id."""
+        if self.scope == "unit" and self.unit_id is None:
+            raise ValueError(
+                "unit_id is required when scope is 'unit'"
+            )
+        return self
 
 
 class UpdateCondominiumRoleSchema(BaseModel):
@@ -73,6 +105,7 @@ class UpdateCondominiumRoleSchema(BaseModel):
     status: Optional[str] = Field(None)
     scope: Optional[str] = Field(None)
     building_id: Optional[int] = Field(None)
+    unit_id: Optional[int] = Field(None)
     end_date: Optional[date] = Field(None)
 
     @validator("role")
@@ -98,3 +131,26 @@ class UpdateCondominiumRoleSchema(BaseModel):
                 f"scope must be one of: {', '.join(sorted(_VALID_SCOPES))}"
             )
         return value
+
+    @model_validator(mode="after")
+    def validate_scope_building_requires_building_id(self) -> "UpdateCondominiumRoleSchema":
+        if self.scope == "building" and self.building_id is None:
+            raise ValueError(
+                "building_id is required when scope is 'building'"
+            )
+        return self
+
+    @model_validator(mode="after")
+    def validate_scope_unit_requires_unit_id(self) -> "UpdateCondominiumRoleSchema":
+        if self.scope == "unit" and self.unit_id is None:
+            raise ValueError(
+                "unit_id is required when scope is 'unit'"
+            )
+        return self
+
+    @model_validator(mode="after")
+    def validate_status_historical_requires_end_date(self) -> "UpdateCondominiumRoleSchema":
+        """For update, we can only validate end_date requirement when status is being set to historical AND end_date not provided."""
+        if self.status == "historical" and self.end_date is None:
+            raise ValueError("end_date is required when status is set to 'historical'")
+        return self

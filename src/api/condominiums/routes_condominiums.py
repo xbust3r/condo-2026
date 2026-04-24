@@ -78,6 +78,64 @@ def get_condominium_by_code(code: str) -> dict:
     return response.dict()
 
 
+@condominium_routes.get("/{id}/users")
+@api_handler
+def get_condominium_users(
+    id: int,
+    role_status: Optional[str] = Query(None, description="Filter roles by status (active/inactive/historical)"),
+    limit: int = Query(100, ge=1, le=500),
+    offset: int = Query(0, ge=0),
+) -> dict:
+    """
+    Get all users with an active role in a condominium.
+    Returns user identity + profile + all their roles in this condominium.
+    """
+    # Verify condominium exists
+    condo = CondominiumUseCase().get_by_id(id)
+    if not condo.data:
+        raise CondominiumNotFound()
+
+    role_repo = CondominiumRoleQueryRepositoryImpl()
+    user_repo = UserQueryRepositoryImpl()
+    profile_repo = UserProfileQueryRepositoryImpl()
+
+    roles, total_roles = role_repo.list_by_condominium(
+        condominium_id=id,
+        status=role_status or "active",
+        include_deleted=False,
+        limit=limit,
+        offset=offset,
+    )
+
+    # Group by user
+    users_map: dict = {}
+    for role in roles:
+        if role.user_id not in users_map:
+            user = user_repo.get_by_id(role.user_id, include_deleted=False)
+            profile = profile_repo.get_by_user_id(role.user_id)
+            users_map[role.user_id] = {
+                "user": user.to_dict() if user else None,
+                "profile": profile.to_dict() if profile else None,
+                "roles": [],
+            }
+        users_map[role.user_id]["roles"].append(role.to_dict())
+
+    return ResponseSuccessSchema(
+        success=True,
+        message="Condominium users retrieved",
+        data={
+            "condominium": condo.data,
+            "users": list(users_map.values()),
+            "count": len(users_map),
+            "total_roles": total_roles,
+            "pagination": {
+                "limit": limit,
+                "offset": offset,
+            },
+        },
+    ).dict()
+
+
 @condominium_routes.get("/{id}/admins")
 @api_handler
 def get_condominium_admins(id: int) -> dict:

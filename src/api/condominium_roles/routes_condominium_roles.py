@@ -96,8 +96,9 @@ def list_condominium_roles(
     user_id: Optional[int] = Query(None, description="Filter by user"),
     role: Optional[str] = Query(
         None,
-        description="Filter by role: super_admin / condominium_admin / building_manager / security_staff / maintenance_staff / support_staff",
+        description="Filter by role: super_admin / condominium_admin / board_member / finance_reviewer / security_staff / maintenance_staff / operations_staff",
     ),
+    scope: Optional[str] = Query(None, description="Filter by scope: condominium / building / unit"),
     status: Optional[str] = Query(None),
     include_deleted: bool = Query(False),
 ) -> dict:
@@ -109,6 +110,7 @@ def list_condominium_roles(
         condominium_id=condominium_id,
         user_id=user_id,
         role=role,
+        scope=scope,
         status=status,
         include_deleted=include_deleted,
     )

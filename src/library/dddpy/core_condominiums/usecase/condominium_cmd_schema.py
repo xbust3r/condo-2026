@@ -23,6 +23,7 @@ class CreateCondominiumSchema(BaseModel):
     country: Optional[str] = Field(None, max_length=100)
     contact_email: Optional[EmailStr] = Field(None)
     contact_phone: Optional[str] = Field(None, max_length=50)
+    theme_id: Optional[str] = Field(None, max_length=100)
 
 
 class UpdateCondominiumSchema(BaseModel):
@@ -38,4 +39,5 @@ class UpdateCondominiumSchema(BaseModel):
     country: Optional[str] = Field(None, max_length=100)
     contact_email: Optional[EmailStr] = Field(None)
     contact_phone: Optional[str] = Field(None, max_length=50)
+    theme_id: Optional[str] = Field(None, max_length=100)
     status: Optional[int] = Field(None, ge=0)

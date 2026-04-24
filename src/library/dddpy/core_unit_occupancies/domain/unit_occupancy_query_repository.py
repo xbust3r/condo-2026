@@ -29,7 +29,7 @@ class UnitOccupancyQueryRepository(ABC):
         limit: int = 100,
         unit_id: Optional[int] = None,
         user_id: Optional[int] = None,
-        occupancy_type: Optional[str] = None,
+        occupancy_type_id: Optional[int] = None,
         status: Optional[str] = None,
         is_primary: Optional[bool] = None,
         include_deleted: bool = False,
@@ -41,7 +41,7 @@ class UnitOccupancyQueryRepository(ABC):
             limit: Maximum records to return (max 500)
             unit_id: Filter by unit
             user_id: Filter by user
-            occupancy_type: Filter by occupancy type
+            occupancy_type_id: Filter by occupancy type FK
             status: Filter by status (active/inactive/historical/pending)
             is_primary: Filter by is_primary flag
             include_deleted: If True, include soft-deleted records
@@ -54,7 +54,7 @@ class UnitOccupancyQueryRepository(ABC):
         unit_id: int,
         skip: int = 0,
         limit: int = 100,
-        occupancy_type: Optional[str] = None,
+        occupancy_type_id: Optional[int] = None,
         status: Optional[str] = None,
         is_primary: Optional[bool] = None,
         include_deleted: bool = False,
@@ -68,7 +68,7 @@ class UnitOccupancyQueryRepository(ABC):
         user_id: int,
         skip: int = 0,
         limit: int = 100,
-        occupancy_type: Optional[str] = None,
+        occupancy_type_id: Optional[int] = None,
         status: Optional[str] = None,
         is_primary: Optional[bool] = None,
         include_deleted: bool = False,

@@ -77,12 +77,13 @@ class CondominiumRoleQueryRepositoryImpl(CondominiumRoleQueryRepository):
         condominium_id: Optional[int] = None,
         user_id: Optional[int] = None,
         role: Optional[str] = None,
+        scope: Optional[str] = None,
         status: Optional[str] = None,
         include_deleted: bool = False,
     ) -> Tuple[List[CondominiumRoleEntity], int]:
         logger.debug(
             f"Listing condominium roles skip={skip} limit={limit} "
-            f"condominium_id={condominium_id} user_id={user_id}"
+            f"condominium_id={condominium_id} user_id={user_id} scope={scope}"
         )
         with session_scope() as session:
             query = session.query(DBCondominiumRoles)
@@ -95,6 +96,8 @@ class CondominiumRoleQueryRepositoryImpl(CondominiumRoleQueryRepository):
                 query = query.filter(DBCondominiumRoles.user_id == user_id)
             if role is not None:
                 query = query.filter(DBCondominiumRoles.role == role)
+            if scope is not None:
+                query = query.filter(DBCondominiumRoles.scope == scope)
             if status is not None:
                 query = query.filter(DBCondominiumRoles.status == status)
 

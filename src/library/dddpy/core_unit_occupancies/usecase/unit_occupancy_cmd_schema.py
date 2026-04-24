@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, Field
 from typing import Optional
 from datetime import date
 
@@ -6,9 +6,9 @@ from datetime import date
 class CreateUnitOccupancySchema(BaseModel):
     unit_id: int = Field(..., description="ID of the unit")
     user_id: int = Field(..., description="ID of the user occupying the unit")
-    occupancy_type: str = Field(
+    occupancy_type_id: int = Field(
         ...,
-        description="Occupancy type: resident_owner / tenant / family_member / office_user / occasional_user",
+        description="FK to core_occupancy_types.id. Must reference an active occupancy type.",
     )
     status: str = Field(
         "active",
@@ -24,9 +24,9 @@ class CreateUnitOccupancySchema(BaseModel):
 
 
 class UpdateUnitOccupancySchema(BaseModel):
-    occupancy_type: Optional[str] = Field(
+    occupancy_type_id: Optional[int] = Field(
         None,
-        description="Occupancy type: resident_owner / tenant / family_member / office_user / occasional_user",
+        description="FK to core_occupancy_types.id",
     )
     status: Optional[str] = Field(
         None,

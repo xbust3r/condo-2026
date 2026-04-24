@@ -30,6 +30,7 @@ class CondominiumRoleQueryRepository(ABC):
         condominium_id: Optional[int] = None,
         user_id: Optional[int] = None,
         role: Optional[str] = None,
+        scope: Optional[str] = None,
         status: Optional[str] = None,
         include_deleted: bool = False,
     ) -> Tuple[List[CondominiumRoleEntity], int]:

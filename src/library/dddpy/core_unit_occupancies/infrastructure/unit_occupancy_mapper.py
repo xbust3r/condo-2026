@@ -16,7 +16,7 @@ class UnitOccupancyMapper:
             uuid=db_occupancy.uuid,
             unit_id=db_occupancy.unit_id,
             user_id=db_occupancy.user_id,
-            occupancy_type=db_occupancy.occupancy_type,
+            occupancy_type_id=db_occupancy.occupancy_type_id,
             status=db_occupancy.status,
             start_date=db_occupancy.start_date,
             end_date=db_occupancy.end_date,
@@ -36,7 +36,7 @@ class UnitOccupancyMapper:
             uuid=entity.uuid,
             unit_id=entity.unit_id,
             user_id=entity.user_id,
-            occupancy_type=entity.occupancy_type,
+            occupancy_type_id=entity.occupancy_type_id,
             status=entity.status,
             start_date=entity.start_date,
             end_date=entity.end_date,
@@ -46,4 +46,29 @@ class UnitOccupancyMapper:
             created_at=entity.created_at,
             updated_at=entity.updated_at,
             deleted_at=entity.deleted_at,
+        )
+
+    @staticmethod
+    def to_domain_enriched(db_occupancy: DBUnitOccupancy, code: str, name: str,
+                           requires_auth: bool, allows_primary: bool) -> UnitOccupancyEntity:
+        """Convierte modelo DB a entidad de dominio con datos enriquecidos del catálogo."""
+        return UnitOccupancyEntity(
+            id=db_occupancy.id,
+            uuid=db_occupancy.uuid,
+            unit_id=db_occupancy.unit_id,
+            user_id=db_occupancy.user_id,
+            occupancy_type_id=db_occupancy.occupancy_type_id,
+            status=db_occupancy.status,
+            start_date=db_occupancy.start_date,
+            end_date=db_occupancy.end_date,
+            is_primary=db_occupancy.is_primary,
+            authorized_by_user_id=db_occupancy.authorized_by_user_id,
+            notes=db_occupancy.notes,
+            created_at=db_occupancy.created_at,
+            updated_at=db_occupancy.updated_at,
+            deleted_at=db_occupancy.deleted_at,
+            occupancy_type_code=code,
+            occupancy_type_name=name,
+            requires_authorization=requires_auth,
+            allows_primary=allows_primary,
         )

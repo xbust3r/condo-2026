@@ -12,6 +12,7 @@ class CreateCondominiumRoleData:
     status: str = "active"
     scope: str = "condominium"
     building_id: Optional[int] = None
+    unit_id: Optional[int] = None
     start_date: Optional[date] = None
     end_date: Optional[date] = None
 
@@ -23,4 +24,5 @@ class UpdateCondominiumRoleData:
     status: Optional[str] = None
     scope: Optional[str] = None
     building_id: Optional[int] = None
+    unit_id: Optional[int] = None
     end_date: Optional[date] = None

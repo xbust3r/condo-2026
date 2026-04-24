@@ -58,3 +58,11 @@ class BuildingQueryRepository(ABC):
     def count_active_units(self, building_id: int) -> int:
         """Count active units for a building. Used before hard delete."""
         pass
+
+    @abstractmethod
+    def get_building_ids_by_condominiums(
+        self,
+        condominium_ids: List[int],
+    ) -> List[int]:
+        """Get all building IDs belonging to given condominium_ids."""
+        pass

@@ -94,10 +94,7 @@ def list_unit_occupancies(
     limit: int = Query(100, ge=1, le=500),
     unit_id: Optional[int] = Query(None, description="Filter by unit"),
     user_id: Optional[int] = Query(None, description="Filter by user"),
-    occupancy_type: Optional[str] = Query(
-        None,
-        description="Filter by type: resident_owner / tenant / family_member / office_user / occasional_user",
-    ),
+    occupancy_type_id: Optional[int] = Query(None, description="Filter by occupancy type FK"),
     status: Optional[str] = Query(None),
     is_primary: Optional[bool] = Query(None, description="Primary occupancy only"),
     include_deleted: bool = Query(False),
@@ -109,7 +106,7 @@ def list_unit_occupancies(
         limit=limit,
         unit_id=unit_id,
         user_id=user_id,
-        occupancy_type=occupancy_type,
+        occupancy_type_id=occupancy_type_id,
         status=status,
         is_primary=is_primary,
         include_deleted=include_deleted,
@@ -123,6 +120,7 @@ def list_occupancies_by_unit(
     unit_id: int,
     skip: int = Query(0, ge=0),
     limit: int = Query(100, ge=1, le=500),
+    occupancy_type_id: Optional[int] = Query(None, description="Filter by occupancy type FK"),
     status: Optional[str] = Query(None),
     include_deleted: bool = Query(False),
 ) -> dict:
@@ -132,6 +130,7 @@ def list_occupancies_by_unit(
         unit_id=unit_id,
         skip=skip,
         limit=limit,
+        occupancy_type_id=occupancy_type_id,
         status=status,
         include_deleted=include_deleted,
     )
@@ -144,6 +143,7 @@ def list_occupancies_by_user(
     user_id: int,
     skip: int = Query(0, ge=0),
     limit: int = Query(100, ge=1, le=500),
+    occupancy_type_id: Optional[int] = Query(None, description="Filter by occupancy type FK"),
     status: Optional[str] = Query(None),
     include_deleted: bool = Query(False),
 ) -> dict:
@@ -153,6 +153,7 @@ def list_occupancies_by_user(
         user_id=user_id,
         skip=skip,
         limit=limit,
+        occupancy_type_id=occupancy_type_id,
         status=status,
         include_deleted=include_deleted,
     )

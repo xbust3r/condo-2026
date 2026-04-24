@@ -30,3 +30,13 @@ class UnitOccupancyCmdRepository(ABC):
     def hard_delete(self, id: int) -> bool:
         """Physical delete."""
         pass
+
+    @abstractmethod
+    def find_primary_by_unit(self, unit_id: int) -> Optional[UnitOccupancyEntity]:
+        """Find active primary occupancy for a unit."""
+        pass
+
+    @abstractmethod
+    def get_unit_id(self, occupancy_id: int) -> Optional[int]:
+        """Get unit_id for an existing occupancy record."""
+        pass

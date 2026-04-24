@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Optional
+from typing import Optional, List
 
 from library.dddpy.core_unit_ownerships.domain.unit_ownership_entity import UnitOwnershipEntity
 from library.dddpy.core_unit_ownerships.domain.unit_ownership_data import CreateUnitOwnershipData, UpdateUnitOwnershipData
@@ -24,4 +24,14 @@ class UnitOwnershipCmdRepository(ABC):
     @abstractmethod
     def restore(self, id: int) -> bool:
         """Restore a soft-deleted record: clears deleted_at."""
+        pass
+
+    @abstractmethod
+    def find_active_by_unit(self, unit_id: int) -> List[UnitOwnershipEntity]:
+        """Find all active (non-deleted, non-historical) ownerships for a unit."""
+        pass
+
+    @abstractmethod
+    def get_by_id_any_status(self, id: int) -> Optional[UnitOwnershipEntity]:
+        """Get ownership record by id ignoring deleted_at filter. For use in mutations."""
         pass

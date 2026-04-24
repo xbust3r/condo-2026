@@ -24,6 +24,7 @@ class CondominiumEntity:
         contact_email: Optional[str] = None,
         contact_phone: Optional[str] = None,
         status: int = 1,
+        theme_id: Optional[str] = None,
         created_at: Optional[datetime] = None,
         updated_at: Optional[datetime] = None,
         deleted_at: Optional[datetime] = None,
@@ -44,6 +45,7 @@ class CondominiumEntity:
         self.contact_email = contact_email
         self.contact_phone = contact_phone
         self.status = status
+        self.theme_id = theme_id
         self.created_at = created_at
         self.updated_at = updated_at
         self.deleted_at = deleted_at
@@ -66,6 +68,7 @@ class CondominiumEntity:
             "contact_email": self.contact_email,
             "contact_phone": self.contact_phone,
             "status": self.status,
+            "theme_id": self.theme_id,
             "created_at": self.created_at.isoformat() if self.created_at else None,
             "updated_at": self.updated_at.isoformat() if self.updated_at else None,
             "deleted_at": self.deleted_at.isoformat() if self.deleted_at else None,
