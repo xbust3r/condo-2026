@@ -63,7 +63,7 @@ class VoteCmdUseCase:
                     units = session.query(DBUnits).filter(DBUnits.id.in_(unit_ids)).all()
                     building_condo_ids = {u.building_id for u in units}
                     # Get building -> condominium mapping
-                    from library.dddpy.core_buildings.infrastructure.dbbuilding import DBBuildings
+                    from library.dddpy.core_buildings.infrastructure.dbbuildings import DBBuildings
                     buildings = session.query(DBBuildings).filter(
                         DBBuildings.id.in_(building_condo_ids)
                     ).all() if building_condo_ids else []

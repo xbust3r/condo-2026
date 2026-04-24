@@ -7,7 +7,7 @@ from library.dddpy.core_unit_ownerships.infrastructure.dbunit_ownership import D
 from library.dddpy.core_unit_ownerships.infrastructure.unit_ownership_mapper import UnitOwnershipMapper
 from library.dddpy.core_users.infrastructure.dbuser import DBUser
 from library.dddpy.core_units.infrastructure.dbunits import DBUnits
-from library.dddpy.core_buildings.infrastructure.dbbuilding import DBBuildings
+from library.dddpy.core_buildings.infrastructure.dbbuildings import DBBuildings
 from library.dddpy.core_condominiums.infrastructure.dbcondominiums import DBCondominiums as DBCondominium
 from library.dddpy.shared.mysql.session_manager import session_scope
 from library.dddpy.shared.logging.logging import Logger

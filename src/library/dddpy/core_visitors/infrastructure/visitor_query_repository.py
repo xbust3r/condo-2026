@@ -9,7 +9,7 @@ from library.dddpy.core_visitors.domain.visitor_query_repository import VisitorQ
 from library.dddpy.core_visitors.infrastructure.dbvisitor import DBVisitor
 from library.dddpy.core_visitors.infrastructure.visitor_mapper import VisitorMapper
 from library.dddpy.core_units.infrastructure.dbunits import DBUnits
-from library.dddpy.core_buildings.infrastructure.dbbuilding import DBBuildings
+from library.dddpy.core_buildings.infrastructure.dbbuildings import DBBuildings
 from library.dddpy.core_condominiums.infrastructure.dbcondominiums import DBCondominium
 from library.dddpy.shared.mysql.session_manager import session_scope
 from library.dddpy.shared.logging.logging import Logger

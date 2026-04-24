@@ -1,4 +1,4 @@
-FROM python:3.9-bullseye
+FROM python:3.10-bullseye
 
 #RUN apk add --update --no-cache gcc unzip musl-dev g++ bash
 RUN pip install --upgrade pip
