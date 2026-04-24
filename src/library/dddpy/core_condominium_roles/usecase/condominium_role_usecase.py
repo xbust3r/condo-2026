@@ -1,4 +1,5 @@
 """
+from typing import Optional
 Condominium Role UseCase — fachada que orquesta cmd + query.
 
 Incluye validaciones RBAC:

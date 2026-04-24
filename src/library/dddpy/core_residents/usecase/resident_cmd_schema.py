@@ -1,4 +1,5 @@
 """
+from typing import Optional
 Resident use case schemas.
 """
 from typing import Optional, Dict, Any

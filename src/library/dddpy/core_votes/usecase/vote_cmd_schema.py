@@ -1,4 +1,5 @@
 """
+from typing import Optional
 Vote command schemas — Pydantic input models.
 """
 from datetime import datetime

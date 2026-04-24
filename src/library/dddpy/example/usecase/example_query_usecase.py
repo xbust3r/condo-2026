@@ -1,3 +1,4 @@
+from typing import Optional
 from typing import Optional, List
 
 from library.dddpy.example.domain.example_query_repository import ExampleQueryRepository

@@ -1,4 +1,5 @@
 """
+from typing import Optional
 Resident profile domain entity — per-user preferences per condominium.
 """
 from datetime import datetime

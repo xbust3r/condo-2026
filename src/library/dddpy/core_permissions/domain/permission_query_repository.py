@@ -1,4 +1,5 @@
 """
+from typing import Optional
 Permission Query Repository ABC.
 """
 from abc import ABC, abstractmethod

@@ -1,4 +1,5 @@
 """
+from typing import Optional
 Notification repository ABC — command operations.
 """
 from abc import ABC, abstractmethod

@@ -1,4 +1,5 @@
 """
+from typing import Optional
 Incident domain entity — DDD for maintenance ticketing / incident reports.
 """
 from datetime import datetime, date

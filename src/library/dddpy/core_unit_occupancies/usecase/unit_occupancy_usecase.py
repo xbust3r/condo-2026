@@ -1,4 +1,5 @@
 from typing import Optional
+from typing import Optional
 
 from library.dddpy.core_unit_occupancies.usecase.unit_occupancy_cmd_usecase import UnitOccupancyCmdUseCase
 from library.dddpy.core_unit_occupancies.usecase.unit_occupancy_query_usecase import UnitOccupancyQueryUseCase

@@ -1,4 +1,5 @@
 """
+from typing import Optional
 Meeting domain entity — DDD for condominium assembly and board meeting minutes.
 """
 from datetime import datetime

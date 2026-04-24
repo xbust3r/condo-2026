@@ -1,4 +1,5 @@
 """
+from typing import Optional
 RBAC Authorization Dependency — FastAPI dependency for permission enforcement.
 
 Usage:

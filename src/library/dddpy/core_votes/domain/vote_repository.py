@@ -1,4 +1,5 @@
 """
+from typing import Optional
 Vote command repository ABC — write operations.
 """
 from abc import ABC, abstractmethod

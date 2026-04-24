@@ -1,4 +1,5 @@
 """
+from typing import Optional
 Amenity Use Case — business logic for amenities.
 """
 import uuid as uuid_lib

@@ -1,3 +1,4 @@
+from typing import Optional
 from typing import Optional, List, Dict, Any
 
 from library.dddpy.core_buildings.usecase.building_cmd_usecase import BuildingCmdUseCase

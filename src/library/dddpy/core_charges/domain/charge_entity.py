@@ -1,4 +1,5 @@
 """
+from typing import Optional
 Charge domain entity — DDD for condominium charges.
 """
 from datetime import datetime, date

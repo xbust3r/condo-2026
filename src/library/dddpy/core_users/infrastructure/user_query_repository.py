@@ -1,4 +1,5 @@
 """
+from typing import Optional
 User query repository implementation — read operations on users + user_profiles.
 """
 from typing import Optional, Tuple, List

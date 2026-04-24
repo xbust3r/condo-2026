@@ -1,4 +1,5 @@
 """
+from typing import Optional
 OccupancyType command schemas — Pydantic models for API request bodies.
 """
 from pydantic import BaseModel, Field

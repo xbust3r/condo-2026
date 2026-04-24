@@ -1,4 +1,5 @@
 """
+from typing import Optional
 Notification domain entity — DDD for user notifications.
 """
 from datetime import datetime

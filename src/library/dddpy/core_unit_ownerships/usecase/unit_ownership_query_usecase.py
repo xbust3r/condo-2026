@@ -1,3 +1,4 @@
+from typing import Optional
 from typing import Optional, List, Tuple
 
 from library.dddpy.core_unit_ownerships.domain.unit_ownership_query_repository import UnitOwnershipQueryRepository

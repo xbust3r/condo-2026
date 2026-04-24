@@ -1,4 +1,5 @@
 """
+from typing import Optional
 Document command schemas.
 """
 from typing import Optional

@@ -1,3 +1,4 @@
+from typing import Optional
 from typing import Optional, List, Tuple, Dict, Any
 from sqlalchemy import func, and_, text
 

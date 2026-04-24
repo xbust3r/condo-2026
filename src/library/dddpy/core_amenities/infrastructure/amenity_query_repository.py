@@ -1,4 +1,5 @@
 """
+from typing import Optional
 Amenity Query Repository Implementation — with bulk enrichment.
 """
 from typing import Optional, List, Tuple

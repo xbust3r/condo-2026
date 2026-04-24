@@ -1,4 +1,5 @@
 """
+from typing import Optional
 Audit log query use case — read-only access to audit trail.
 """
 from datetime import date

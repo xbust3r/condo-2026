@@ -1,4 +1,5 @@
 """
+from typing import Optional
 Permission Service — RBAC permission checking engine.
 
 Provides has_permission(), get_user_permissions(), and

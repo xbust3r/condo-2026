@@ -1,4 +1,5 @@
 """
+from typing import Optional
 Ledger use case — unit financial ledger operations.
 """
 from typing import Optional

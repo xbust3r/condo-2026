@@ -1,4 +1,5 @@
 """
+from typing import Optional
 Notification command schemas — Pydantic input models.
 """
 from typing import Optional, Dict, Any

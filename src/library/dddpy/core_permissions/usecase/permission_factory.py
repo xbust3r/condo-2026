@@ -1,4 +1,5 @@
 """
+from typing import Optional
 Permission Factory — factory functions for Permission use cases.
 """
 from typing import Optional

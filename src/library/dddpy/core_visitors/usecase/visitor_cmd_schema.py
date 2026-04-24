@@ -1,4 +1,5 @@
 """Visitor command schemas — Pydantic input models."""
+from typing import Optional
 from datetime import date, time
 from typing import Optional
 

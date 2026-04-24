@@ -1,4 +1,5 @@
 """
+from typing import Optional
 Vote query repository ABC — read operations.
 """
 from abc import ABC, abstractmethod

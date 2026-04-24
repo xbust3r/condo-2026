@@ -1,3 +1,4 @@
+from typing import Optional
 from typing import Optional, List, Tuple
 
 from library.dddpy.core_unit_occupancies.domain.unit_occupancy_query_repository import UnitOccupancyQueryRepository

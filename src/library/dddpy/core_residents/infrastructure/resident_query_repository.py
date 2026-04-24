@@ -1,4 +1,5 @@
 """
+from typing import Optional
 Resident query repository implementation — aggregates dashboard data from multiple modules.
 """
 from typing import Optional, List, Tuple

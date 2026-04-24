@@ -1,4 +1,5 @@
 """
+from typing import Optional
 Document Query Repository Implementation — with bulk enrichment.
 """
 from typing import Optional, List, Tuple

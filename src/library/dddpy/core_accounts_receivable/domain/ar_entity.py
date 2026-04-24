@@ -1,4 +1,5 @@
 """
+from typing import Optional
 AccountsReceivable domain entity — DDD for condominium accounts receivable.
 """
 from datetime import datetime, date

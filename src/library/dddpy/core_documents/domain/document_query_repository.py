@@ -1,4 +1,5 @@
 """
+from typing import Optional
 Document query repository interface.
 """
 from typing import Optional, List, Tuple

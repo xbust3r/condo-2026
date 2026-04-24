@@ -1,4 +1,5 @@
 """
+from typing import Optional
 Document Use Case.
 """
 import uuid as uuid_lib

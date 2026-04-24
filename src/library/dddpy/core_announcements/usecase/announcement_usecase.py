@@ -1,4 +1,5 @@
 """
+from typing import Optional
 Announcement Use Case — business logic for announcements.
 """
 import uuid as uuid_lib

@@ -1,4 +1,5 @@
 """
+from typing import Optional
 Receipt query repository interface — abstract.
 """
 from abc import ABC, abstractmethod

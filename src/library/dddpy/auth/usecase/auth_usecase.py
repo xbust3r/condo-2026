@@ -1,4 +1,5 @@
 """
+from typing import Optional
 Auth use case — login, logout, refresh, me.
 
 Coordinates:

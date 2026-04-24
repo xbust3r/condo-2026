@@ -1,4 +1,5 @@
 """
+from typing import Optional
 User profile command repository — write operations.
 """
 import uuid as uuid_lib

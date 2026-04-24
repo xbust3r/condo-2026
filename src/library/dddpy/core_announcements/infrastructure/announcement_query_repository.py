@@ -1,4 +1,5 @@
 """
+from typing import Optional
 Announcement Query Repository Implementation — with bulk enrichment.
 """
 from datetime import date

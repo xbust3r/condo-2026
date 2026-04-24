@@ -1,4 +1,5 @@
 """
+from typing import Optional
 Receipt use case — orchestrates all receipt operations.
 """
 from datetime import datetime

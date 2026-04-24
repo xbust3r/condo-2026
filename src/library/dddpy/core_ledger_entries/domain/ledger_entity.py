@@ -1,4 +1,5 @@
 """
+from typing import Optional
 LedgerEntry domain entity — DDD for unit financial ledger.
 """
 from datetime import datetime

@@ -1,4 +1,5 @@
 """
+from typing import Optional
 Charge command repository implementation — SQLAlchemy.
 """
 from datetime import datetime

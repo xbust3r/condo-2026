@@ -1,4 +1,5 @@
 """
+from typing import Optional
 Ledger query repository implementation — SQLAlchemy.
 """
 from decimal import Decimal

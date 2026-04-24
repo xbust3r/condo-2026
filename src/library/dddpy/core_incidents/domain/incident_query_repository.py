@@ -1,4 +1,5 @@
 """
+from typing import Optional
 Incident query repository ABC — read operations.
 """
 from abc import ABC, abstractmethod

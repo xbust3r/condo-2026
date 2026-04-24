@@ -1,4 +1,5 @@
 """Visitor query repository ABC — read operations."""
+from typing import Optional
 from abc import ABC, abstractmethod
 from typing import Optional, List, Tuple
 

@@ -1,4 +1,5 @@
 """
+from typing import Optional
 Permission Query UseCase.
 """
 from typing import Optional, List

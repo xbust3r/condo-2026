@@ -1,4 +1,5 @@
 """
+from typing import Optional
 Amenity query repository interface — DDD domain layer.
 """
 from typing import Optional, List, Tuple

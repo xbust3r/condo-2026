@@ -1,4 +1,5 @@
 """
+from typing import Optional
 Email sender service — wraps aiosmtplib for async email delivery.
 
 Configured via GMAIL_SENDER / GMAIL_APP_PASSWORD env vars.

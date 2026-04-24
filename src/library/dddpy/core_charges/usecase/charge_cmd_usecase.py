@@ -1,4 +1,5 @@
 """
+from typing import Optional
 Charge command use case — handles writes.
 """
 from typing import Optional

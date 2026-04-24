@@ -1,4 +1,5 @@
 """
+from typing import Optional
 Repository for auth_sessions — stores hashed refresh tokens.
 
 One session per refresh token. Sessions are soft-deleted on logout.

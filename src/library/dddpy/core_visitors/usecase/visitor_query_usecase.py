@@ -1,4 +1,5 @@
 """
+from typing import Optional
 Visitor query use case — read operations.
 """
 from typing import Optional, List, Tuple

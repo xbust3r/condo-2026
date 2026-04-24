@@ -1,4 +1,5 @@
 """
+from typing import Optional
 Payment domain entity — DDD for payments against AR.
 """
 from datetime import datetime

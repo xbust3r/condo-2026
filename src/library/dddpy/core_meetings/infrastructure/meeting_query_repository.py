@@ -1,4 +1,5 @@
 """
+from typing import Optional
 Meeting Query Repository Implementation — with bulk enrichment.
 """
 from datetime import datetime

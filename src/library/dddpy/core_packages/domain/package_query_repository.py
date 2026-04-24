@@ -1,4 +1,5 @@
 """Package query repository interface."""
+from typing import Optional
 from typing import Optional, List, Tuple
 
 

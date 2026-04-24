@@ -1,4 +1,5 @@
 """
+from typing import Optional
 User profile query repository — read operations.
 """
 from typing import Optional

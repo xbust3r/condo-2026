@@ -1,4 +1,5 @@
 """
+from typing import Optional
 UserProfileEntity — domain representation of a user profile.
 """
 from dataclasses import dataclass

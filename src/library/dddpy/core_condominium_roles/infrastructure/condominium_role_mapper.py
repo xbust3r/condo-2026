@@ -1,4 +1,5 @@
 """
+from typing import Optional
 Condominium Role Mapper - Transforma entre DB model y Domain entity.
 
 v2 — incluye scope y building_id desde migración 021.

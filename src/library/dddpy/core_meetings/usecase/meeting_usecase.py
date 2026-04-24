@@ -1,4 +1,5 @@
 """
+from typing import Optional
 Meeting Use Case — business logic for condominium meetings.
 """
 import uuid as uuid_lib

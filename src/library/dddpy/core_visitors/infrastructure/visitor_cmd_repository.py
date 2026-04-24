@@ -1,4 +1,5 @@
 """
+from typing import Optional
 Visitor command repository implementation — write operations.
 """
 from datetime import datetime

@@ -1,4 +1,5 @@
 """Package Query Repository Implementation — with bulk enrichment."""
+from typing import Optional
 from typing import Optional, List, Tuple
 
 from sqlalchemy import text

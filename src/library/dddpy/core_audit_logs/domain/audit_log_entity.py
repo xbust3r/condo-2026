@@ -1,4 +1,5 @@
 """
+from typing import Optional
 AuditLog domain entity.
 """
 from datetime import datetime

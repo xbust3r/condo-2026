@@ -1,4 +1,5 @@
 """
+from typing import Optional
 Amenity domain entity — DDD for condominium common area reservations.
 """
 from datetime import datetime

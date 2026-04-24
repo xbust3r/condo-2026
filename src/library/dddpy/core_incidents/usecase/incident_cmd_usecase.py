@@ -1,4 +1,5 @@
 """
+from typing import Optional
 Incident command use case — write operations with INC-01 validation.
 """
 from typing import Optional

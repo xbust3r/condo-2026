@@ -1,4 +1,5 @@
 """Visitor domain entity — DDD for visitor / access management."""
+from typing import Optional
 from datetime import datetime, date, time
 from typing import Dict, Any, Optional
 

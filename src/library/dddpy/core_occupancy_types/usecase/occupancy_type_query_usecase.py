@@ -1,4 +1,5 @@
 """
+from typing import Optional
 OccupancyType query use case — handles read operations.
 """
 from typing import List, Optional, Tuple

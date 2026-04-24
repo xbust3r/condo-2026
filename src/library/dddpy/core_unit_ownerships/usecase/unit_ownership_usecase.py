@@ -1,4 +1,5 @@
 from typing import Optional
+from typing import Optional
 from datetime import date
 
 from library.dddpy.core_unit_ownerships.usecase.unit_ownership_cmd_usecase import UnitOwnershipCmdUseCase

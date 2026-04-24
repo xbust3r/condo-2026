@@ -1,4 +1,5 @@
 """
+from typing import Optional
 AccountsReceivable query use case — handles reads.
 """
 from typing import List, Optional, Tuple

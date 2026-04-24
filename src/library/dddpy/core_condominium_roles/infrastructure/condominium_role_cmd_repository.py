@@ -1,4 +1,5 @@
 from typing import Optional
+from typing import Optional
 from datetime import datetime, date
 import uuid as uuid_lib
 from sqlalchemy.exc import IntegrityError

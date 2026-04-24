@@ -1,4 +1,5 @@
 """
+from typing import Optional
 Meeting query repository interface — DDD domain layer.
 """
 from datetime import date, datetime

@@ -1,4 +1,5 @@
 """
+from typing import Optional
 Permission Query Repository Implementation.
 """
 from typing import Optional, List, Tuple

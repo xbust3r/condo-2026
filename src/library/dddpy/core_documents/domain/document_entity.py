@@ -1,4 +1,5 @@
 """
+from typing import Optional
 Document domain entity.
 """
 from datetime import datetime

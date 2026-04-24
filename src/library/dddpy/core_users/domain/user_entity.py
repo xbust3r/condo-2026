@@ -1,4 +1,5 @@
 """
+from typing import Optional
 UserEntity — domain representation of a system user.
 """
 from dataclasses import dataclass

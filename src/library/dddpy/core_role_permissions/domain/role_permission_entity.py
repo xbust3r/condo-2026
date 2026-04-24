@@ -1,4 +1,5 @@
 """
+from typing import Optional
 RolePermission Entity — Dominio para core_role_permissions.
 """
 from typing import Dict, Any, Optional

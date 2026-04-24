@@ -1,3 +1,4 @@
+from typing import Optional
 from typing import Optional, List
 
 from library.dddpy.core_condominiums.domain.condominium_query_repository import CondominiumQueryRepository

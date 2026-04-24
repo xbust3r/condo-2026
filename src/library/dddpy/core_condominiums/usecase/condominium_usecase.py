@@ -1,4 +1,5 @@
 from typing import Optional
+from typing import Optional
 from library.dddpy.core_condominiums.usecase.condominium_cmd_usecase import CondominiumCmdUseCase
 from library.dddpy.core_condominiums.usecase.condominium_query_usecase import CondominiumQueryUseCase
 from library.dddpy.core_condominiums.usecase.condominium_factory import condominium_cmd_usecase_factory, condominium_query_usecase_factory

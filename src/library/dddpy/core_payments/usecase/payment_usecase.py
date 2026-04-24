@@ -1,4 +1,5 @@
 """
+from typing import Optional
 Payment use case — orchestrates payment + receipt generation.
 """
 from datetime import datetime

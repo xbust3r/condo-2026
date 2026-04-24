@@ -1,4 +1,5 @@
 """
+from typing import Optional
 Receipt domain entity — DDD for payment receipts.
 """
 from datetime import datetime

@@ -1,4 +1,5 @@
 """
+from typing import Optional
 User profile command repository interface — write operations.
 """
 from abc import ABC, abstractmethod

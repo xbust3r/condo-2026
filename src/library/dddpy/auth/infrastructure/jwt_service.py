@@ -1,4 +1,5 @@
 """
+from typing import Optional
 JWT service — creates and validates access tokens.
 
 Security requirements:

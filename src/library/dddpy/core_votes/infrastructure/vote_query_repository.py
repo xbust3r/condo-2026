@@ -1,4 +1,5 @@
 """
+from typing import Optional
 Vote query repository implementation — read operations with enrichment.
 """
 from typing import Optional, List, Tuple

@@ -1,4 +1,5 @@
 """
+from typing import Optional
 Audit log query repository implementation — raw SQL for JSON column and date filters.
 """
 from typing import List, Optional, Tuple

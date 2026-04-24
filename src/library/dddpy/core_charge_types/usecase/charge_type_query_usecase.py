@@ -1,4 +1,5 @@
 """
+from typing import Optional
 ChargeType query use case — handles reads.
 """
 from typing import List, Optional, Tuple

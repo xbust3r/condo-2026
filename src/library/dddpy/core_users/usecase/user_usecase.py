@@ -1,4 +1,5 @@
 """
+from typing import Optional
 User use case — orchestrates all user operations.
 
 Coordinates UserCmdRepositoryImpl (write) + UserQueryRepositoryImpl (read).

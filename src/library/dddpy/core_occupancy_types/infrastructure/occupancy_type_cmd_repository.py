@@ -1,4 +1,5 @@
 """
+from typing import Optional
 OccupancyType command repository implementation — SQLAlchemy.
 """
 from datetime import datetime

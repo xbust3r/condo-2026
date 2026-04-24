@@ -1,4 +1,5 @@
 """
+from typing import Optional
 Condominium Role Entity — Dominio para core_condominium_roles.
 
 v2 — incluye scope y building_id desde migración 021.

@@ -1,4 +1,5 @@
 """
+from typing import Optional
 Payment query repository implementation — SQLAlchemy.
 """
 from typing import List, Optional, Tuple

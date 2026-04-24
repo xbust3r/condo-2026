@@ -1,4 +1,5 @@
 """
+from typing import Optional
 AccountsReceivable data classes — DDD data layer.
 """
 from dataclasses import dataclass

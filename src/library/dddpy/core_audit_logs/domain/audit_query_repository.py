@@ -1,4 +1,5 @@
 """
+from typing import Optional
 Audit log query repository interface — abstract.
 """
 from abc import ABC, abstractmethod

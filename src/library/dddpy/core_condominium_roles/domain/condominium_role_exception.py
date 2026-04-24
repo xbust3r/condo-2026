@@ -1,4 +1,5 @@
 from typing import Optional
+from typing import Optional
 
 from library.dddpy.shared.decorators.domain_exception import DomainException
 

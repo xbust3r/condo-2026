@@ -1,3 +1,4 @@
+from typing import Optional
 from typing import Optional, List, Tuple
 
 from library.dddpy.core_condominium_roles.domain.condominium_role_query_repository import CondominiumRoleQueryRepository

@@ -1,4 +1,5 @@
 """
+from typing import Optional
 Auth User repository — fetches user identity for authentication.
 
 Queries users + user_profiles in a single JOIN for the /auth/me endpoint.

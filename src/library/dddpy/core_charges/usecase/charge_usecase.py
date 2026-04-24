@@ -1,4 +1,5 @@
 """
+from typing import Optional
 Charge use case — orchestrates all charge operations.
 """
 from typing import Optional

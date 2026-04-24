@@ -1,4 +1,5 @@
 """
+from typing import Optional
 AccountsReceivable use case — orchestrates all AR operations.
 """
 from typing import Optional

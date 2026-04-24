@@ -1,4 +1,5 @@
 """
+from typing import Optional
 AccountsReceivable command use case — handles writes.
 """
 from typing import Optional

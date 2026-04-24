@@ -1,4 +1,5 @@
 """
+from typing import Optional
 AccountsReceivable query repository implementation — SQLAlchemy.
 """
 from datetime import date

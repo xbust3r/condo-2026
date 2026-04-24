@@ -1,4 +1,5 @@
 """
+from typing import Optional
 AccountsReceivable command repository interface — abstract.
 """
 from abc import ABC, abstractmethod

@@ -1,4 +1,5 @@
 """
+from typing import Optional
 Incident command schemas — Pydantic input models.
 """
 from datetime import date

@@ -1,3 +1,4 @@
+from typing import Optional
 from typing import Optional, Dict, Any
 from decimal import Decimal
 

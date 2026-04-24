@@ -1,4 +1,5 @@
 """
+from typing import Optional
 Vote domain entity — DDD for digital voting system.
 """
 from datetime import datetime

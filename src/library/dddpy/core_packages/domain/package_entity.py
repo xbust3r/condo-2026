@@ -1,4 +1,5 @@
 """Package domain entity — DDD for package/maquil delivery management."""
+from typing import Optional
 from datetime import datetime
 from typing import Dict, Any, Optional
 

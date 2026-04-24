@@ -1,4 +1,5 @@
 """
+from typing import Optional
 UserIdentity — the authenticated user identity returned by /auth/me.
 
 Combines users (auth identity) + user_profiles (human attributes).

@@ -1,4 +1,5 @@
 """
+from typing import Optional
 User profile command schemas — Pydantic models for API request bodies.
 """
 from pydantic import BaseModel, Field

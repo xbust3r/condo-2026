@@ -1,4 +1,5 @@
 """
+from typing import Optional
 Charge query repository interface — abstract.
 """
 from abc import ABC, abstractmethod

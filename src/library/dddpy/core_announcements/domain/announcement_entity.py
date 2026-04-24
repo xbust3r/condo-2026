@@ -1,4 +1,5 @@
 """
+from typing import Optional
 Announcement domain entity — DDD for condominium announcements/posts.
 """
 from datetime import datetime, date

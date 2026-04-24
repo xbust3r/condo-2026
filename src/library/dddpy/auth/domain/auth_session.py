@@ -1,4 +1,5 @@
 """
+from typing import Optional
 AuthSession entity — represents an active authentication session.
 """
 from dataclasses import dataclass

@@ -1,3 +1,4 @@
+from typing import Optional
 from typing import Optional, Tuple, List
 
 from library.dddpy.core_unit_types.domain.unit_type_query_repository import (

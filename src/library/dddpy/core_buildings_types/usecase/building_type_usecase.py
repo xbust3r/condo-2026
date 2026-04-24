@@ -1,4 +1,5 @@
 from typing import Optional
+from typing import Optional
 
 from library.dddpy.core_buildings_types.usecase.building_type_factory import (
     building_type_cmd_usecase_factory,

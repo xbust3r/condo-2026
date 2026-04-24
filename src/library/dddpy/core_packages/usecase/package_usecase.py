@@ -1,4 +1,5 @@
 """Package Use Case — business logic for package delivery management."""
+from typing import Optional
 import random
 import uuid as uuid_lib
 from datetime import datetime

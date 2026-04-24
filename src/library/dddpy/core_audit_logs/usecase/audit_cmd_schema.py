@@ -1,4 +1,5 @@
 """
+from typing import Optional
 Audit command schema — for AuditFactory internal use.
 """
 from pydantic import BaseModel, Field

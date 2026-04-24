@@ -1,4 +1,5 @@
 from typing import Optional
+from typing import Optional
 
 from library.dddpy.example.domain.example_entity import ExampleEntity
 from library.dddpy.example.domain.example_data import CreateExampleData, UpdateExampleData

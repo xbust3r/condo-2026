@@ -1,3 +1,4 @@
+from typing import Optional
 from typing import Optional, Dict, Any
 from datetime import datetime
 import uuid as uuid_lib

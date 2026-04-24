@@ -1,4 +1,5 @@
 """
+from typing import Optional
 User profile query repository interface — read operations.
 """
 from abc import ABC, abstractmethod

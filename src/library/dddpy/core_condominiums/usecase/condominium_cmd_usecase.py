@@ -1,4 +1,5 @@
 from typing import Optional
+from typing import Optional
 from decimal import Decimal
 
 from library.dddpy.core_condominiums.usecase.condominium_cmd_schema import CreateCondominiumSchema, UpdateCondominiumSchema

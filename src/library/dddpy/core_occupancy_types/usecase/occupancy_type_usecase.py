@@ -1,4 +1,5 @@
 """
+from typing import Optional
 OccupancyType use case — orchestrates all occupancy type operations.
 """
 from typing import Optional, Tuple, List

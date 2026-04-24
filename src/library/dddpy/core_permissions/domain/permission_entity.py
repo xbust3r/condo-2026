@@ -1,4 +1,5 @@
 """
+from typing import Optional
 Permission Entity — Dominio para core_permissions.
 """
 from datetime import datetime

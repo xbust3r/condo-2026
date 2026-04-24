@@ -1,4 +1,5 @@
 """
+from typing import Optional
 OccupancyType query repository — interface.
 """
 from abc import ABC, abstractmethod

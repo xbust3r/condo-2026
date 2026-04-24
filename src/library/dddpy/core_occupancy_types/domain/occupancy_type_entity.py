@@ -1,4 +1,5 @@
 """
+from typing import Optional
 OccupancyType domain entity — DDD for unit occupancy type catalog.
 """
 from datetime import datetime

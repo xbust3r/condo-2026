@@ -1,4 +1,5 @@
 """
+from typing import Optional
 Charge data classes — DDD data layer.
 """
 from dataclasses import dataclass
