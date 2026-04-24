@@ -93,6 +93,8 @@ from api.announcements.routes_announcements import announcement_routes
 from api.documents.routes_documents import document_routes
 from api.incidents.routes_incidents import incident_routes, condominium_incident_routes
 from api.notifications.routes_notifications import notification_routes
+from api.visitors.routes_visitors import visitor_routes, condominium_visitor_routes
+from api.amenities.routes_amenities import amenity_routes
 
 
 app = FastAPI(
@@ -159,6 +161,9 @@ app.include_router(document_routes)
 app.include_router(incident_routes)
 app.include_router(condominium_incident_routes)
 app.include_router(notification_routes)
+app.include_router(visitor_routes)
+app.include_router(condominium_visitor_routes)
+app.include_router(amenity_routes)
 app.include_router(permission_routes)
 app.include_router(role_permission_routes)
 app.include_router(auth_routes)

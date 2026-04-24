@@ -1,0 +1,35 @@
+"""
+Amenity mapper — maps between DB model and domain entity.
+"""
+from library.dddpy.core_amenities.domain.amenity_entity import AmenityEntity
+from library.dddpy.core_amenities.infrastructure.dbamenity import DBAmenity
+
+
+class AmenityMapper:
+
+    @staticmethod
+    def to_domain(db_row: DBAmenity) -> AmenityEntity:
+        return AmenityEntity(
+            id=db_row.id,
+            uuid=db_row.uuid,
+            condominium_id=db_row.condominium_id,
+            name=db_row.name,
+            description=db_row.description,
+            location=db_row.location,
+            max_capacity=db_row.max_capacity or 1,
+            booking_duration_min=db_row.booking_duration_min or 60,
+            requires_approval=db_row.requires_approval or False,
+            status=db_row.status or 'active',
+            created_at=db_row.created_at,
+            updated_at=db_row.updated_at,
+            deleted_at=db_row.deleted_at,
+        )
+
+    @staticmethod
+    def to_domain_enriched(
+        db_row: DBAmenity,
+        condominium_name: str = None,
+    ) -> AmenityEntity:
+        entity = AmenityMapper.to_domain(db_row)
+        entity.condominium_name = condominium_name
+        return entity
