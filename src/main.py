@@ -90,6 +90,7 @@ from api.receipts.routes_receipts import receipt_routes
 from api.payments.routes_payments import payment_routes
 from api.ledger_entries.routes_ledger import ledger_routes
 from api.announcements.routes_announcements import announcement_routes
+from api.meetings.routes_meetings import meeting_routes
 from api.documents.routes_documents import document_routes
 from api.incidents.routes_incidents import incident_routes, condominium_incident_routes
 from api.notifications.routes_notifications import notification_routes
@@ -97,6 +98,7 @@ from api.visitors.routes_visitors import visitor_routes, condominium_visitor_rou
 from api.amenities.routes_amenities import amenity_routes
 from api.packages.routes_packages import package_routes
 from api.residents.routes_residents import resident_routes
+from api.audit_logs.routes_audit_logs import audit_log_routes
 
 
 app = FastAPI(
@@ -159,6 +161,7 @@ app.include_router(receipt_routes)
 app.include_router(payment_routes)
 app.include_router(ledger_routes)
 app.include_router(announcement_routes)
+app.include_router(meeting_routes)
 app.include_router(document_routes)
 app.include_router(incident_routes)
 app.include_router(condominium_incident_routes)
@@ -174,4 +177,5 @@ app.include_router(auth_routes)
 app.include_router(user_routes)
 app.include_router(user_profile_routes)
 app.include_router(context_routes)
+app.include_router(audit_log_routes)
 app.include_router(example_routes)

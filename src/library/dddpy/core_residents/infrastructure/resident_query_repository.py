@@ -6,6 +6,7 @@ from datetime import date
 
 from sqlalchemy import text
 
+from library.dddpy.core_residents.domain.resident_profile_entity import ResidentProfileEntity
 from library.dddpy.core_residents.domain.resident_query_repository import ResidentQueryRepository
 from library.dddpy.core_residents.infrastructure.dbresident import DBResidentProfile
 from library.dddpy.core_residents.infrastructure.resident_mapper import ResidentMapper
