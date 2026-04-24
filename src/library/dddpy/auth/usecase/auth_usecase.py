@@ -23,6 +23,8 @@ from library.dddpy.auth.domain.auth_exception import (
     UserAccountLocked,
     UserAccountInactive,
     TokenInvalid,
+    RateLimitExceeded,
+    EmailTokenExpired,
 )
 from library.dddpy.auth.domain.auth_token import AccessTokenPayload
 from library.dddpy.auth.domain.user_identity import UserIdentity
@@ -222,6 +224,144 @@ class AuthUseCase:
             success=True,
             message=f"All sessions terminated ({count} revoked)",
             data={"revoked_count": count, "token_version": new_version},
+        )
+
+    # ── Password Reset ────────────────────────────────────────────────────
+
+    def forgot_password(self, email: str) -> ResponseSuccessSchema:
+        """
+        Initiate password reset flow.
+
+        Always returns success (same message whether email exists or not).
+        Sends reset link via email if account exists and is active.
+        """
+        logger.add_inside_method("forgot_password")
+        identity = self._user_repo.get_by_email(email)
+
+        # Constant-time: run bcrypt even when user doesn't exist
+        import bcrypt
+        bcrypt.gensalt(10)
+        bcrypt.hashpw(b"__dummy__", bcrypt.gensalt(10))
+
+        if identity and identity.status == "active":
+            from library.dddpy.auth.infrastructure.email_token_service import EmailTokenService
+            from library.dddpy.auth.infrastructure.email_service import EmailService
+
+            token = EmailTokenService.create_password_reset_token(identity.id, identity.email)
+            # Frontend URL — adjust as needed
+            reset_link = (
+                f"https://condo-admin.example.com/auth/reset-password?token={token}"
+            )
+            email_svc = EmailService()
+            email_svc.send_password_reset_email_sync(identity.email, reset_link)
+            logger.info(f"Password reset initiated for user_id={identity.id}")
+
+
+        return ResponseSuccessSchema(
+            success=True,
+            message=(
+                "If that email address is registered and active, "
+                "a password reset link has been sent."
+            ),
+            data=None,
+        )
+
+    def reset_password(self, token: str, new_password: str) -> ResponseSuccessSchema:
+        """
+        Reset password using a valid token.
+        Token is single-use — password is changed immediately.
+        """
+        logger.add_inside_method("reset_password")
+        from library.dddpy.auth.infrastructure.email_token_service import EmailTokenExpired
+
+        try:
+            data = EmailTokenService.validate_password_reset_token(token)
+        except TokenInvalid as e:
+            raise EmailTokenExpired(str(e))
+        except EmailTokenExpired as e:
+            raise e
+
+        user_id = data["user_id"]
+        # Verify user still exists, is active, and matches the email
+        identity = self._user_repo.get_by_id(user_id)
+        if not identity or identity.email != data["email"]:
+            raise EmailTokenExpired("Invalid reset link.")
+        if identity.status != "active":
+            raise UserAccountInactive()
+
+        # Update password
+        self._user_repo.update_password(user_id, new_password)
+        # Invalidate all sessions (logout-all)
+        self._session_repo.revoke_all_user_sessions(user_id)
+        # Increment token_version to invalidate all active JWTs
+        new_version = self._user_repo.increment_token_version(user_id)
+        logger.info(
+            f"Password reset completed for user_id={user_id}, "
+            f"token_version={new_version}, sessions revoked"
+        )
+        return ResponseSuccessSchema(
+            success=True,
+            message="Password changed successfully. Please log in with your new password.",
+            data=None,
+        )
+
+    # ── Email Verification ───────────────────────────────────────────────
+
+    def verify_email(self, token: str) -> ResponseSuccessSchema:
+        """
+        Verify email address using a valid token.
+        Marks user as email_verified_at = now.
+        """
+        logger.add_inside_method("verify_email")
+        from library.dddpy.auth.domain.auth_exception import EmailTokenExpired
+
+        try:
+            data = EmailTokenService.validate_email_verification_token(token)
+        except TokenInvalid as e:
+            raise EmailTokenExpired(str(e))
+        except EmailTokenExpired as e:
+            raise e
+
+        user_id = data["user_id"]
+        identity = self._user_repo.get_by_id(user_id)
+        if not identity or identity.email != data["email"]:
+            raise EmailTokenExpired("Invalid verification link.")
+
+        self._user_repo.mark_email_verified(user_id)
+        logger.info(f"Email verified for user_id={user_id}")
+        return ResponseSuccessSchema(
+            success=True,
+            message="Email address verified successfully.",
+            data=None,
+        )
+
+    def resend_verification_email(self, email: str) -> ResponseSuccessSchema:
+        """
+        Resend verification email if not yet verified.
+        Always returns success to prevent email enumeration.
+        """
+        logger.add_inside_method("resend_verification_email")
+        identity = self._user_repo.get_by_email(email)
+
+        import bcrypt
+        bcrypt.gensalt(10)
+        bcrypt.hashpw(b"__dummy__", bcrypt.gensalt(10))
+
+        if identity and identity.status == "active":
+            if identity.email_verified_at is None:
+                from library.dddpy.auth.infrastructure.email_token_service import EmailTokenService
+                from library.dddpy.auth.infrastructure.email_service import EmailService
+
+                token = EmailTokenService.create_email_verification_token(identity.id, identity.email)
+                verify_link = f"https://condo-admin.example.com/auth/verify-email?token={token}"
+                email_svc = EmailService()
+                email_svc.send_verification_email_sync(identity.email, verify_link)
+                logger.info(f"Verification email resent for user_id={identity.id}")
+
+        return ResponseSuccessSchema(
+            success=True,
+            message="If your email address has not been verified, a verification link has been sent.",
+            data=None,
         )
 
     # ── Me ───────────────────────────────────────────────────────────────

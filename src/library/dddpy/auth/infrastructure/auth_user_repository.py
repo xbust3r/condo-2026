@@ -199,3 +199,27 @@ class AuthUserRepository:
             new_version = row.token_version if row else 0
             logger.info(f"Incremented token_version to {new_version} for user_id={user_id}")
             return new_version
+
+
+def update_password(self, user_id: int, plain_password: str) -> None:
+    """Hash and update the user's password."""
+    with session_scope() as session:
+        from library.dddpy.shared.utils.password import password
+        hashed = password.hash_password(plain_password)
+        session.execute(
+            text("UPDATE users SET password_hash = :hash, failed_login_attempts = 0 WHERE id = :uid"),
+            {"hash": hashed, "uid": user_id},
+        )
+        session.commit()
+        logger.info(f"Password updated for user_id={user_id}")
+
+
+def mark_email_verified(self, user_id: int) -> None:
+    """Set email_verified_at = now() for a user."""
+    with session_scope() as session:
+        session.execute(
+            text("UPDATE users SET email_verified_at = NOW() WHERE id = :uid"),
+            {"uid": user_id},
+        )
+        session.commit()
+        logger.info(f"Email verified for user_id={user_id}")

@@ -72,3 +72,24 @@ class RefreshTokenUsed(DomainException):
             "Session revoked due to security event",
             status_code=401,
         )
+
+
+
+class RateLimitExceeded(DomainException):
+    """Raised when too many requests hit an auth endpoint."""
+
+    def __init__(self, retry_after_seconds: int = 60):
+        super().__init__(
+            f"Too many requests. Please try again in {retry_after_seconds} seconds.",
+            status_code=429,
+        )
+        self.retry_after_seconds = retry_after_seconds
+
+
+
+class EmailTokenExpired(DomainException):
+    """Raised when an email token (reset/verify) has expired."""
+
+
+    def __init__(self, message: str = "Token has expired"):
+        super().__init__(message, status_code=400)

@@ -118,3 +118,13 @@ class AuthSessionRepository:
             session.flush()
             logger.info(f"Cleaned up {count} expired sessions")
             return count
+
+    def list_active_sessions(self, user_id: int) -> list[DBAuthSession]:
+        """List all active sessions for a user (not expired, not revoked)."""
+        with session_scope() as session:
+            rows = session.query(DBAuthSession).filter(
+                DBAuthSession.user_id == user_id,
+                DBAuthSession.deleted_at.is_(None),
+                DBAuthSession.expires_at > datetime.utcnow(),
+            ).order_by(DBAuthSession.created_at.desc()).all()
+            return rows
