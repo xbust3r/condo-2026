@@ -90,6 +90,7 @@ from api.receipts.routes_receipts import receipt_routes
 from api.payments.routes_payments import payment_routes
 from api.ledger_entries.routes_ledger import ledger_routes
 from api.announcements.routes_announcements import announcement_routes
+from api.documents.routes_documents import document_routes
 
 
 app = FastAPI(
@@ -152,6 +153,7 @@ app.include_router(receipt_routes)
 app.include_router(payment_routes)
 app.include_router(ledger_routes)
 app.include_router(announcement_routes)
+app.include_router(document_routes)
 app.include_router(permission_routes)
 app.include_router(role_permission_routes)
 app.include_router(auth_routes)

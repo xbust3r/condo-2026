@@ -48,6 +48,11 @@ FINANCIAL_PERMISSIONS_SEED = [
     ("announcement.read",   "announcement",   "read",   "condominium", "Ver anuncios del condominio"),
     ("announcement.write",  "announcement",   "write",  "condominium", "Publicar y editar anuncios"),
     ("announcement.delete", "announcement",   "delete", "condominium", "Eliminar anuncios"),
+
+    # Documents
+    ("document.read",       "document",       "read",   "condominium", "Ver documentos del condominio"),
+    ("document.write",      "document",       "write",  "condominium", "Subir y editar documentos"),
+    ("document.delete",     "document",       "delete", "condominium", "Eliminar documentos"),
 ]
 
 
