@@ -1,4 +1,5 @@
 from decimal import Decimal
+from typing import Optional
 
 from library.dddpy.core_unit_ownerships.usecase.unit_ownership_cmd_schema import (
     CreateUnitOwnershipSchema,
@@ -68,7 +69,7 @@ class UnitOwnershipCmdUseCase:
         self,
         unit_id: int,
         new_percentage: float,
-        exclude_id: int | None = None,
+        exclude_id: Optional[int] = None,
     ) -> None:
         """
         Validates that adding new_percentage to active ownerships for unit_id
