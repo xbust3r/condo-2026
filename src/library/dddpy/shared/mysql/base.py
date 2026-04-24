@@ -1,4 +1,6 @@
 # base.py
+from library.dddpy.shared.decorators.domain_exception import DomainException
+
 from sqlalchemy import create_engine
 #from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import declarative_base, sessionmaker

@@ -99,6 +99,8 @@ from api.amenities.routes_amenities import amenity_routes
 from api.packages.routes_packages import package_routes
 from api.residents.routes_residents import resident_routes
 from api.audit_logs.routes_audit_logs import audit_log_routes
+from api.votes.routes_votes import vote_routes, condominium_vote_routes
+from api.dashboards.routes_dashboards import dashboard_routes
 
 
 app = FastAPI(
@@ -178,4 +180,7 @@ app.include_router(user_routes)
 app.include_router(user_profile_routes)
 app.include_router(context_routes)
 app.include_router(audit_log_routes)
+app.include_router(vote_routes)
+app.include_router(condominium_vote_routes)
+app.include_router(dashboard_routes)
 app.include_router(example_routes)

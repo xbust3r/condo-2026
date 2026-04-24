@@ -8,8 +8,8 @@ from library.dddpy.core_payments.domain.payment_entity import PaymentEntity
 from library.dddpy.core_payments.infrastructure.dbpayment import DBPayment
 from library.dddpy.core_payments.infrastructure.payment_mapper import PaymentMapper
 from library.dddpy.core_users.infrastructure.dbuser import DBUser
-from library.dddpy.core_units.infrastructure.dbunit import DBUnit
-from library.dddpy.core_condominiums.infrastructure.dbcondominium import DBCondominium
+from library.dddpy.core_units.infrastructure.dbunits import DBUnits as DBUnit
+from library.dddpy.core_condominiums.infrastructure.dbcondominiums import DBCondominiums as DBCondominium
 from library.dddpy.core_receipts.infrastructure.dbreceipt import DBReceipt
 from library.dddpy.shared.mysql.session_manager import session_scope
 from library.dddpy.shared.logging.logging import Logger

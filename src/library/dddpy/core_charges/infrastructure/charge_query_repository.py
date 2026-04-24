@@ -7,11 +7,11 @@ from library.dddpy.core_charges.domain.charge_query_repository import (
     ChargeQueryRepository,
 )
 from library.dddpy.core_charges.domain.charge_entity import ChargeEntity
-from library.dddpy.core_charges.infrastructure.dbcharge import DBCharge
+from library.dddpy.core_charges.infrastructure.dbcharges import DBCharges as DBCharge
 from library.dddpy.core_charges.infrastructure.charge_mapper import ChargeMapper
 from library.dddpy.core_charge_types.infrastructure.dbcharge_type import DBChargeType
-from library.dddpy.core_condominiums.infrastructure.dbcondominium import DBCondominium
-from library.dddpy.core_units.infrastructure.dbunit import DBUnit
+from library.dddpy.core_condominiums.infrastructure.dbcondominiums import DBCondominiums as DBCondominium
+from library.dddpy.core_units.infrastructure.dbunits import DBUnits as DBUnit
 from library.dddpy.shared.mysql.session_manager import session_scope
 from library.dddpy.shared.logging.logging import Logger
 

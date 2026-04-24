@@ -30,7 +30,7 @@ class PackageQueryRepositoryImpl(PackageQueryRepository):
         with session_scope() as session:
             from library.dddpy.core_units.infrastructure.dbunits import DBUnits
             from library.dddpy.core_buildings.infrastructure.dbbuilding import DBBuildings
-            from library.dddpy.core_condominiums.infrastructure.dbcondominium import DBCondominium
+            from library.dddpy.core_condominiums.infrastructure.dbcondominiums import DBCondominiums as DBCondominium
 
             # 1. Units (unit_code + building_id)
             unit_map = {}

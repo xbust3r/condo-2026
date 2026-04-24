@@ -10,8 +10,8 @@ from library.dddpy.core_ledger_entries.domain.ledger_query_repository import Led
 from library.dddpy.core_ledger_entries.domain.ledger_entity import LedgerEntryEntity
 from library.dddpy.core_ledger_entries.infrastructure.db_ledger import DBLedgerEntry
 from library.dddpy.core_ledger_entries.infrastructure.ledger_mapper import LedgerMapper
-from library.dddpy.core_units.infrastructure.dbunit import DBUnit
-from library.dddpy.core_condominiums.infrastructure.dbcondominium import DBCondominium
+from library.dddpy.core_units.infrastructure.dbunits import DBUnits as DBUnit
+from library.dddpy.core_condominiums.infrastructure.dbcondominiums import DBCondominiums as DBCondominium
 from library.dddpy.shared.mysql.session_manager import session_scope
 from library.dddpy.shared.logging.logging import Logger
 

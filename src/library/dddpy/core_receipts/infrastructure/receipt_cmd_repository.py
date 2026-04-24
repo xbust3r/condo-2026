@@ -28,7 +28,7 @@ class ReceiptCmdRepositoryImpl(ReceiptCmdRepository):
     def get_next_receipt_number(self, condominium_id: int) -> str:
         """Generate next sequential receipt number: C{condo_id}-{YYYY}{MM}-{correlativo:06d}."""
         with session_scope() as session:
-            from library.dddpy.core_condominiums.infrastructure.dbcondominium import DBCondominium
+            from library.dddpy.core_condominiums.infrastructure.dbcondominiums import DBCondominiums as DBCondominium
             condo = session.query(DBCondominium).filter(DBCondominium.id == condominium_id).first()
             condo_code = condo.code if condo else str(condominium_id)
 

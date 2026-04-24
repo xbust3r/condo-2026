@@ -13,7 +13,7 @@ from library.dddpy.core_charges.domain.charge_data import (
     UpdateChargeData,
 )
 from library.dddpy.core_charges.domain.charge_entity import ChargeEntity
-from library.dddpy.core_charges.infrastructure.dbcharge import DBCharge
+from library.dddpy.core_charges.infrastructure.dbcharges import DBCharges as DBCharge
 from library.dddpy.core_charges.infrastructure.charge_mapper import (
     ChargeMapper,
 )

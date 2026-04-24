@@ -8,8 +8,8 @@ from library.dddpy.core_receipts.domain.receipt_entity import ReceiptEntity
 from library.dddpy.core_receipts.infrastructure.dbreceipt import DBReceipt
 from library.dddpy.core_receipts.infrastructure.receipt_mapper import ReceiptMapper
 from library.dddpy.core_users.infrastructure.dbuser import DBUser
-from library.dddpy.core_units.infrastructure.dbunit import DBUnit
-from library.dddpy.core_condominiums.infrastructure.dbcondominium import DBCondominium
+from library.dddpy.core_units.infrastructure.dbunits import DBUnits as DBUnit
+from library.dddpy.core_condominiums.infrastructure.dbcondominiums import DBCondominiums as DBCondominium
 from library.dddpy.core_accounts_receivable.infrastructure.dbar import DBAR
 from library.dddpy.shared.mysql.session_manager import session_scope
 from library.dddpy.shared.logging.logging import Logger

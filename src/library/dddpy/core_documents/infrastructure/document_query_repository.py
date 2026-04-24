@@ -54,7 +54,7 @@ class DocumentQueryRepositoryImpl(DocumentQueryRepository):
             return {}
         ids = list({r.condominium_id for r in rows})
         with session_scope() as session:
-            from library.dddpy.core_condominiums.infrastructure.dbcondominium import DBCondominium
+            from library.dddpy.core_condominiums.infrastructure.dbcondominiums import DBCondominiums as DBCondominium
             result = session.query(DBCondominium.id, DBCondominium.name).filter(
                 DBCondominium.id.in_(ids)
             ).all()
