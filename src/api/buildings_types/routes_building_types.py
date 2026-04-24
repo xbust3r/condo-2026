@@ -12,6 +12,7 @@
 #   GET    /building-types                      — list with filters
 # =============================================================================
 
+from typing import Optional
 from fastapi import APIRouter, Query
 from typing import Optional
 

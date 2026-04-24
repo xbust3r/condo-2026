@@ -10,6 +10,7 @@
 #   2. Verificar que el usuario tiene rol en ese condominio
 # =============================================================================
 
+from typing import Optional
 from fastapi import APIRouter, Query, Depends, HTTPException, status, Path
 from typing import Optional
 

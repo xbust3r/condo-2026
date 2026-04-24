@@ -11,6 +11,7 @@
 #   DELETE /notifications/{id}              — soft-delete (auth user=owner)
 # =============================================================================
 
+from typing import Optional
 from fastapi import APIRouter, Query, Depends, Path
 from typing import Optional
 

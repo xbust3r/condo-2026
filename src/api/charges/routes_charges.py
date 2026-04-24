@@ -13,6 +13,7 @@
 #   DELETE /charges/{id}/hard        — hard delete [RBAC: charge.delete]
 # =============================================================================
 
+from typing import Optional
 from fastapi import APIRouter, Depends, Query
 
 from library.dddpy.auth.domain.user_identity import UserIdentity

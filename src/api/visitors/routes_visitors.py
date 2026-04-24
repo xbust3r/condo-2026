@@ -1,3 +1,4 @@
+from typing import Optional
 """
 API Routes: core_visitors
 Visitor / access management system

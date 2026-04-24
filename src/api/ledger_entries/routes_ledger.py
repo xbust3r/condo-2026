@@ -11,6 +11,7 @@
 #   GET    /ledger-entries/unit/{unit_id}/summary — balance summary
 # =============================================================================
 
+from typing import Optional
 from fastapi import APIRouter, Query
 from typing import Optional
 

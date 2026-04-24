@@ -1,3 +1,4 @@
+from typing import Optional
 """
 RBAC contextual dependencies — permission guards per condominium.
 

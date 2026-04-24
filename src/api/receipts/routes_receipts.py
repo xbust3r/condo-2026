@@ -10,6 +10,7 @@
 #   GET    /receipts/unit/{unit_id}   — receipts by unit
 # =============================================================================
 
+from typing import Optional
 from fastapi import APIRouter, Query
 from typing import Optional
 

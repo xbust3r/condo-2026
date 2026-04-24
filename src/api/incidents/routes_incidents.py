@@ -19,6 +19,7 @@
 #   GET    /condominiums/{id}/incidents      — list by condominium (paginated)
 # =============================================================================
 
+from typing import Optional
 from fastapi import APIRouter, Query, Depends, Path
 from typing import Optional
 

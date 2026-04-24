@@ -15,6 +15,7 @@
 #   GET    /unit-ownerships/user/{user_id}       — list by user
 # =============================================================================
 
+from typing import Optional
 from fastapi import APIRouter, Query
 from typing import Optional
 

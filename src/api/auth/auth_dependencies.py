@@ -1,3 +1,4 @@
+from typing import Optional
 """
 FastAPI dependencies for auth — extract JWT from Authorization header.
 

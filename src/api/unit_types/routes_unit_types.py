@@ -20,6 +20,7 @@
 #   - con auth pero sin rol en condominio X → 403
 # =============================================================================
 
+from typing import Optional
 from fastapi import APIRouter, Query, Depends
 from typing import Optional
 

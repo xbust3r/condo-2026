@@ -13,6 +13,7 @@
 #   DELETE /occupancy-types/{id}/hard   — hard delete
 # =============================================================================
 
+from typing import Optional
 from fastapi import APIRouter, Query
 from typing import Optional
 

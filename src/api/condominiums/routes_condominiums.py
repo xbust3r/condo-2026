@@ -10,6 +10,7 @@
 # Features: soft delete, filtros por status/city/country, restore
 # =============================================================================
 
+from typing import Optional
 from fastapi import APIRouter, Query
 from typing import Optional, List
 

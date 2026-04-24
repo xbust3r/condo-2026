@@ -9,6 +9,7 @@
 #   GET    /payments/uuid/{uuid}        — get by uuid
 # =============================================================================
 
+from typing import Optional
 from fastapi import APIRouter, Query
 from typing import Optional
 
