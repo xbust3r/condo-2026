@@ -43,6 +43,11 @@ FINANCIAL_PERMISSIONS_SEED = [
     # Ledger
     ("ledger.read",        "ledger",         "read",   "condominium", "Ver libro mayor por unidad"),
     ("ledger.export",      "ledger",         "export", "condominium", "Exportar libro mayor"),
+
+    # Announcements
+    ("announcement.read",   "announcement",   "read",   "condominium", "Ver anuncios del condominio"),
+    ("announcement.write",  "announcement",   "write",  "condominium", "Publicar y editar anuncios"),
+    ("announcement.delete", "announcement",   "delete", "condominium", "Eliminar anuncios"),
 ]
 
 
