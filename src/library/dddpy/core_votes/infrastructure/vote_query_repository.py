@@ -9,7 +9,7 @@ from library.dddpy.core_votes.domain.vote_entity import VoteEntity
 from library.dddpy.core_votes.domain.vote_query_repository import VoteQueryRepository
 from library.dddpy.core_votes.infrastructure.dbvote import DBVote, DBVoteOption, DBVoteRecord
 from library.dddpy.core_votes.infrastructure.vote_mapper import VoteMapper
-from library.dddpy.core_condominiums.infrastructure.dbcondominiums import DBCondominium
+from library.dddpy.core_condominiums.infrastructure.dbcondominiums import DBCondominiums
 from library.dddpy.shared.mysql.session_manager import session_scope
 from library.dddpy.shared.logging.logging import Logger
 
@@ -33,12 +33,12 @@ class VoteQueryRepositoryImpl(VoteQueryRepository):
 
         with session_scope() as session:
             # 1. Condominiums
-            condo_map: dict[int, DBCondominium] = {}
+            condo_map: dict[int, DBCondominiums] = {}
             if condo_ids:
                 condo_map = {
                     c.id: c
-                    for c in session.query(DBCondominium)
-                    .filter(DBCondominium.id.in_(condo_ids))
+                    for c in session.query(DBCondominiums)
+                    .filter(DBCondominiums.id.in_(condo_ids))
                     .all()
                 }
 

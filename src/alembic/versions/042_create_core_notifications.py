@@ -33,7 +33,7 @@ def upgrade() -> None:
         sa.Column('created_at', sa.DateTime(), nullable=False, server_default=sa.func.now()),
         sa.Column('updated_at', sa.DateTime(), nullable=True),
         sa.Column('deleted_at', sa.DateTime(), nullable=True),
-        sa.ForeignKeyConstraint('user_id', ['users.id']),
+        sa.ForeignKeyConstraint(['user_id'], ['users.id']),
     )
     op.create_index('idx_user_read', 'core_notifications', ['user_id', 'is_read'])
     op.create_index('idx_user_created', 'core_notifications', ['user_id', 'created_at'])

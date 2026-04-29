@@ -3,6 +3,7 @@ from typing import Optional
 User profile command repository — write operations.
 """
 import uuid as uuid_lib
+import json
 from datetime import date
 from typing import Optional
 
@@ -28,6 +29,9 @@ class UserProfileCmdRepositoryImpl(UserProfileCmdRepository):
         document_number: Optional[str] = None,
         phone: Optional[str] = None,
         birth_date: Optional[date] = None,
+        emergency_contact: Optional[dict] = None,
+        notification_preferences: Optional[dict] = None,
+        avatar_url: Optional[str] = None,
     ) -> int:
         """Create a profile for a user. Raises UserProfileAlreadyExists if already exists."""
         profile_uuid = str(uuid_lib.uuid4())
@@ -45,9 +49,9 @@ class UserProfileCmdRepositoryImpl(UserProfileCmdRepository):
             result = session.execute(
                 text("""
                     INSERT INTO user_profiles
-                      (uuid, user_id, first_name, last_name, document_type, document_number, phone, birth_date)
+                      (uuid, user_id, first_name, last_name, document_type, document_number, phone, birth_date, emergency_contact, notification_preferences, avatar_url)
                     VALUES
-                      (:uuid, :user_id, :first_name, :last_name, :document_type, :document_number, :phone, :birth_date)
+                      (:uuid, :user_id, :first_name, :last_name, :document_type, :document_number, :phone, :birth_date, :emergency_contact, :notification_preferences, :avatar_url)
                 """),
                 {
                     "uuid": profile_uuid,
@@ -58,6 +62,9 @@ class UserProfileCmdRepositoryImpl(UserProfileCmdRepository):
                     "document_number": document_number,
                     "phone": phone,
                     "birth_date": birth_date,
+                    "emergency_contact": json.dumps(emergency_contact) if emergency_contact else None,
+                    "notification_preferences": json.dumps(notification_preferences) if notification_preferences else None,
+                    "avatar_url": avatar_url,
                 },
             )
             session.commit()
@@ -74,6 +81,9 @@ class UserProfileCmdRepositoryImpl(UserProfileCmdRepository):
         document_number: Optional[str] = None,
         phone: Optional[str] = None,
         birth_date: Optional[date] = None,
+        emergency_contact: Optional[dict] = None,
+        notification_preferences: Optional[dict] = None,
+        avatar_url: Optional[str] = None,
     ) -> None:
         """
         Update a user's profile — only sets fields that are explicitly provided (not None).
@@ -100,6 +110,15 @@ class UserProfileCmdRepositoryImpl(UserProfileCmdRepository):
         if birth_date is not None:
             set_clauses.append("birth_date = :birth_date")
             params["birth_date"] = birth_date
+        if emergency_contact is not None:
+            set_clauses.append("emergency_contact = :emergency_contact")
+            params["emergency_contact"] = json.dumps(emergency_contact)
+        if notification_preferences is not None:
+            set_clauses.append("notification_preferences = :notification_preferences")
+            params["notification_preferences"] = json.dumps(notification_preferences)
+        if avatar_url is not None:
+            set_clauses.append("avatar_url = :avatar_url")
+            params["avatar_url"] = avatar_url
 
         if not set_clauses:
             logger.info(f"No fields to update for user_id={user_id}")

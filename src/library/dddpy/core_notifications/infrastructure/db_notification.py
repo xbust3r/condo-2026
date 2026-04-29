@@ -20,7 +20,7 @@ class DBNotification(Base):
     body = Column(Text(), nullable=True)
     is_read = Column(Boolean(), nullable=False, server_default='0')
     read_at = Column(DateTime(), nullable=True)
-    metadata = Column(JSON(), nullable=True)
+    meta_data = Column("metadata", JSON(), nullable=True)
     created_at = Column(DateTime(), nullable=False, server_default='CURRENT_TIMESTAMP')
     updated_at = Column(DateTime(), nullable=True)
     deleted_at = Column(DateTime(), nullable=True)

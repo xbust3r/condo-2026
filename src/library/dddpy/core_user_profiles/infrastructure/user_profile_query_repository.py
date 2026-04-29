@@ -28,6 +28,7 @@ class UserProfileQueryRepositoryImpl(UserProfileQueryRepository):
                       first_name, last_name,
                       document_type, document_number,
                       phone, birth_date,
+                      emergency_contact, notification_preferences, avatar_url,
                       created_at, updated_at
                     FROM user_profiles
                     WHERE user_id = :user_id

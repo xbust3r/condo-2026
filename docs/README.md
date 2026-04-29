@@ -111,3 +111,26 @@ Carpeta para datos de mercado, investigación y documentación en proceso de an�
 ---
 
 *Última actualización: 2026-04-13 — Reorganización por Misato K*
+
+---
+
+## 📂 10-agents — Equipo de Agentes IA *(Nuevo 2026-04-28)*
+
+> Documentación del equipo de IA que desarrolla el proyecto de forma autónoma.
+
+| Archivo | Descripción |
+|---|---|
+| `10-agents/README.md` | Índice del equipo IA |
+| `10-agents/AI_TEAM.md` | Definición completa del equipo, modelos y responsabilidades |
+| `10-agents/TASKS.md` | Distribución de tareas y guía de coordinación |
+
+### Agentes activos
+
+| Nombre | Modelo | Rol |
+|---|---|---|
+| **Lelouch** | GPT 5.4 | Architect — Arquitectura, diseño técnico, planning |
+| **Misato** | Minimax 2.7 | Coordinator — Coordinación, priorización, gestión de flujo |
+| **Bulma** | Minimax 2.7 / DeepSeek 4 Pro / Flash | Dev Lead — Implementación Python + Next.js |
+| **Miguel** | — (humano) | Technical Leader — Code review, DB modeling, visión |
+
+*Última actualización: 2026-04-28*

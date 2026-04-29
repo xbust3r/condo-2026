@@ -11,7 +11,7 @@ import sqlalchemy as sa
 
 
 revision: str = '036_create_core_amenities'
-down_revision: Union[str, None] = '045_seed_visitor_permissions'
+down_revision: Union[str, None] = '035_create_core_documents'
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 

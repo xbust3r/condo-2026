@@ -1,4 +1,7 @@
+from __future__ import annotations
+
 from typing import Optional
+
 """
 RBAC contextual dependencies — permission guards per condominium.
 
@@ -21,10 +24,9 @@ Usage:
 
 Role checks return the CondominiumUserContext on success.
 """
-from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Optional, TYPE_CHECKING
+from typing import TYPE_CHECKING
 
 from fastapi import Depends, HTTPException, Path
 
@@ -165,19 +167,14 @@ def require_permission(
         )
 
     # Scope enforcement
-    # Determinar el scope_default del permiso desde la lista de permisos cargados
     scope_default = _get_permission_scope_default(ctx, permission_code)
 
     if scope_default == "unit":
-        # resident solo puede actuar sobre su propia unidad
         if unit_id is None:
-            # Si no se provee unit_id, no podemos verificar — denegar por seguridad
             raise HTTPException(
                 status_code=403,
                 detail=f"Forbidden: {permission_code} requires unit context",
             )
-        # TODO: verificar que unit_id pertenece al usuario (via occupancy)
-        # Por ahora se delega al usecase/query la verificación fina
 
     elif scope_default == "building":
         if building_id is None:
@@ -197,9 +194,6 @@ def _get_permission_scope_default(ctx: CondominiumUserContext, permission_code: 
     Resolve the scope_default for a permission code from the loaded permissions.
     Returns 'condominium' as safe default.
     """
-    # Buscar en ctx.permissions ya que solo guardamos codes
-    # El scope_default se pierde al guardar solo codes — lo resolvemos desde
-    # la definición estática del planning doc (fuente autoritativa)
     SCOPE_DEFAULTS = {
         # global
         "condominium.delete": "global",

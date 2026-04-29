@@ -31,6 +31,7 @@ class UnitOwnershipEntity:
         condominium_name: Optional[str] = None,
         user_email: Optional[str] = None,
         user_full_name: Optional[str] = None,
+        ownership_type_name: Optional[str] = None,
     ) -> None:
         self.id = id
         self.uuid = uuid
@@ -88,6 +89,7 @@ class UnitOwnershipEntity:
             "condominium_name": self.condominium_name,
             "user_email": self.user_email,
             "user_full_name": self.user_full_name,
+            "ownership_type_name": self.ownership_type_name,
         }
 
     def is_deleted(self) -> bool:

@@ -263,3 +263,75 @@ class ResidentQueryRepositoryImpl(ResidentQueryRepository):
             ).scalar() or 0
 
             return [dict(row._mapping) for row in rows], int(total)
+
+    def list_all_by_condominium(
+        self,
+        condominium_id: int,
+        skip: int = 0,
+        limit: int = 20,
+    ) -> Tuple[List, int]:
+        """List all resident profiles for a condominium (admin view)."""
+        with session_scope() as session:
+            rows = session.execute(
+                text("""
+                    SELECT
+                        rp.uuid, rp.id, rp.user_id, rp.condominium_id,
+                        rp.notify_announcements, rp.notify_incidents,
+                        rp.notify_packages, rp.notify_visitors, rp.notify_payments,
+                        rp.language, rp.theme, rp.default_building_id,
+                        rp.notes, rp.created_at, rp.updated_at,
+                        CONCAT(COALESCE(up.first_name, ""), " ", COALESCE(up.last_name, "")) AS user_full_name,
+                        u.email AS user_email,
+                        up.phone AS user_phone,
+                        c.name AS condominium_name
+                    FROM core_resident_profiles rp
+                    JOIN users u ON u.id = rp.user_id
+                    LEFT JOIN user_profiles up ON up.user_id = rp.user_id
+                    JOIN core_condominiums c ON c.id = rp.condominium_id
+                    WHERE rp.condominium_id = :condo_id
+                      AND rp.deleted_at IS NULL
+                    ORDER BY rp.created_at DESC
+                    LIMIT :limit OFFSET :skip
+                """),
+                {"condo_id": condominium_id, "limit": limit, "skip": skip},
+            ).fetchall()
+
+            total = session.execute(
+                text("""
+                    SELECT COUNT(*)
+                    FROM core_resident_profiles rp
+                    WHERE rp.condominium_id = :condo_id
+                      AND rp.deleted_at IS NULL
+                """),
+                {"condo_id": condominium_id},
+            ).scalar() or 0
+
+            return [dict(row._mapping) for row in rows], int(total)
+
+    def get_profile_by_id(self, profile_id: int) -> Optional[object]:
+        """Get a specific resident profile by ID (admin)."""
+        with session_scope() as session:
+            row = session.execute(
+                text("""
+                    SELECT
+                        rp.uuid, rp.id, rp.user_id, rp.condominium_id,
+                        rp.notify_announcements, rp.notify_incidents,
+                        rp.notify_packages, rp.notify_visitors, rp.notify_payments,
+                        rp.language, rp.theme, rp.default_building_id,
+                        rp.notes, rp.created_at, rp.updated_at,
+                        CONCAT(COALESCE(up.first_name, ""), " ", COALESCE(up.last_name, "")) AS user_full_name,
+                        u.email AS user_email,
+                        up.phone AS user_phone,
+                        c.name AS condominium_name
+                    FROM core_resident_profiles rp
+                    JOIN users u ON u.id = rp.user_id
+                    LEFT JOIN user_profiles up ON up.user_id = rp.user_id
+                    JOIN core_condominiums c ON c.id = rp.condominium_id
+                    WHERE rp.id = :profile_id
+                      AND rp.deleted_at IS NULL
+                """),
+                {"profile_id": profile_id},
+            ).fetchone()
+            if not row:
+                return None
+            return dict(row._mapping)

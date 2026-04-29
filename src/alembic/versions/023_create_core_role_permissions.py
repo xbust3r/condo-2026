@@ -163,7 +163,7 @@ def upgrade() -> None:
                 nullable=True,
             ),
             sa.PrimaryKeyConstraint('role', 'permission_code'),
-            sa.ForeignKey(
+            sa.ForeignKeyConstraint(
                 ['permission_code'],
                 ['core_permissions.code'],
                 name='fk_role_permissions_permission',

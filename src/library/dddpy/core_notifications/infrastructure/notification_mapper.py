@@ -21,7 +21,7 @@ class NotificationMapper:
             body=db_notification.body,
             is_read=db_notification.is_read or False,
             read_at=db_notification.read_at,
-            metadata=db_notification.metadata,
+            metadata=db_notification.meta_data,
             created_at=db_notification.created_at,
             updated_at=db_notification.updated_at,
             deleted_at=db_notification.deleted_at,

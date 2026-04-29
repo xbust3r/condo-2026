@@ -20,6 +20,9 @@ class UserProfileEntity:
     document_number: Optional[str] = None
     phone: Optional[str] = None
     birth_date: Optional[date] = None
+    emergency_contact: Optional[dict] = None
+    notification_preferences: Optional[dict] = None
+    avatar_url: Optional[str] = None
 
     def to_dict(self) -> dict:
         return {
@@ -35,6 +38,9 @@ class UserProfileEntity:
                 self.birth_date.isoformat()
                 if self.birth_date else None
             ),
+            "emergency_contact": self.emergency_contact,
+            "notification_preferences": self.notification_preferences,
+            "avatar_url": self.avatar_url,
             "created_at": (
                 self.created_at.isoformat()
                 if self.created_at else None

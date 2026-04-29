@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 revision: str = '043_seed_notification_permissions'
-down_revision: Union[str, None] = '042_create_core_notifications'
+down_revision: Union[str, None] = '042'
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 

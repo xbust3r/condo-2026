@@ -12,3 +12,7 @@ class ResidentProfileCmdRepository:
 
     def soft_delete(self, id: int) -> bool:
         pass
+
+    def update_by_id(self, profile_id: int, preferences: dict) -> bool:
+        """Update a resident profile by ID (admin)."""
+        pass

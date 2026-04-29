@@ -6,7 +6,7 @@ from datetime import date
 from typing import Optional
 
 from library.dddpy.core_audit_logs.domain.audit_exception import AuditLogNotFound
-from library.dddpy.core_audit_logs.domain.audit_query_repository import AuditQueryRepository
+from library.dddpy.core_audit_logs.domain.audit_query_repository import AuditLogQueryRepository
 from library.dddpy.core_audit_logs.infrastructure.audit_query_repository import AuditQueryRepositoryImpl
 from library.dddpy.shared.logging.logging import Logger
 from library.dddpy.shared.schemas.response_schema import ResponseSuccessSchema
@@ -18,7 +18,7 @@ logger = Logger("AuditQueryUseCase")
 class AuditQueryUseCase:
 
     def __init__(self):
-        self._repo: AuditQueryRepository = AuditQueryRepositoryImpl()
+        self._repo: AuditLogQueryRepository = AuditQueryRepositoryImpl()
 
     def get_by_id(self, id: int) -> ResponseSuccessSchema:
         logger.add_inside_method("get_by_id")

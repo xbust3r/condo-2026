@@ -1,7 +1,6 @@
-"""
 from typing import Optional
-Incident command repository implementation — write operations.
-"""
+
+"""Incident command repository implementation — write operations."""
 from datetime import datetime
 import uuid as uuid_lib
 import json

@@ -40,6 +40,9 @@ class UserProfileUseCase:
             document_number=schema.document_number,
             phone=schema.phone,
             birth_date=schema.birth_date,
+            emergency_contact=schema.emergency_contact,
+            notification_preferences=schema.notification_preferences,
+            avatar_url=schema.avatar_url,
         )
 
         profile = self._query.get_by_user_id(schema.user_id)
@@ -77,6 +80,9 @@ class UserProfileUseCase:
             document_number=schema.document_number,
             phone=schema.phone,
             birth_date=schema.birth_date,
+            emergency_contact=schema.emergency_contact,
+            notification_preferences=schema.notification_preferences,
+            avatar_url=schema.avatar_url,
         )
 
         updated = self._query.get_by_user_id(user_id)

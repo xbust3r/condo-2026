@@ -95,3 +95,20 @@ class ResidentProfileCmdRepositoryImpl(ResidentProfileCmdRepository):
             db_p.deleted_at = datetime.utcnow()
             session.flush()
             return True
+
+    def update_by_id(self, profile_id: int, preferences: dict) -> bool:
+        """Update a resident profile by ID (admin)."""
+        logger.info(f"Updating resident profile id={profile_id}")
+        with session_scope() as session:
+            db_p = session.query(DBResidentProfile).filter(
+                DBResidentProfile.id == profile_id,
+                DBResidentProfile.deleted_at.is_(None),
+            ).first()
+            if not db_p:
+                return False
+            for key, value in preferences.items():
+                if hasattr(db_p, key):
+                    setattr(db_p, key, value)
+            db_p.updated_at = datetime.utcnow()
+            session.flush()
+            return True

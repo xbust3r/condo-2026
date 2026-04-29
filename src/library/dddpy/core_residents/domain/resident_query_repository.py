@@ -52,3 +52,16 @@ class ResidentQueryRepository:
         limit: int = 20,
     ) -> Tuple[List[object], int]:
         pass
+
+    def list_all_by_condominium(
+        self,
+        condominium_id: int,
+        skip: int = 0,
+        limit: int = 20,
+    ) -> Tuple[List[object], int]:
+        """List all resident profiles for a condominium (admin view)."""
+        pass
+
+    def get_profile_by_id(self, profile_id: int) -> Optional[object]:
+        """Get a specific resident profile by ID (admin)."""
+        pass

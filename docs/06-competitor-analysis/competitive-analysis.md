@@ -212,9 +212,9 @@ Se identificaron **8 competidores directos** en tres mercados (USA/Canadá, Euro
 
 | Feature / Aspecto | Buildium | AppFolio | Condo Control | Superlógica | condo-py (beta) |
 |---|---|---|---|---|---|
-| **Stack tecnológico** | SaaS cerrado | SaaS/AI nativa | SaaS cerrado | SaaS + Fintech | FastAPI + SQLAlchemy + MySQL (Open) |
+| **Stack tecnológico** | SaaS cerrado | SaaS/AI nativa | SaaS cerrado | SaaS + Fintech | FastAPI + SQLAlchemy + MySQL (Custom) |
 | **Arquitectura** | Monolítico SaaS | Plataforma unificada | SaaS | SaaS | DDD/CQRS — moderna y escalable |
-| **Open Source** | ❌ | ❌ | ❌ | ❌ | ✅ Potencial |
+| **Open Source** | ❌ | ❌ | ❌ | ❌ | ❌ Custom |
 | **API abierta** | Limitada | Limitada | Integraciones | No pública | ✅ REST API nativa |
 | **Idioma** | Inglés | Inglés | Inglés | Portugués | Español (LATAM) |
 | **Mercado LATAM** | ❌ | ❌ | ❌ | Solo Brasil | ✅ Peru/LATAM first |
@@ -235,7 +235,7 @@ Se identificaron **8 competidores directos** en tres mercados (USA/Canadá, Euro
 
 ### Fortalezas de condo-py (ventajas competitivas reales)
 1. **Arquitectura DDD/CQRS** — ningún competidor documenta esta robustez técnica; escalable a microservicios
-2. **Open source / self-hosted** — nicho sin cubrir en LATAM
+2. **Desarrollo acelerado con IA** — construcción, modificación y optimización mediante agentes de IA (vs. desarrollo humano tradicional)
 3. **API REST nativa** — integrable con cualquier frontend/mobile
 4. **Python ecosystem** — facilita extensiones con AI, ML, analytics
 5. **Docker first** — deployment sencillo
@@ -254,9 +254,9 @@ Se identificaron **8 competidores directos** en tres mercados (USA/Canadá, Euro
 ### Recomendaciones estratégicas (para análisis de Lelouch)
 - **MVP mínimo competitivo:** completar módulos pendientes + auth + portal web básico
 - **Diferenciador #1:** localización LATAM (español, soles, PEN, cobros locales)
-- **Diferenciador #2:** API-first + open source → atraer administradoras tech
-- **Diferenciador #3:** self-hosted → privacidad de datos (sensible en LATAM)
-- **Modelo de negocio sugerido:** freemium open-source + SaaS gestionado premium
+- **Diferenciador #2:** desarrollo rápido con agentes de IA → sistema custom privado, flexible y optimizable en tiempo récord
+- **Diferenciador #3:** API-first + arquitectura moderna → integrable con cualquier frontend o sistema externo
+- **Modelo de negocio sugerido:** sistema privado custom por cliente/administradora + soporte y optimización continua
 
 ---
 

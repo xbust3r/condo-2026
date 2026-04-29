@@ -27,6 +27,11 @@ class UnitOwnershipMapper:
             deleted_at=db_ownership.deleted_at,
         )
 
+    OWNERSHIP_TYPE_LABELS = {
+        "owner": "Owner",
+        "co_owner": "Co-owner",
+    }
+
     @staticmethod
     def to_domain_enriched(
         db_ownership: DBUnitOwnership,
@@ -43,6 +48,9 @@ class UnitOwnershipMapper:
         entity.condominium_name = condominium_name
         entity.user_email = user_email
         entity.user_full_name = user_full_name
+        entity.ownership_type_name = UnitOwnershipMapper.OWNERSHIP_TYPE_LABELS.get(
+            entity.ownership_type
+        )
         return entity
 
     @staticmethod

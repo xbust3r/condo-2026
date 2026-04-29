@@ -130,3 +130,51 @@ def list_my_visitors(
         limit=limit,
     )
     return response.dict()
+
+
+# =============================================================================
+# Admin endpoints — resident profiles management
+# =============================================================================
+from library.dddpy.auth.domain.user_identity import UserIdentity
+from api.auth.auth_dependencies import get_current_user
+
+
+@resident_routes.get("/admin/profiles")
+@api_handler
+def list_resident_profiles(
+    condominium_id: int = Query(..., description="Condominium ID"),
+    skip: int = Query(0, ge=0),
+    limit: int = Query(20, ge=1, le=100),
+    user: UserIdentity = Depends(get_current_user),
+) -> dict:
+    """List all resident profiles for a condominium (admin)."""
+    response = ResidentUseCase().list_all_by_condominium(
+        condominium_id=condominium_id,
+        skip=skip,
+        limit=limit,
+    )
+    return response.dict()
+
+
+@resident_routes.get("/admin/profiles/{profile_id}")
+@api_handler
+def get_resident_profile_by_id(
+    profile_id: int,
+    user: UserIdentity = Depends(get_current_user),
+) -> dict:
+    """Get a specific resident profile by ID."""
+    response = ResidentUseCase().get_profile_by_id(profile_id)
+    return response.dict()
+
+
+@resident_routes.put("/admin/profiles/{profile_id}")
+@api_handler
+def update_resident_profile_by_id(
+    profile_id: int,
+    body: UpdatePreferencesSchema,
+    user: UserIdentity = Depends(get_current_user),
+) -> dict:
+    """Update a specific resident profile by ID (admin)."""
+    preferences = body.model_dump(exclude_none=True)
+    response = ResidentUseCase().update_profile_by_id(profile_id, preferences)
+    return response.dict()

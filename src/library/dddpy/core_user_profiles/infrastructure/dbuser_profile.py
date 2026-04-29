@@ -4,7 +4,7 @@ SQLAlchemy model for user_profiles table.
 READS from the existing user_profiles table.
 All writes go through UserProfileCmdRepository.
 """
-from sqlalchemy import Column, BigInteger, String, Date, DateTime
+from sqlalchemy import Column, BigInteger, String, Date, DateTime, JSON
 from sqlalchemy.sql import func
 
 from library.dddpy.shared.mysql.base import Base
@@ -22,6 +22,9 @@ class DBUserProfile(Base):
     document_number = Column(String(50), nullable=True)
     phone = Column(String(20), nullable=True)
     birth_date = Column(Date, nullable=True)
+    emergency_contact = Column(JSON, nullable=True)
+    notification_preferences = Column(JSON, nullable=True)
+    avatar_url = Column(String(500), nullable=True)
     created_at = Column(DateTime, nullable=False, server_default=func.now())
     updated_at = Column(DateTime, nullable=True, onupdate=func.now())
     deleted_at = Column(DateTime, nullable=True)

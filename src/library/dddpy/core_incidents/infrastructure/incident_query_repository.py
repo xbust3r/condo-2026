@@ -11,7 +11,7 @@ from library.dddpy.core_incidents.infrastructure.dbinicident import DBIncident
 from library.dddpy.core_incidents.infrastructure.incident_mapper import IncidentMapper
 from library.dddpy.core_units.infrastructure.dbunits import DBUnits
 from library.dddpy.core_buildings.infrastructure.dbbuildings import DBBuildings
-from library.dddpy.core_condominiums.infrastructure.dbcondominiums import DBCondominium
+from library.dddpy.core_condominiums.infrastructure.dbcondominiums import DBCondominiums
 from library.dddpy.shared.mysql.session_manager import session_scope
 from library.dddpy.shared.logging.logging import Logger
 
@@ -56,9 +56,9 @@ class IncidentQueryRepositoryImpl(IncidentQueryRepository):
                         condo_ids.append(b.condominium_id)
 
             # 3. Condominiums
-            condo_map: dict[int, DBCondominium] = {}
+            condo_map: dict[int, DBCondominiums] = {}
             if condo_ids:
-                condo_map = {c.id: c for c in session.query(DBCondominium).filter(DBCondominium.id.in_(condo_ids)).all()}
+                condo_map = {c.id: c for c in session.query(DBCondominiums).filter(DBCondominiums.id.in_(condo_ids)).all()}
 
             # 4. User full names via raw SQL on user_profiles
             user_name_map: dict[int, str] = {}

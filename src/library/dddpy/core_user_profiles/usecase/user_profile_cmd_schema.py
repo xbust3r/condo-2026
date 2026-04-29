@@ -15,6 +15,9 @@ class CreateUserProfileSchema(BaseModel):
     document_type: Optional[str] = Field(None, max_length=20, description="Document type: DNI|PASAPORTE|CEDULA")
     document_number: Optional[str] = Field(None, max_length=50, description="Document number")
     birth_date: Optional[date] = Field(None, description="Birth date (YYYY-MM-DD)")
+    emergency_contact: Optional[dict] = Field(None, description="Emergency contact: {name, phone, relationship}")
+    notification_preferences: Optional[dict] = Field(None, description="Notification preferences: {email, sms, push}")
+    avatar_url: Optional[str] = Field(None, max_length=500, description="Avatar image URL")
 
 
 class UpdateUserProfileSchema(BaseModel):
@@ -24,3 +27,6 @@ class UpdateUserProfileSchema(BaseModel):
     document_type: Optional[str] = Field(None, max_length=20)
     document_number: Optional[str] = Field(None, max_length=50)
     birth_date: Optional[date] = Field(None)
+    emergency_contact: Optional[dict] = Field(None)
+    notification_preferences: Optional[dict] = Field(None)
+    avatar_url: Optional[str] = Field(None, max_length=500)

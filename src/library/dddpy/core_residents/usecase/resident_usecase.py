@@ -138,3 +138,55 @@ class ResidentUseCase:
             skip=skip,
             limit=limit,
         )
+
+    def list_all_by_condominium(
+        self,
+        condominium_id: int,
+        skip: int = 0,
+        limit: int = 20,
+    ) -> ResponseSuccessSchema:
+        """List all resident profiles for a condominium (admin view)."""
+        logger.add_inside_method("list_all_by_condominium")
+        data, total = self._query_repo.list_all_by_condominium(
+            condominium_id, skip, limit,
+        )
+        return ResponseSuccessSchema(
+            success=True,
+            message="All resident profiles retrieved",
+            data=data,
+            total=total,
+            skip=skip,
+            limit=limit,
+        )
+
+    def get_profile_by_id(self, profile_id: int) -> ResponseSuccessSchema:
+        """Get a specific resident profile by ID (admin)."""
+        logger.add_inside_method("get_profile_by_id")
+        profile = self._query_repo.get_profile_by_id(profile_id)
+        if not profile:
+            return ResponseSuccessSchema(
+                success=True,
+                message="Resident profile not found",
+                data=None,
+            )
+        return ResponseSuccessSchema(
+            success=True,
+            message="Resident profile retrieved",
+            data=profile if isinstance(profile, dict) else profile.to_dict(),
+        )
+
+    def update_profile_by_id(
+        self,
+        profile_id: int,
+        preferences: dict,
+    ) -> ResponseSuccessSchema:
+        """Update a specific resident profile by ID (admin)."""
+        logger.add_inside_method("update_profile_by_id")
+        ok = self._cmd_repo.update_by_id(profile_id, preferences)
+        if not ok:
+            raise ResidentProfileNotFound()
+        return ResponseSuccessSchema(
+            success=True,
+            message="Resident profile updated",
+            data=None,
+        )
