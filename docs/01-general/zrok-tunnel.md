@@ -96,11 +96,31 @@ sudo systemctl enable --now zrok-condopy
 
 | Comando | Descripción |
 |---|---|
+| `make zrok` (en el proyecto) | Levantar túnel zrok del proyecto |
 | `zrok overview` | Listar shares activos |
 | `zrok status` | Estado de la cuenta/conexión |
 | `pgrep -af "zrok share"` | Ver procesos zrok corriendo |
 | `tail -f /tmp/zrok-condopy.log` | Ver logs del túnel |
-| `pkill -f "zrok share reserved condopy"` | Detener el túnel |
+| `pkill -f "zrok share reserved condopy"` | Detener el túnel de condo-py |
+| `pkill -f "zrok share reserved condobackdmin"` | Detener el túnel de condo-backdmin |
+
+## Make targets
+
+Cada proyecto tiene un target `zrok` en su Makefile que levanta todo automáticamente:
+
+```bash
+# Desde ~/servers/condo-py
+make zrok   # Levanta container + túnel → https://condopy.share.zrok.io
+
+# Desde ~/servers/Condo-backdmin
+make zrok   # Levanta container + túnel → https://condobackdmin.share.zrok.io
+```
+
+Hace todo en un solo comando:
+1. `make up` (asegura que el container Docker esté corriendo)
+2. Mata cualquier túnel previo del proyecto
+3. Arranca `zrok share reserved --headless`
+4. Muestra confirmación de que el túnel está vivo
 
 ---
 

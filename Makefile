@@ -100,6 +100,15 @@ status:
 	PROJECT_DOMAIN=${PROJECT_DOMAIN} \
 	docker-compose -p ${SERVICE_NAME} ps
 
+zrok: ## expose local API via zrok public tunnel (https://condopy.share.zrok.io)
+	@printf "\033[36m🚀 Starting zrok tunnel for %s...\033[0m\n" "${PROJECT_DOMAIN}"
+	@make up &> /dev/null
+	@sleep 2
+	@pkill -f "zrok share reserved condopy" 2>/dev/null || true
+	@nohup zrok share reserved condopy --headless > /tmp/zrok-condopy.log 2>&1 &
+	@sleep 4
+	@printf "\033[32m✅ https://condopy.share.zrok.io is live\033[0m\n"
+
 ## Deploy ##
 sync-config:
 	aws s3 cp s3://${CYBORG_BUCKET}/config/app/${OWNER}/${ENV}/${SERVICE_NAME}/.env src/
