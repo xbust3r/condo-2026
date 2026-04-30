@@ -3,6 +3,8 @@ services:
   backend:
     image: ${IMAGE_DEV}
     container_name: ${CONTAINER_NAME}
+    ports:
+      - "7501:7501"
     networks:
       default:
         aliases:
