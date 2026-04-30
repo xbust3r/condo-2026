@@ -122,9 +122,8 @@ Auditar y asegurar que en TODOS los módulos:
 | HIGH-5 | Auditoría transversal soft delete | ✅ `get_by_id_any_status` en todos los módulos |
 
 **DB:** última migración aplicada `050_add_user_profile_extra_fields`
-**RBAC:** `core_permissions` (44 rows) + `core_role_permissions` (88 rows) seedeados
-
-**Conclusión:** Fase 1 — CERRADA. Sin bugs abiertos.
+**RBAC:** `core_permissions` (63 permisos) + `core_role_permissions` (88 mappings) — enforcement activo en 17 módulos (commit `a8650b6`)
+**Phase 2:** Implementada — tabla `core_permissions` + `core_role_permissions` seedeadas, enforcement endpoint-level activo
 
 ---
 
