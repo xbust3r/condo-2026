@@ -216,6 +216,39 @@ class CondominiumRoleQueryRepositoryImpl(CondominiumRoleQueryRepository):
             )
             return self._bulk_enrich(results), total
 
+    def list_by_user_and_condominium(
+        self,
+        user_id: int,
+        condominium_id: int,
+        skip: int = 0,
+        limit: int = 100,
+        status: Optional[str] = None,
+        include_deleted: bool = False,
+    ) -> Tuple[List[CondominiumRoleEntity], int]:
+        logger.debug(
+            f"Listing condominium roles for user_id={user_id} condominium_id={condominium_id}"
+        )
+        with session_scope() as session:
+            query = session.query(DBCondominiumRoles).filter(
+                DBCondominiumRoles.user_id == user_id,
+                DBCondominiumRoles.condominium_id == condominium_id,
+            )
+
+            if not include_deleted:
+                query = query.filter(DBCondominiumRoles.deleted_at.is_(None))
+            if status is not None:
+                query = query.filter(DBCondominiumRoles.status == status)
+
+            total = query.count()
+            results = (
+                query
+                .order_by(DBCondominiumRoles.id)
+                .offset(skip)
+                .limit(limit)
+                .all()
+            )
+            return self._bulk_enrich(results), total
+
     def _get_by_id_any_status(self, id: int) -> Optional[CondominiumRoleEntity]:
         """Re-fetch entity ignoring soft-delete filter. For use after mutations."""
         logger.debug(f"Fetching condominium role by id={id} (any status)")

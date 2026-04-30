@@ -83,11 +83,13 @@ class AuditQueryUseCase:
     ) -> ResponseSuccessSchema:
         logger.add_inside_method("list_all")
         entities, total = self._repo.list_all(
-            action=action,
-            resource_type=resource_type,
-            user_id=user_id,
-            date_from=date_from,
-            date_to=date_to,
+            filters={
+                "action": action,
+                "resource_type": resource_type,
+                "user_id": user_id,
+                "date_from": date_from,
+                "date_to": date_to,
+            },
             skip=skip,
             limit=limit,
         )

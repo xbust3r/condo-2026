@@ -46,7 +46,7 @@ def list_users(
     email: Optional[str] = Query(None, description="Filter by email (partial match)"),
     status: Optional[str] = Query(None, description="Filter by status"),
     include_deleted: bool = Query(False, description="Include soft-deleted users"),
-    limit: int = Query(50, ge=1, le=200),
+    limit: int = Query(50, ge=1, le=500),
     offset: int = Query(0, ge=0),
 ) -> dict:
     """List users with optional filters."""

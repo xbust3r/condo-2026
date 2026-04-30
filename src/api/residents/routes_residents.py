@@ -83,7 +83,7 @@ def update_resident_profile(
 def list_my_incidents(
     condominium_id: int,
     skip: int = Query(0, ge=0),
-    limit: int = Query(20, ge=1, le=100),
+    limit: int = Query(20, ge=1, le=500),
     user: UserIdentity = Depends(get_current_user),
 ) -> dict:
     """List my incidents in this condominium (via occupancy)."""
@@ -101,7 +101,7 @@ def list_my_incidents(
 def list_my_packages(
     condominium_id: int = Query(...),
     skip: int = Query(0, ge=0),
-    limit: int = Query(20, ge=1, le=100),
+    limit: int = Query(20, ge=1, le=500),
     user: UserIdentity = Depends(get_current_user),
 ) -> dict:
     """List my packages in this condominium."""
@@ -119,7 +119,7 @@ def list_my_packages(
 def list_my_visitors(
     condominium_id: int = Query(...),
     skip: int = Query(0, ge=0),
-    limit: int = Query(20, ge=1, le=100),
+    limit: int = Query(20, ge=1, le=500),
     user: UserIdentity = Depends(get_current_user),
 ) -> dict:
     """List my visitor registrations in this condominium."""
@@ -144,7 +144,7 @@ from api.auth.auth_dependencies import get_current_user
 def list_resident_profiles(
     condominium_id: int = Query(..., description="Condominium ID"),
     skip: int = Query(0, ge=0),
-    limit: int = Query(20, ge=1, le=100),
+    limit: int = Query(20, ge=1, le=500),
     user: UserIdentity = Depends(get_current_user),
 ) -> dict:
     """List all resident profiles for a condominium (admin)."""

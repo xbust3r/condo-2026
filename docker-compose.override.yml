@@ -1,10 +1,17 @@
 version: '3'
 services:
   backend:
+    env_file:
+      - ./src/.env
     environment:
       EXCLUDE_PORTS: 443
       VIRTUAL_HOST: ${PROJECT_DOMAIN}
       AWS_REGION: ${AWS_REGION}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      MYSQL_HOST: ${MYSQL_HOST}
+      MYSQL_DB: ${MYSQL_DB}
+      MYSQL_PORT: ${MYSQL_PORT}
     volumes:
       - ./src:/app
       - $HOME/.aws:/root/.aws

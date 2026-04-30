@@ -62,3 +62,16 @@ class CondominiumRoleQueryRepository(ABC):
     ) -> Tuple[List[CondominiumRoleEntity], int]:
         """List role assignments for a specific user."""
         pass
+
+    @abstractmethod
+    def list_by_user_and_condominium(
+        self,
+        user_id: int,
+        condominium_id: int,
+        skip: int = 0,
+        limit: int = 100,
+        status: Optional[str] = None,
+        include_deleted: bool = False,
+    ) -> Tuple[List[CondominiumRoleEntity], int]:
+        """List role assignments for a specific user in a specific condominium."""
+        pass
