@@ -2,7 +2,7 @@
 Seed financial module permissions — charges, AR, payments, receipts, ledger.
 
 Revision ID: 033_seed_financial_permissions
-Revises: 032_create_core_ledger_entries
+Revises: 034_create_ledger
 Create Date: 2026-04-24
 """
 from typing import Sequence, Union
@@ -11,7 +11,7 @@ import sqlalchemy as sa
 
 
 revision: str = '033_seed_financial_permissions'
-down_revision: Union[str, None] = '032_create_core_ledger_entries'
+down_revision: Union[str, None] = '034_create_ledger'
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
@@ -62,11 +62,11 @@ def upgrade() -> None:
             f"""
             INSERT INTO core_permissions (code, resource, action, scope_default, description)
             SELECT * FROM (
-                SELECT :code AS code, :resource AS resource, :action AS action,
-                       :scope_default AS scope_default, :description AS description
+                SELECT '{code}' AS code, '{resource}' AS resource, '{action}' AS action,
+                       '{scope_default}' AS scope_default, "{description}" AS description
             ) AS tmp
             WHERE NOT EXISTS (
-                SELECT 1 FROM core_permissions WHERE code = :code
+                SELECT 1 FROM core_permissions WHERE code = '{code}'
             )
             """
         )

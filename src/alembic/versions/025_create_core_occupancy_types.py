@@ -78,6 +78,10 @@ OCCUPANCY_TYPES_SEED = [
 
 
 def upgrade() -> None:
+    # First add the new FK column to core_unit_occupancies
+    op.add_column('core_unit_occupancies',
+                  sa.Column('occupancy_type_id', sa.BigInteger(), nullable=True))
+
     # Create table with new fields: scope, condominium_id, allows_primary
     op.create_table(
         'core_occupancy_types',
@@ -133,3 +137,4 @@ def upgrade() -> None:
 def downgrade() -> None:
     op.drop_index('ix_occupancy_types_code', table_name='core_occupancy_types')
     op.drop_table('core_occupancy_types')
+    op.drop_column('core_unit_occupancies', 'occupancy_type_id')

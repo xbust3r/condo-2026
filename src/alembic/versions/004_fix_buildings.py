@@ -10,7 +10,7 @@ duplicate index, never fails due to missing index on downgrade.
 
 Note: This migration does NOT modify FK actions. FK actions are handled by 005.
 
-Revision ID: 004_fix_buildings_unique_constraint
+Revision ID: 004_fix_buildings
 Revises: 003_seed_core_buildings_types
 Create Date: 2026-04-13
 """
@@ -18,7 +18,7 @@ from typing import Sequence, Union
 from alembic import op
 import sqlalchemy as sa
 
-revision: str = '004_fix_buildings_unique_constraint'
+revision: str = '004_fix_buildings'
 down_revision: Union[str, None] = '003_seed_core_buildings_types'
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None

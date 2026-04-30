@@ -5,7 +5,7 @@ UUIDs should follow format: 8-4-4-4-12 hex chars.
 Some seed/fixture inserts used arbitrary strings like '2', 'test-condo-1-uuid'.
 
 Revision ID: 020_clean_invalid_uuids
-Revises: 019_add_condominium_coefficient_to_core_units
+Revises: 019_condo_coefficient
 Create Date: 2026-04-16
 """
 from typing import Sequence, Union
@@ -14,7 +14,7 @@ import sqlalchemy as sa
 
 
 revision: str = '020_clean_invalid_uuids'
-down_revision: Union[str, None] = '019_add_condominium_coefficient_to_core_units'
+down_revision: Union[str, None] = '019_condo_coefficient'
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 

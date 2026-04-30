@@ -1,7 +1,7 @@
 """
 Migrate core_unit_occupancies.occupancy_type (string) -> occupancy_type_id (FK bigint).
 
-Revision ID: 026_migrate_unit_occupancies_to_occupancy_type_id
+Revision ID: 026_migrate_unit_occupancies
 Revises: 025_create_core_occupancy_types
 Create Date: 2026-04-23
 """
@@ -11,7 +11,7 @@ import sqlalchemy as sa
 from sqlalchemy import text
 
 
-revision: str = '026_migrate_unit_occupancies_to_occupancy_type_id'
+revision: str = '026_migrate_unit_occupancies'
 down_revision: Union[str, None] = '025_create_core_occupancy_types'
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None

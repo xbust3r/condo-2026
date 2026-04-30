@@ -7,7 +7,7 @@ No tiene FK a otras tablas — es solo un catálogo de referencia.
 Seed: 30 permisos cubriendo todos los recursos del sistema.
 
 Revision ID: 022_create_core_permissions
-Revises: 021_extend_condominium_roles_scope_building
+Revises: 021_extend_condominium_roles
 Create Date: 2026-04-16
 """
 from typing import Sequence, Union
@@ -16,7 +16,7 @@ import sqlalchemy as sa
 
 
 revision: str = '022_create_core_permissions'
-down_revision: Union[str, None] = '021_extend_condominium_roles_scope_building'
+down_revision: Union[str, None] = '021_extend_condominium_roles'
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 

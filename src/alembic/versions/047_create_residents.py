@@ -1,7 +1,7 @@
 """
 Create core_resident_profiles — preferences and settings per user per condominium.
 
-Revision ID: 047_create_core_resident_profiles
+Revision ID: 047_create_residents
 Revises: 046_create_core_packages
 Create Date: 2026-04-24
 """
@@ -10,7 +10,7 @@ from alembic import op
 import sqlalchemy as sa
 
 
-revision: str = '047_create_core_resident_profiles'
+revision: str = '047_create_residents'
 down_revision: Union[str, None] = '046_create_core_packages'
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None

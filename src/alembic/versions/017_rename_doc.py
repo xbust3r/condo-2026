@@ -3,7 +3,7 @@ Rename columns in user_profiles for semantic consistency:
   doc_type        → document_type
   doc_identity    → document_number
 
-Revision ID: 017_rename_doc_columns_to_document
+Revision ID: 017_rename_doc
 Revises: 016_add_token_version_to_users
 Create Date: 2026-04-15
 """
@@ -13,7 +13,7 @@ import sqlalchemy as sa
 from sqlalchemy import text
 
 
-revision: str = '017_rename_doc_columns_to_document'
+revision: str = '017_rename_doc'
 down_revision: Union[str, None] = '016_add_token_version_to_users'
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None

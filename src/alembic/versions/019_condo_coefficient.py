@@ -4,8 +4,8 @@ Add condominium_coefficient to core_units.
 Required for maintenance fee calculations. The coefficient represents
 the unit's percentage participation in the condominium's total (0-100).
 
-Revision ID: 019_add_condominium_coefficient_to_core_units
-Revises: 018_add_birth_date_to_user_profiles
+Revision ID: 019_condo_coefficient
+Revises: 018_birth_date
 Create Date: 2026-04-15
 """
 from typing import Sequence, Union
@@ -13,8 +13,8 @@ from alembic import op
 import sqlalchemy as sa
 
 
-revision: str = '019_add_condominium_coefficient_to_core_units'
-down_revision: Union[str, None] = '018_add_birth_date_to_user_profiles'
+revision: str = '019_condo_coefficient'
+down_revision: Union[str, None] = '018_birth_date'
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 

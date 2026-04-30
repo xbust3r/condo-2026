@@ -5,7 +5,7 @@ Also renames:
   - unity_type_id → unit_type_id on core_units
   - Indexes prefixed with core_unities_* → core_units_*
 
-Revision ID: 010_rename_core_unities_to_core_units
+Revision ID: 010_rename_core_units
 Revises: 008_refactor_core_unities
 Create Date: 2026-04-15
 """
@@ -15,8 +15,8 @@ import sqlalchemy as sa
 from sqlalchemy import text
 
 
-revision: str = '010_rename_core_unities_to_core_units'
-down_revision: Union[str, None] = '009_rename_and_refactor_core_unities_types'
+revision: str = '010_rename_core_units'
+down_revision: Union[str, None] = '009_rename_core_unities'
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 

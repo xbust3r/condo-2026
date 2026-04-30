@@ -17,7 +17,7 @@ Seed types:
   APARTMENT, HOUSE, PENTHOUSE, COMMERCIAL_UNIT, OFFICE,
   PARKING, STORAGE, OTHER
 
-Revision ID: 009_rename_and_refactor_core_unities_types
+Revision ID: 009_rename_core_unities
 Revises: 008_refactor_core_unities
 Create Date: 2026-04-14
 """
@@ -27,7 +27,7 @@ import sqlalchemy as sa
 from sqlalchemy import text
 
 
-revision: str = '009_rename_and_refactor_core_unities_types'
+revision: str = '009_rename_core_unities'
 down_revision: Union[str, None] = '008_refactor_core_unities'
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None

@@ -8,7 +8,7 @@ access_token: JWT corto (15 min), contiene user_id + metadata
 refresh_token: UUID v4, almacenado hash en DB, válido 7 días
 
 Revision ID: 015_create_auth_sessions
-Revises: 014_create_core_condominium_roles
+Revises: 014_create_roles
 Create Date: 2026-04-15
 """
 from typing import Sequence, Union
@@ -18,7 +18,7 @@ from sqlalchemy import text
 
 
 revision: str = '015_create_auth_sessions'
-down_revision: Union[str, None] = '014_create_core_condominium_roles'
+down_revision: Union[str, None] = '014_create_roles'
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 

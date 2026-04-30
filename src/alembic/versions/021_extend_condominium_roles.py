@@ -7,7 +7,7 @@ Changes:
   - Unique constraint: solo 1 condominium_admin activo por condominio
   - Valid roles actualizados a v2
 
-Revision ID: 021_extend_condominium_roles_scope_building
+Revision ID: 021_extend_condominium_roles
 Revises: 020_clean_invalid_uuids
 Create Date: 2026-04-16
 """
@@ -17,7 +17,7 @@ import sqlalchemy as sa
 from sqlalchemy import text
 
 
-revision: str = '021_extend_condominium_roles_scope_building'
+revision: str = '021_extend_condominium_roles'
 down_revision: Union[str, None] = '020_clean_invalid_uuids'
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None

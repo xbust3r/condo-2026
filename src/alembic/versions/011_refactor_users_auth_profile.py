@@ -20,7 +20,7 @@ Catalog for users.status (VARCHAR):
   'deleted'     — 6  — Eliminada (soft-delete, vía deleted_at)
 
 Revision ID: 011_refactor_users_auth_profile
-Revises: 010_rename_core_unities_to_core_units
+Revises: 010_rename_core_units
 Create Date: 2026-04-15
 """
 from typing import Sequence, Union
@@ -30,7 +30,7 @@ from sqlalchemy import text
 
 
 revision: str = '011_refactor_users_auth_profile'
-down_revision: Union[str, None] = '010_rename_core_unities_to_core_units'
+down_revision: Union[str, None] = '010_rename_core_units'
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 

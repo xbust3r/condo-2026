@@ -2,7 +2,7 @@
 Create core_meetings — tabla de reuniones/asambleas del condominio.
 
 Revision ID: 048_create_core_meetings
-Revises: 047_create_core_resident_profiles
+Revises: 047_create_residents
 Create Date: 2026-04-24
 """
 from typing import Sequence, Union
@@ -11,7 +11,7 @@ import sqlalchemy as sa
 
 
 revision: str = '048_create_core_meetings'
-down_revision: Union[str, None] = '047_create_core_resident_profiles'
+down_revision: Union[str, None] = '047_create_residents'
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 

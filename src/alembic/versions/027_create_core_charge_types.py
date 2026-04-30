@@ -9,7 +9,7 @@ Seed: 5 tipos base:
   utility          — Servicio común (agua, gas, mantenimiento)
 
 Revision ID: 027_create_core_charge_types
-Revises: 026_migrate_unit_occupancies_to_occupancy_type_id
+Revises: 026_migrate_unit_occupancies
 Create Date: 2026-04-24
 """
 from typing import Sequence, Union
@@ -19,7 +19,7 @@ from sqlalchemy import text
 
 
 revision: str = '027_create_core_charge_types'
-down_revision: Union[str, None] = '026_migrate_unit_occupancies_to_occupancy_type_id'
+down_revision: Union[str, None] = '026_migrate_unit_occupancies'
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 

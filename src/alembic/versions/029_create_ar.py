@@ -4,7 +4,7 @@ Create core_accounts_receivable — Cuentas por Cobrar del condominio.
 Una AR se genera desde un charge (1 charge → N AR, una por unidad).
 Cada AR tiene status que transita: pending → partial → paid / pending → overdue → paid
 
-Revision ID: 029_create_core_accounts_receivable
+Revision ID: 029_create_ar
 Revises: 028_create_core_charges
 Create Date: 2026-04-24
 """
@@ -13,7 +13,7 @@ from alembic import op
 import sqlalchemy as sa
 
 
-revision: str = '029_create_core_accounts_receivable'
+revision: str = '029_create_ar'
 down_revision: Union[str, None] = '028_create_core_charges'
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None

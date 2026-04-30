@@ -6,8 +6,8 @@ Un receipt:
   - receipt_number = correlativo por condominio (formato: C{cod}-{YYYY}{MM}-{correlativo:06d})
   - Un AR puede tener múltiples receipts (pago parcial = varios receipts)
 
-Revision ID: 030_create_core_receipts
-Revises: 029_create_core_accounts_receivable
+Revision ID: 032_create_receipts
+Revises: 029_create_ar
 Create Date: 2026-04-24
 """
 from typing import Sequence, Union
@@ -15,8 +15,8 @@ from alembic import op
 import sqlalchemy as sa
 
 
-revision: str = '030_create_core_receipts'
-down_revision: Union[str, None] = '029_create_core_accounts_receivable'
+revision: str = '032_create_receipts'
+down_revision: Union[str, None] = '029_create_ar'
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 

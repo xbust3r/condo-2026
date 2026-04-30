@@ -4,8 +4,8 @@ Create core_ledger_entries — Libro mayor por unidad.
 Cada operación financiera (cargo o pago) genera una entrada en el ledger.
 El ledger es append-only: nunca se modifica ni borra.
 
-Revision ID: 032_create_core_ledger_entries
-Revises: 031_create_core_payments
+Revision ID: 034_create_ledger
+Revises: 033_create_payments
 Create Date: 2026-04-24
 """
 from typing import Sequence, Union
@@ -13,8 +13,8 @@ from alembic import op
 import sqlalchemy as sa
 
 
-revision: str = '032_create_core_ledger_entries'
-down_revision: Union[str, None] = '031_create_core_payments'
+revision: str = '034_create_ledger'
+down_revision: Union[str, None] = '033_create_payments'
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 

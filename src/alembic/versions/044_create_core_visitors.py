@@ -1,7 +1,7 @@
 """create core_visitors
 
 Revision ID: 044_create_core_visitors
-Revises: 043_seed_notification_permissions
+Revises: 043_seed_notif_perms
 Create Date: 2026-04-24
 """
 from typing import Sequence, Union
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 revision: str = '044_create_core_visitors'
-down_revision: Union[str, None] = '043_seed_notification_permissions'
+down_revision: Union[str, None] = '043_seed_notif_perms'
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 

@@ -6,8 +6,8 @@ Un pago:
   - Genera automáticamente un receipt (1:1)
   - Actualiza el status del AR (pending→partial, overdue→partial, partial→paid)
 
-Revision ID: 031_create_core_payments
-Revises: 030_create_core_receipts
+Revision ID: 033_create_payments
+Revises: 032_create_receipts
 Create Date: 2026-04-24
 """
 from typing import Sequence, Union
@@ -15,8 +15,8 @@ from alembic import op
 import sqlalchemy as sa
 
 
-revision: str = '031_create_core_payments'
-down_revision: Union[str, None] = '030_create_core_receipts'
+revision: str = '033_create_payments'
+down_revision: Union[str, None] = '032_create_receipts'
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 

@@ -17,7 +17,7 @@ Reglas:
   - Un usuario puede administrar múltiples condominios
   - Los permisos son contextuales (por condominio), no globales
 
-Revision ID: 014_create_core_condominium_roles
+Revision ID: 014_create_roles
 Revises: 013_create_core_unit_occupancies
 Create Date: 2026-04-15
 """
@@ -27,7 +27,7 @@ import sqlalchemy as sa
 from sqlalchemy import text
 
 
-revision: str = '014_create_core_condominium_roles'
+revision: str = '014_create_roles'
 down_revision: Union[str, None] = '013_create_core_unit_occupancies'
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None

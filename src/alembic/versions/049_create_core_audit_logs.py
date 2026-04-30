@@ -1,7 +1,7 @@
 """create core_audit_logs
 
 Revision ID: 049_create_core_audit_logs
-Revises: 047_create_core_resident_profiles
+Revises: 047_create_residents
 Create Date: 2026-04-24
 """
 from typing import Sequence, Union
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 revision: str = '049_create_core_audit_logs'
-down_revision: Union[str, None] = '047_create_core_resident_profiles'
+down_revision: Union[str, None] = '047_create_residents'
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
