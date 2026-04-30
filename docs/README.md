@@ -28,6 +28,7 @@ docs/
 | `README.md` | Este archivo — índice general del proyecto |
 | `architecture.md` | Arquitectura general del sistema |
 | `docker.md` | Guía de configuración y despliegue con Docker |
+| `zrok-tunnel.md` | Túnel zrok para acceso público desde internet |
 
 ---
 
