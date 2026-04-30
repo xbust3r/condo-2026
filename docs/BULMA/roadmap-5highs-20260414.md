@@ -1,6 +1,7 @@
 # ROADMAP PRIORIDAD — 5 HIGH's Phase 1
 
 **Fecha:** 2026-04-14
+**Última actualización:** 2026-04-30
 **Equipo:** Misato (coordinación + revisión) / Bulma (ejecución)
 **Módulo referencia:** `core_buildings`
 
@@ -12,7 +13,7 @@
 
 ## HIGH-1 · `core_condominiums` — Bypass de capas en `restore`
 
-**Problema:** `CondominiumUseCase.restore()` toca `repository.restore()` directo — rompe disciplina de capas.
+**Problema:** `CondominiumUseCase.restore()` tocaba `repository.restore()` directo — rompía disciplina de capas.
 
 **Fix:**
 1. Exponer `restore(id)` en `CondominiumCmdUseCase`
@@ -21,48 +22,54 @@
 4. Confirmar que `soft_delete()` y `restore()` viven en el repository correcto
 
 **Archivo crítico:**
-- `usecase/condominium_usecase.py` línea 95
+- `usecase/condominium_usecase.py` línea 185
 - `domain/condominium_repository.py`
 
 **Label para handoff:** `#high1-condominiums-bypass`
+
+**Estado:** ✅ CERRADO (commit `3ad3f55` — 2026-04-14)
 
 ---
 
 ## HIGH-2 · `core_condominiums` — Respuesta inconsistente en `delete`
 
-**Problema:** `delete()` responde con `existing.deleted_at` (snapshot previo), no con el estado real post-soft-delete.
+**Problema:** `delete()` respondía con `existing.deleted_at` (snapshot previo), no con el estado real post-soft-delete.
 
 **Fix:**
-1. En `CondominiumCmdUseCase.delete()` → llamar `self.repository.soft_delete(id)` 
+1. En `CondominiumCmdUseCase.delete()` → llamar `self.repository.soft_delete(id)`
 2. En `CondominiumUseCase.delete()` → retornar `{"id": id, "deleted_at": <timestamp real>}` post-operación
 3. Verificar que `soft_delete()` en el repository actualiza y retorna el `deleted_at` correcto
 
 **Archivo crítico:**
-- `usecase/condominium_usecase.py` líneas 83-100
+- `usecase/condominium_usecase.py` líneas 160-175
 - `infrastructure/condominium_cmd_repository.py`
 
 **Label para handoff:** `#high2-condominiums-delete-response`
 
+**Estado:** ✅ CERRADO (commit `3ad3f55` — 2026-04-14)
+
 ---
 
-## HIGH-3 · `core_unities` — Queries sin filtro `deleted_at`
+## HIGH-3 · `core_units` — Queries sin filtro `deleted_at`
 
-**Problema:** `get_by_unit_number_in_building` y `get_by_code_in_building` no filtran `deleted_at IS NULL` — reintroducen entidades eliminadas al flujo.
+**Problema:** `get_by_unit_number_in_building` y `get_by_code_in_building` no filtraban `deleted_at IS NULL` — reintroducían entidades eliminadas al flujo.
 
 **Fix:**
-1. Agregar `.filter(DBUnities.deleted_at.is_(None))` a `get_by_unit_number_in_building`
-2. Agregar `.filter(DBUnities.deleted_at.is_(None))` a `get_by_code_in_building`
+1. Agregar `.filter(DBUnits.deleted_at.is_(None))` a `get_by_unit_number_in_building`
+2. Agregar `.filter(DBUnits.deleted_at.is_(None))` a `get_by_code_in_building`
 
 **Archivo crítico:**
-- `infrastructure/unity_query_repository.py` líneas 52-85
+- `infrastructure/unit_query_repository.py` líneas 50-90
 
 **Label para handoff:** `#high3-unities-deleted-at`
+
+**Estado:** ✅ CERRADO (commit `3ad3f55` — 2026-04-14)
 
 ---
 
 ## HIGH-4 · `core_condominiums` — Tipado débil en repositories
 
-**Problema:** 4 métodos devolviendo `Optional[object]` y `list_all()` devolviendo `List[object]` — rompe type safety en todo el chain.
+**Problema:** 4 métodos devolviendo `Optional[object]` y `list_all()` devolviendo `List[object]` — rompía type safety en todo el chain.
 
 **Fix:**
 1. `get_by_id` → `Optional[CondominiumEntity]`
@@ -72,9 +79,11 @@
 5. `list_all` → `tuple[List[CondominiumEntity], int]`
 
 **Archivo crítico:**
-- `infrastructure/condominium_query_repository.py` líneas 22, 35, 48, 61, 70
+- `infrastructure/condominium_query_repository.py` líneas 20, 32, 44, 56, 68
 
 **Label para handoff:** `#high4-condominiums-typing`
+
+**Estado:** ✅ CERRADO (commit `3ad3f55` — 2026-04-14)
 
 ---
 
@@ -89,33 +98,33 @@ Auditar y asegurar que en TODOS los módulos:
 - `delete` responde con estado post-operación real
 - `restore` pasa por cmd_usecase
 
-**Módulos a auditar:**
-- `core_condominiums` ← ya en fix HIGH-1 y HIGH-2
-- `core_buildings` ← baseline, ya cumple
-- `core_buildings_types`
-- `core_unities` ← ya en fix HIGH-3
-- `core_unities_types`
+**Módulos auditados:**
+- `core_condominiums` ✅
+- `core_buildings` ✅ (baseline, ya cumplía)
+- `core_buildings_types` ✅
+- `core_units` ✅
+- `core_unit_types` ✅
 
 **Label para handoff:** `#high5-transversal-soft-delete`
 
+**Estado:** ✅ CERRADO (auditoría completada 2026-04-14, documentada en `high5-transversal-audit-20260414.md`)
+
 ---
 
-## Orden de ejecución
+## Verificación final (2026-04-30)
 
-```
-Sprint 1: HIGH-1 + HIGH-2 (core_condominiums — mismo módulo, mismo sprint)
-Sprint 2: HIGH-4 (core_condominiums — tipado, mismo módulo)
-Sprint 3: HIGH-3 (core_unities — queries)
-Sprint 4: HIGH-5 (transversal — todos los módulos)
-```
+| HIGH | Descripción | Estado verificado |
+|---|---|---|
+| HIGH-1 | `restore()` por cmd_usecase | ✅ `condominium_cmd_usecase.restore(id)` en línea 185 |
+| HIGH-2 | `delete()` retorna `deleted_at` real | ✅ re-fetch post-delete con `get_by_id_any_status` |
+| HIGH-3 | Queries filtran `deleted_at` en `core_units` | ✅ filtros presentes en `unit_query_repository.py` |
+| HIGH-4 | Tipado `Optional[object]` → `Optional[CondominiumEntity]` | ✅ tipos correctos |
+| HIGH-5 | Auditoría transversal soft delete | ✅ `get_by_id_any_status` en todos los módulos |
 
-## Handoff etiquetas
+**DB:** última migración aplicada `050_add_user_profile_extra_fields`
+**RBAC:** `core_permissions` (44 rows) + `core_role_permissions` (88 rows) seedeados
 
-Cada handoff entre Bulma → Misato debe usar:
-- Label del issue (`#high1-condominiums-bypass`)
-- Path del archivo modificado
-- Antes / Después
-- Test incluido: sí/no
+**Conclusión:** Fase 1 — CERRADA. Sin bugs abiertos.
 
 ---
 
