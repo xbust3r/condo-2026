@@ -3,23 +3,25 @@
 #
 # Endpoints:
 #   GET    /amenities                      — health check
-#   POST   /amenities                      — create
-#   GET    /amenities                      — list with filters
-#   GET    /amenities/{id}                 — get by id
-#   GET    /amenities/uuid/{uuid}          — get by uuid
-#   PUT    /amenities/{id}                 — update
-#   DELETE /amenities/{id}                 — soft delete
-#   DELETE /amenities/{id}/hard            — hard delete
+#   POST   /amenities                      — create [RBAC: amenities.create]
+#   GET    /amenities                      — list   [RBAC: amenities.read]
+#   GET    /amenities/{id}                 — get    [RBAC: amenities.read]
+#   GET    /amenities/uuid/{uuid}          — get    [RBAC: amenities.read]
+#   PUT    /amenities/{id}                 — update [RBAC: amenities.update]
+#   DELETE /amenities/{id}                 — delete [RBAC: amenities.delete]
+#   DELETE /amenities/{id}/hard            — hard   [RBAC: amenities.delete]
 # =============================================================================
 
-from fastapi import APIRouter, Query
+from fastapi import APIRouter, Depends, Query
 
+from library.dddpy.auth.domain.user_identity import UserIdentity
 from library.dddpy.core_amenities.usecase.amenity_usecase import AmenityUseCase
 from library.dddpy.core_amenities.usecase.amenity_cmd_schema import (
     CreateAmenitySchema,
     UpdateAmenitySchema,
 )
 from library.dddpy.shared.decorators.api_handler import api_handler
+from library.dddpy.shared.decorators.rbac_handler import rbac_required
 
 
 PREFIX = "/amenities"
@@ -33,7 +35,10 @@ def health_check() -> dict:
 
 @amenity_routes.post("")
 @api_handler
-def create_amenity(request: CreateAmenitySchema) -> dict:
+def create_amenity(
+    request: CreateAmenitySchema,
+    user: UserIdentity = Depends(rbac_required("amenities", "create")),
+) -> dict:
     """
     Create a new amenity/common-area.
     """
@@ -57,6 +62,7 @@ def list_amenities(
     include_deleted: bool = Query(False),
     skip: int = Query(0, ge=0),
     limit: int = Query(100, ge=1, le=500),
+    user: UserIdentity = Depends(rbac_required("amenities", "read")),
 ) -> dict:
     """List amenities with optional filters."""
     response = AmenityUseCase().list_all(
@@ -71,7 +77,10 @@ def list_amenities(
 
 @amenity_routes.get("/{id}")
 @api_handler
-def get_amenity(id: int) -> dict:
+def get_amenity(
+    id: int,
+    user: UserIdentity = Depends(rbac_required("amenities", "read")),
+) -> dict:
     """Get an amenity by id."""
     response = AmenityUseCase().get_by_id(id)
     return response.dict()
@@ -79,7 +88,10 @@ def get_amenity(id: int) -> dict:
 
 @amenity_routes.get("/uuid/{uuid}")
 @api_handler
-def get_amenity_by_uuid(uuid: str) -> dict:
+def get_amenity_by_uuid(
+    uuid: str,
+    user: UserIdentity = Depends(rbac_required("amenities", "read")),
+) -> dict:
     """Get an amenity by uuid."""
     response = AmenityUseCase().get_by_uuid(uuid)
     return response.dict()
@@ -87,7 +99,11 @@ def get_amenity_by_uuid(uuid: str) -> dict:
 
 @amenity_routes.put("/{id}")
 @api_handler
-def update_amenity(id: int, request: UpdateAmenitySchema) -> dict:
+def update_amenity(
+    id: int,
+    request: UpdateAmenitySchema,
+    user: UserIdentity = Depends(rbac_required("amenities", "update")),
+) -> dict:
     """Update an amenity."""
     response = AmenityUseCase().update(id, request)
     return response.dict()
@@ -95,7 +111,10 @@ def update_amenity(id: int, request: UpdateAmenitySchema) -> dict:
 
 @amenity_routes.delete("/{id}")
 @api_handler
-def delete_amenity(id: int) -> dict:
+def delete_amenity(
+    id: int,
+    user: UserIdentity = Depends(rbac_required("amenities", "delete")),
+) -> dict:
     """Soft delete an amenity."""
     response = AmenityUseCase().soft_delete(id)
     return response.dict()
@@ -103,7 +122,10 @@ def delete_amenity(id: int) -> dict:
 
 @amenity_routes.delete("/{id}/hard")
 @api_handler
-def hard_delete_amenity(id: int) -> dict:
+def hard_delete_amenity(
+    id: int,
+    user: UserIdentity = Depends(rbac_required("amenities", "delete")),
+) -> dict:
     """Permanently delete an amenity."""
     response = AmenityUseCase().hard_delete(id)
     return response.dict()

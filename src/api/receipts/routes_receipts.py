@@ -3,20 +3,20 @@
 # Módulo de recibos de pago
 #
 # Endpoints:
-#   GET    /receipts                    — list with filters
-#   GET    /receipts/{id}             — get by id
-#   GET    /receipts/uuid/{uuid}      — get by uuid
-#   GET    /receipts/number/{number}  — get by receipt number
-#   GET    /receipts/unit/{unit_id}   — receipts by unit
+#   GET    /receipts                    — list   [RBAC: receipt.read]
+#   GET    /receipts/{id}             — get    [RBAC: receipt.read]
+#   GET    /receipts/uuid/{uuid}      — get    [RBAC: receipt.read]
+#   GET    /receipts/number/{number}  — get    [RBAC: receipt.read]
+#   GET    /receipts/unit/{unit_id}   — list   [RBAC: receipt.read]
 # =============================================================================
 
 from typing import Optional
-from fastapi import APIRouter, Query
-from typing import Optional
+from fastapi import APIRouter, Depends, Query
 
+from library.dddpy.auth.domain.user_identity import UserIdentity
 from library.dddpy.core_receipts.usecase.receipt_usecase import ReceiptUseCase
-from library.dddpy.core_receipts.usecase.receipt_cmd_schema import CreateReceiptSchema
 from library.dddpy.shared.decorators.api_handler import api_handler
+from library.dddpy.shared.decorators.rbac_handler import rbac_required
 
 
 PREFIX = "/receipts"
@@ -37,6 +37,7 @@ def list_receipts(
     ar_id: Optional[int] = Query(None),
     skip: int = Query(0, ge=0),
     limit: int = Query(100, ge=1, le=500),
+    user: UserIdentity = Depends(rbac_required("receipt", "read")),
 ) -> dict:
     """List receipts with optional filters."""
     response = ReceiptUseCase().list_all(
@@ -50,21 +51,30 @@ def list_receipts(
 
 @receipt_routes.get("/{id}")
 @api_handler
-def get_receipt(id: int) -> dict:
+def get_receipt(
+    id: int,
+    user: UserIdentity = Depends(rbac_required("receipt", "read")),
+) -> dict:
     response = ReceiptUseCase().get_by_id(id)
     return response.dict()
 
 
 @receipt_routes.get("/uuid/{uuid}")
 @api_handler
-def get_receipt_by_uuid(uuid: str) -> dict:
+def get_receipt_by_uuid(
+    uuid: str,
+    user: UserIdentity = Depends(rbac_required("receipt", "read")),
+) -> dict:
     response = ReceiptUseCase().get_by_uuid(uuid)
     return response.dict()
 
 
 @receipt_routes.get("/number/{receipt_number}")
 @api_handler
-def get_receipt_by_number(receipt_number: str) -> dict:
+def get_receipt_by_number(
+    receipt_number: str,
+    user: UserIdentity = Depends(rbac_required("receipt", "read")),
+) -> dict:
     response = ReceiptUseCase().get_by_receipt_number(receipt_number)
     return response.dict()
 
@@ -75,6 +85,7 @@ def list_receipts_by_unit(
     unit_id: int,
     skip: int = Query(0, ge=0),
     limit: int = Query(100, ge=1, le=500),
+    user: UserIdentity = Depends(rbac_required("receipt", "read")),
 ) -> dict:
     """List all receipts for a specific unit."""
     response = ReceiptUseCase().list_by_unit(unit_id=unit_id, skip=skip, limit=limit)

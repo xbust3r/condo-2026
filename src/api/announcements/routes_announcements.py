@@ -2,18 +2,18 @@
 # API Routes: core_announcements
 #
 # Endpoints:
-#   POST   /announcements                      — create
-#   GET    /announcements                      — list with filters
-#   GET    /announcements/{id}               — get by id
-#   GET    /announcements/uuid/{uuid}         — get by uuid
-#   GET    /announcements/condominium/{id}/active — list active (public API)
-#   PUT    /announcements/{id}                — update
-#   DELETE /announcements/{id}               — soft delete
-#   POST   /announcements/{id}/restore        — restore
-#   DELETE /announcements/{id}/hard          — hard delete
+#   POST   /announcements                      — create [RBAC: announcement.write]
+#   GET    /announcements                      — list   [RBAC: announcement.read]
+#   GET    /announcements/{id}               — get    [RBAC: announcement.read]
+#   GET    /announcements/uuid/{uuid}         — get    [RBAC: announcement.read]
+#   GET    /announcements/condominium/{id}/active — list [RBAC: announcement.read]
+#   PUT    /announcements/{id}                — update [RBAC: announcement.write]
+#   DELETE /announcements/{id}               — delete [RBAC: announcement.delete]
+#   POST   /announcements/{id}/restore        — restore [RBAC: announcement.write]
+#   DELETE /announcements/{id}/hard          — hard   [RBAC: announcement.delete]
 # =============================================================================
 
-from fastapi import APIRouter, Query, Depends
+from fastapi import APIRouter, Depends, Query
 
 from library.dddpy.core_announcements.usecase.announcement_usecase import AnnouncementUseCase
 from library.dddpy.core_announcements.usecase.announcement_cmd_schema import (
@@ -22,6 +22,7 @@ from library.dddpy.core_announcements.usecase.announcement_cmd_schema import (
 )
 from library.dddpy.auth.domain.user_identity import UserIdentity
 from library.dddpy.shared.decorators.api_handler import api_handler
+from library.dddpy.shared.decorators.rbac_handler import rbac_required
 
 
 PREFIX = "/announcements"
@@ -35,7 +36,10 @@ def health_check() -> dict:
 
 @announcement_routes.post("")
 @api_handler
-def create_announcement(request: CreateAnnouncementSchema) -> dict:
+def create_announcement(
+    request: CreateAnnouncementSchema,
+    user: UserIdentity = Depends(rbac_required("announcement", "write")),
+) -> dict:
     """
     Create a new announcement.
     RBAC: announcement.write on condominium_id.
@@ -63,6 +67,7 @@ def list_announcements(
     include_deleted: bool = Query(False),
     skip: int = Query(0, ge=0),
     limit: int = Query(100, ge=1, le=500),
+    user: UserIdentity = Depends(rbac_required("announcement", "read")),
 ) -> dict:
     """List announcements with optional filters."""
     response = AnnouncementUseCase().list_all(
@@ -82,6 +87,7 @@ def list_active_announcements(
     condominium_id: int,
     skip: int = Query(0, ge=0),
     limit: int = Query(20, ge=1, le=200),
+    user: UserIdentity = Depends(rbac_required("announcement", "read")),
 ) -> dict:
     """
     List active (published + not expired) announcements for a condominium.
@@ -97,7 +103,10 @@ def list_active_announcements(
 
 @announcement_routes.get("/{id}")
 @api_handler
-def get_announcement(id: int) -> dict:
+def get_announcement(
+    id: int,
+    user: UserIdentity = Depends(rbac_required("announcement", "read")),
+) -> dict:
     """Get an announcement by id."""
     response = AnnouncementUseCase().get_by_id(id)
     return response.dict()
@@ -105,7 +114,10 @@ def get_announcement(id: int) -> dict:
 
 @announcement_routes.get("/uuid/{uuid}")
 @api_handler
-def get_announcement_by_uuid(uuid: str) -> dict:
+def get_announcement_by_uuid(
+    uuid: str,
+    user: UserIdentity = Depends(rbac_required("announcement", "read")),
+) -> dict:
     """Get an announcement by uuid."""
     response = AnnouncementUseCase().get_by_uuid(uuid)
     return response.dict()
@@ -113,7 +125,11 @@ def get_announcement_by_uuid(uuid: str) -> dict:
 
 @announcement_routes.put("/{id}")
 @api_handler
-def update_announcement(id: int, request: UpdateAnnouncementSchema) -> dict:
+def update_announcement(
+    id: int,
+    request: UpdateAnnouncementSchema,
+    user: UserIdentity = Depends(rbac_required("announcement", "write")),
+) -> dict:
     """Update an announcement (title, content, category, visibility, pinned, dates)."""
     response = AnnouncementUseCase().update(id, request)
     return response.dict()
@@ -121,7 +137,10 @@ def update_announcement(id: int, request: UpdateAnnouncementSchema) -> dict:
 
 @announcement_routes.delete("/{id}")
 @api_handler
-def delete_announcement(id: int) -> dict:
+def delete_announcement(
+    id: int,
+    user: UserIdentity = Depends(rbac_required("announcement", "delete")),
+) -> dict:
     """Soft delete an announcement."""
     response = AnnouncementUseCase().soft_delete(id)
     return response.dict()
@@ -129,7 +148,10 @@ def delete_announcement(id: int) -> dict:
 
 @announcement_routes.post("/{id}/restore")
 @api_handler
-def restore_announcement(id: int) -> dict:
+def restore_announcement(
+    id: int,
+    user: UserIdentity = Depends(rbac_required("announcement", "write")),
+) -> dict:
     """Restore a soft-deleted announcement."""
     response = AnnouncementUseCase().restore(id)
     return response.dict()
@@ -137,7 +159,10 @@ def restore_announcement(id: int) -> dict:
 
 @announcement_routes.delete("/{id}/hard")
 @api_handler
-def hard_delete_announcement(id: int) -> dict:
+def hard_delete_announcement(
+    id: int,
+    user: UserIdentity = Depends(rbac_required("announcement", "delete")),
+) -> dict:
     """Permanently delete an announcement."""
     response = AnnouncementUseCase().hard_delete(id)
     return response.dict()

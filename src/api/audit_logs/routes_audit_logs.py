@@ -2,16 +2,18 @@
 # API Routes: core_audit_logs — read-only audit trail
 #
 # Endpoints:
-#   GET    /audit-logs                       — list with filters
-#   GET    /audit-logs/{id}                — get by id
-#   GET    /audit-logs/resource/{rt}/{rid} — list by resource
-#   GET    /audit-logs/user/{uid}           — list by user
+#   GET    /audit-logs                       — list   [RBAC: audit.read]
+#   GET    /audit-logs/{id}                — get    [RBAC: audit.read]
+#   GET    /audit-logs/resource/{rt}/{rid} — list   [RBAC: audit.read]
+#   GET    /audit-logs/user/{uid}           — list   [RBAC: audit.read]
 # =============================================================================
 
-from fastapi import APIRouter, Query
+from fastapi import APIRouter, Depends, Query
 
+from library.dddpy.auth.domain.user_identity import UserIdentity
 from library.dddpy.core_audit_logs.usecase.audit_query_usecase import AuditQueryUseCase
 from library.dddpy.shared.decorators.api_handler import api_handler
+from library.dddpy.shared.decorators.rbac_handler import rbac_required
 
 
 PREFIX = "/audit-logs"
@@ -33,6 +35,7 @@ def list_audit_logs(
     date_to: str = Query(None, description="Filter to date (YYYY-MM-DD)"),
     skip: int = Query(0, ge=0),
     limit: int = Query(100, ge=1, le=500),
+    user: UserIdentity = Depends(rbac_required("audit", "read")),
 ) -> dict:
     """
     List audit logs with optional filters.
@@ -66,7 +69,10 @@ def list_audit_logs(
 
 @audit_log_routes.get("/{id}")
 @api_handler
-def get_audit_log(id: int) -> dict:
+def get_audit_log(
+    id: int,
+    user: UserIdentity = Depends(rbac_required("audit", "read")),
+) -> dict:
     """Get a specific audit log entry by id."""
     response = AuditQueryUseCase().get_by_id(id)
     return response.dict()
@@ -79,6 +85,7 @@ def list_by_resource(
     resource_id: int,
     skip: int = Query(0, ge=0),
     limit: int = Query(100, ge=1, le=500),
+    user: UserIdentity = Depends(rbac_required("audit", "read")),
 ) -> dict:
     """List audit trail for a specific resource (e.g. /resource/charge/42)."""
     response = AuditQueryUseCase().list_by_resource(
@@ -96,6 +103,7 @@ def list_by_user(
     user_id: int,
     skip: int = Query(0, ge=0),
     limit: int = Query(100, ge=1, le=500),
+    user: UserIdentity = Depends(rbac_required("audit", "read")),
 ) -> dict:
     """List all audit logs for a specific user."""
     response = AuditQueryUseCase().list_by_user(

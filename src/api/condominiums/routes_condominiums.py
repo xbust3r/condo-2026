@@ -11,9 +11,9 @@
 # =============================================================================
 
 from typing import Optional
-from fastapi import APIRouter, Query
-from typing import Optional, List
+from fastapi import APIRouter, Depends, Query
 
+from library.dddpy.auth.domain.user_identity import UserIdentity
 from library.dddpy.core_condominiums.usecase.condominium_usecase import CondominiumUseCase
 from library.dddpy.core_condominiums.usecase.condominium_cmd_schema import CreateCondominiumSchema, UpdateCondominiumSchema
 from library.dddpy.core_condominium_roles.infrastructure.condominium_role_query_repository import CondominiumRoleQueryRepositoryImpl
@@ -21,6 +21,7 @@ from library.dddpy.core_users.infrastructure.user_query_repository import UserQu
 from library.dddpy.core_user_profiles.infrastructure.user_profile_query_repository import UserProfileQueryRepositoryImpl
 from library.dddpy.core_condominiums.domain.condominium_exception import CondominiumNotFound
 from library.dddpy.shared.decorators.api_handler import api_handler
+from library.dddpy.shared.decorators.rbac_handler import rbac_required
 from library.dddpy.shared.schemas.response_schema import ResponseSuccessSchema
 
 
@@ -43,6 +44,7 @@ def list_condominiums(
     city: Optional[str] = Query(None, description="Filter by city (partial match)"),
     country: Optional[str] = Query(None, description="Filter by country (partial match)"),
     include_deleted: bool = Query(False, description="Include soft-deleted records"),
+    user: UserIdentity = Depends(rbac_required("condominium", "read")),
 ) -> dict:
     """List all condominiums with optional filters."""
     if limit > 500:
@@ -60,21 +62,30 @@ def list_condominiums(
 
 @condominium_routes.get("/{id}")
 @api_handler
-def get_condominium(id: int) -> dict:
+def get_condominium(
+    id: int,
+    user: UserIdentity = Depends(rbac_required("condominium", "read")),
+) -> dict:
     response = CondominiumUseCase().get_by_id(id)
     return response.dict()
 
 
 @condominium_routes.get("/uuid/{uuid}")
 @api_handler
-def get_condominium_by_uuid(uuid: str) -> dict:
+def get_condominium_by_uuid(
+    uuid: str,
+    user: UserIdentity = Depends(rbac_required("condominium", "read")),
+) -> dict:
     response = CondominiumUseCase().get_by_uuid(uuid)
     return response.dict()
 
 
 @condominium_routes.get("/code/{code}")
 @api_handler
-def get_condominium_by_code(code: str) -> dict:
+def get_condominium_by_code(
+    code: str,
+    user: UserIdentity = Depends(rbac_required("condominium", "read")),
+) -> dict:
     response = CondominiumUseCase().get_by_code(code)
     return response.dict()
 
@@ -86,6 +97,7 @@ def get_condominium_users(
     role_status: Optional[str] = Query(None, description="Filter roles by status (active/inactive/historical)"),
     limit: int = Query(100, ge=1, le=500),
     offset: int = Query(0, ge=0),
+    user: UserIdentity = Depends(rbac_required("condominium", "read")),
 ) -> dict:
     """
     Get all users with an active role in a condominium.
@@ -139,7 +151,10 @@ def get_condominium_users(
 
 @condominium_routes.get("/{id}/admins")
 @api_handler
-def get_condominium_admins(id: int) -> dict:
+def get_condominium_admins(
+    id: int,
+    user: UserIdentity = Depends(rbac_required("condominium", "read")),
+) -> dict:
     """
     Get all users with roles in a condominium, including their profile and role details.
     Returns active roles only.
@@ -186,7 +201,10 @@ def get_condominium_admins(id: int) -> dict:
 
 @condominium_routes.get("/{id}/summary")
 @api_handler
-def get_condominium_summary(id: int) -> dict:
+def get_condominium_summary(
+    id: int,
+    user: UserIdentity = Depends(rbac_required("condominium", "read")),
+) -> dict:
     """
     Consolidated summary for a condominium.
 
@@ -203,21 +221,31 @@ def get_condominium_summary(id: int) -> dict:
 
 @condominium_routes.post("")
 @api_handler
-def create_condominium(request: CreateCondominiumSchema) -> dict:
+def create_condominium(
+    request: CreateCondominiumSchema,
+    user: UserIdentity = Depends(rbac_required("condominium", "create")),
+) -> dict:
     response = CondominiumUseCase().create(request)
     return response.dict()
 
 
 @condominium_routes.put("/{id}")
 @api_handler
-def update_condominium(id: int, request: UpdateCondominiumSchema) -> dict:
+def update_condominium(
+    id: int,
+    request: UpdateCondominiumSchema,
+    user: UserIdentity = Depends(rbac_required("condominium", "update")),
+) -> dict:
     response = CondominiumUseCase().update(id, request)
     return response.dict()
 
 
 @condominium_routes.delete("/{id}")
 @api_handler
-def delete_condominium(id: int) -> dict:
+def delete_condominium(
+    id: int,
+    user: UserIdentity = Depends(rbac_required("condominium", "delete")),
+) -> dict:
     """Soft delete a condominium (sets deleted_at timestamp)."""
     response = CondominiumUseCase().delete(id)
     return response.dict()
@@ -225,7 +253,10 @@ def delete_condominium(id: int) -> dict:
 
 @condominium_routes.post("/{id}/restore")
 @api_handler
-def restore_condominium(id: int) -> dict:
+def restore_condominium(
+    id: int,
+    user: UserIdentity = Depends(rbac_required("condominium", "update")),
+) -> dict:
     """Restore a soft-deleted condominium."""
     response = CondominiumUseCase().restore(id)
     return response.dict()
