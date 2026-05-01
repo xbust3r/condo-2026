@@ -43,6 +43,7 @@ class CondominiumRoleEntity:
         # Enrichment fields (populated on query)
         user_full_name: Optional[str] = None,
         condominium_name: Optional[str] = None,
+        condominium_theme_id: Optional[str] = None,
     ) -> None:
         self.id = id
         self.uuid = uuid
@@ -60,6 +61,7 @@ class CondominiumRoleEntity:
         # Enrichment
         self.user_full_name = user_full_name
         self.condominium_name = condominium_name
+        self.condominium_theme_id = condominium_theme_id
 
     def _validate_invariants(self) -> None:
         """Validate business invariants. Raises ValueError if invalid."""
@@ -97,6 +99,7 @@ class CondominiumRoleEntity:
             # Enrichment
             "user_full_name": self.user_full_name,
             "condominium_name": self.condominium_name,
+            "condominium_theme_id": self.condominium_theme_id,
         }
 
     def is_deleted(self) -> bool:

@@ -37,11 +37,13 @@ class CondominiumRoleMapper:
         db_role: DBCondominiumRoles,
         user_full_name: Optional[str] = None,
         condominium_name: Optional[str] = None,
+        condominium_theme_id: Optional[str] = None,
     ) -> CondominiumRoleEntity:
         """Convierte modelo DB a entidad de dominio con datos enriquecidos de join."""
         entity = CondominiumRoleMapper.to_domain(db_role)
         entity.user_full_name = user_full_name
         entity.condominium_name = condominium_name
+        entity.condominium_theme_id = condominium_theme_id
         return entity
 
     @staticmethod

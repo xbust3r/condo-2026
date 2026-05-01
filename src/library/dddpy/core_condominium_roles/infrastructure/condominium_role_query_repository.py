@@ -49,11 +49,13 @@ class CondominiumRoleQueryRepositoryImpl(CondominiumRoleQueryRepository):
                 user_full_name = user_names.get(row.user_id)
                 condo = condos.get(row.condominium_id)
                 condominium_name = condo.name if condo else None
+                condominium_theme_id = condo.theme_id if condo else None
 
                 entity = CondominiumRoleMapper.to_domain_enriched(
                     row,
                     user_full_name=user_full_name,
                     condominium_name=condominium_name,
+                    condominium_theme_id=condominium_theme_id,
                 )
                 result_entities.append(entity)
             return result_entities
