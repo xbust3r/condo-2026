@@ -121,7 +121,7 @@ def get_condominium_users(
         status=role_status or "active",
         include_deleted=False,
         limit=limit,
-        offset=offset,
+        skip=offset,
     )
 
     # Group by user
