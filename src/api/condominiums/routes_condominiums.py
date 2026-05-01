@@ -5,7 +5,8 @@
 # Campos actuales:
 #   id, uuid, code, name, legal_name, document_number, description,
 #   land_area, built_area, area_unit, address, city, country,
-#   contact_email, contact_phone, status, created_at, updated_at, deleted_at
+#   contact_email, contact_phone, status, theme_id,
+#   created_at, updated_at, deleted_at
 #
 # Features: soft delete, filtros por status/city/country, restore
 # =============================================================================
