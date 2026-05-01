@@ -11,7 +11,7 @@
 # Features: soft delete, filtros por status/city/country, restore
 # =============================================================================
 
-from typing import Optional
+from typing import Optional, List
 from fastapi import APIRouter, Depends, Query
 
 from library.dddpy.auth.domain.user_identity import UserIdentity
@@ -45,18 +45,21 @@ def list_condominiums(
     city: Optional[str] = Query(None, description="Filter by city (partial match)"),
     country: Optional[str] = Query(None, description="Filter by country (partial match)"),
     include_deleted: bool = Query(False, description="Include soft-deleted records"),
+    ids: Optional[str] = Query(None, description="Comma-separated condominium IDs for bulk lookup"),
     user: UserIdentity = Depends(rbac_required("condominium", "read")),
 ) -> dict:
     """List all condominiums with optional filters."""
     if limit > 500:
         limit = 500  # Safety cap
+    id_list = [int(x.strip()) for x in ids.split(",") if x.strip()] if ids else None
     response = CondominiumUseCase().list_all(
         skip=skip, 
         limit=limit, 
         status=status, 
         city=city, 
         country=country,
-        include_deleted=include_deleted
+        include_deleted=include_deleted,
+        ids=id_list
     )
     return response.dict()
 

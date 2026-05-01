@@ -1,5 +1,4 @@
-from typing import Optional
-from typing import Optional
+from typing import Optional, List
 from library.dddpy.core_condominiums.usecase.condominium_cmd_usecase import CondominiumCmdUseCase
 from library.dddpy.core_condominiums.usecase.condominium_query_usecase import CondominiumQueryUseCase
 from library.dddpy.core_condominiums.usecase.condominium_factory import condominium_cmd_usecase_factory, condominium_query_usecase_factory
@@ -232,7 +231,7 @@ class CondominiumUseCase:
             },
         )
 
-    def list_all(self, skip: int = 0, limit: int = 100, status: Optional[int] = None, city: Optional[str] = None, country: Optional[str] = None, include_deleted: bool = False):
+    def list_all(self, skip: int = 0, limit: int = 100, status: Optional[int] = None, city: Optional[str] = None, country: Optional[str] = None, include_deleted: bool = False, ids: Optional[List[int]] = None):
         logger.add_inside_method("list_all")
         condominiums, total = self.condominium_query_usecase.list_all(
             skip=skip, 
@@ -240,7 +239,8 @@ class CondominiumUseCase:
             status=status, 
             city=city, 
             country=country,
-            include_deleted=include_deleted
+            include_deleted=include_deleted,
+            ids=ids
         )
         success = ResponseSuccessSchema(
             success=True,

@@ -65,14 +65,18 @@ class CondominiumQueryRepositoryImpl(CondominiumQueryRepository):
                 return None
             return CondominiumMapper.to_domain(db_condominium)
 
-    def list_all(self, skip: int = 0, limit: int = 100, status: Optional[int] = None, city: Optional[str] = None, country: Optional[str] = None, include_deleted: bool = False) -> tuple[List[CondominiumEntity], int]:
-        logger.info(f"Fetching condominiums (skip={skip}, limit={limit}, status={status}, city={city}, country={country}, include_deleted={include_deleted})")
+    def list_all(self, skip: int = 0, limit: int = 100, status: Optional[int] = None, city: Optional[str] = None, country: Optional[str] = None, include_deleted: bool = False, ids: Optional[List[int]] = None) -> tuple[List[CondominiumEntity], int]:
+        logger.info(f"Fetching condominiums (skip={skip}, limit={limit}, status={status}, city={city}, country={country}, include_deleted={include_deleted}, ids={ids})")
         with session_scope() as session:
             query = session.query(DBCondominiums)
             
             # Exclude deleted by default
             if not include_deleted:
                 query = query.filter(DBCondominiums.deleted_at.is_(None))
+            
+            # Filter by specific IDs (bulk lookup)
+            if ids:
+                query = query.filter(DBCondominiums.id.in_(ids))
             
             # Apply filters
             if status is not None:

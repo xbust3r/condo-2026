@@ -31,9 +31,9 @@ class CondominiumQueryUseCase:
         logger.info(f"Delegating condominium fetch by name={name}")
         return self.repository.get_by_name(name)
 
-    def list_all(self, skip: int = 0, limit: int = 100, status: Optional[int] = None, city: Optional[str] = None, country: Optional[str] = None, include_deleted: bool = False) -> tuple[List[CondominiumEntity], int]:
-        logger.info(f"Delegating condominium list_all (skip={skip}, limit={limit}, status={status}, city={city}, country={country}, include_deleted={include_deleted})")
-        return self.repository.list_all(skip=skip, limit=limit, status=status, city=city, country=country, include_deleted=include_deleted)
+    def list_all(self, skip: int = 0, limit: int = 100, status: Optional[int] = None, city: Optional[str] = None, country: Optional[str] = None, include_deleted: bool = False, ids: Optional[List[int]] = None) -> tuple[List[CondominiumEntity], int]:
+        logger.info(f"Delegating condominium list_all (skip={skip}, limit={limit}, status={status}, city={city}, country={country}, include_deleted={include_deleted}, ids={ids})")
+        return self.repository.list_all(skip=skip, limit=limit, status=status, city=city, country=country, include_deleted=include_deleted, ids=ids)
 
 
     def get_by_id_any_status(self, id: int) -> Optional[CondominiumEntity]:
