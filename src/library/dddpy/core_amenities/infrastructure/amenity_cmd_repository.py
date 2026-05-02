@@ -3,7 +3,7 @@ Amenity command repository implementation — SQLAlchemy.
 
 Now supports scope + building_id persistence.
 """
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Optional
 
 from library.dddpy.core_amenities.domain.amenity_cmd_repository import (
@@ -69,7 +69,7 @@ class AmenityCmdRepositoryImpl(AmenityCmdRepository):
             db_a.scope = entity.scope
             db_a.building_id = entity.building_id
             db_a.status = entity.status
-            db_a.updated_at = datetime.utcnow()
+            db_a.updated_at = datetime.now(timezone.utc)
             session.flush()
             logger.info(f"Amenity updated id={entity.id}")
             return True
@@ -83,7 +83,7 @@ class AmenityCmdRepositoryImpl(AmenityCmdRepository):
             ).first()
             if not db_a:
                 return False
-            db_a.deleted_at = datetime.utcnow()
+            db_a.deleted_at = datetime.now(timezone.utc)
             session.flush()
             logger.info(f"Amenity soft-deleted id={id}")
             return True
