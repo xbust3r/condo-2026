@@ -165,7 +165,7 @@ test: ## run all tests (unit + integration)
 			-v $$HOME/.aws:/home/${USERNAME_LOCAL}/.aws \
 			-e AWS_DEFAULT_REGION=${DEPLOY_REGION} \
 			-e PYTHONPATH=src \
-			-e MYSQL_HOST=${MYSQL_HOST} \
+			-e MYSQL_HOST=mysql \
 			${IMAGE_CLI} python3 -m pytest tests/ -q
 
 help:
