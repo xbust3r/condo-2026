@@ -72,87 +72,80 @@ class ARUseCase:
             data=entity.to_dict(),
         )
 
-    # ── Generate AR from a global charge (batch) ─────────────────────────
+    # ── Generate AR from a charge (batch, uses proration) ───────────────
 
     def generate_from_charge(self, charge_id: int, due_date, period: Optional[str] = None):
         """
-        For a global charge (all units), generate one AR per active unit.
-        The debtor is the primary occupant (is_primary=True) or owner of the unit.
+        For a charge with scope=building or scope=condominium, generate
+        one AR per affected unit with the correctly prorated amount.
+
+        Uses ProrationUsecase to compute the per-unit allocation,
+        then resolves debtor (occupant → owner) for each unit.
         """
         logger.add_inside_method("generate_from_charge")
 
-        charge = self._charge_query.get_by_id(charge_id)
-        if not charge:
+        # Fetch charge entity (not dict) for proration
+        from library.dddpy.core_charges.infrastructure.charge_query_repository import (
+            ChargeQueryRepositoryImpl,
+        )
+        charge_repo = ChargeQueryRepositoryImpl()
+        charge_entity = charge_repo.get_by_id(charge_id)
+        if not charge_entity:
             raise ARNotFound(f"Charge id={charge_id} not found")
 
-        charge_data = charge.data
-
-        # Only generate for global (unit_id=null) active charges
-        if charge_data.get("unit_id") is not None:
-            raise ValueError("Only global charges can be batch-generated")
-
-        if charge_data.get("status") != "active":
+        if charge_entity.status != "active":
             raise ValueError("Only active charges can generate AR")
+
+        # Only batch-generate for building/condominium scopes
+        if charge_entity.scope not in ("building", "condominium"):
+            raise ValueError(
+                f"Batch generation only supported for building/condominium scopes, "
+                f"got scope='{charge_entity.scope}'"
+            )
 
         from decimal import Decimal
 
-        # Get all active units in the condominium
-        from library.dddpy.core_units.infrastructure.unit_query_repository import (
-            UnitQueryRepositoryImpl,
-        )
-        unit_repo = UnitQueryRepositoryImpl()
-        units, _ = unit_repo.list_all(
-            condominium_id=charge_data["condominium_id"],
-            status="active",
-            include_deleted=False,
-            limit=1000,
+        # 1. Compute proration breakdown
+        from library.dddpy.core_charges.usecase.proration_usecase import ProrationUsecase
+        proration = ProrationUsecase()
+        breakdown = proration.generate_breakdown(charge_entity)
+
+        logger.info(
+            f"Proration breakdown: {len(breakdown.entries)} entries, "
+            f"omitted={breakdown.units_omitted}, residual={breakdown.residual_assigned}"
         )
 
+        # 2. For each proration entry, resolve debtor and build AR data
         entries = []
-        for unit in units:
-            # Find primary occupant or owner
-            occupancies, _ = self._occupancy_repo.list_by_unit(
-                unit_id=unit.id,
-                is_primary=True,
-                status="active",
-                include_deleted=False,
-                limit=1,
-            )
-            debtor_user_id = None
-            if occupancies:
-                debtor_user_id = occupancies[0].user_id
-            else:
-                # Fall back to ownership
-                from library.dddpy.core_unit_ownerships.infrastructure.unit_ownership_query_repository import (
-                    UnitOwnershipQueryRepositoryImpl,
-                )
-                ownership_repo = UnitOwnershipQueryRepositoryImpl()
-                ownerships, _ = ownership_repo.list_by_unit(
-                    unit_id=unit.id,
-                    status="active",
-                    include_deleted=False,
-                    limit=1,
-                )
-                if ownerships:
-                    debtor_user_id = ownerships[0].user_id
+        skipped_no_debtor = 0
 
+        for entry in breakdown.entries:
+            debtor_user_id = self._resolve_debtor(entry.unit_id)
             if debtor_user_id is None:
-                logger.warning(f"No debtor found for unit {unit.id}, skipping")
+                logger.warning(f"No debtor found for unit {entry.unit_id}, skipping")
+                skipped_no_debtor += 1
                 continue
 
             entries.append(CreateARData(
-                condominium_id=charge_data["condominium_id"],
-                unit_id=unit.id,
+                condominium_id=charge_entity.condominium_id,
+                unit_id=entry.unit_id,
                 debtor_user_id=debtor_user_id,
-                reference_code=f"AR-CHG-{charge_id}-{unit.code}",
-                description=charge_data.get("description") or f"Cargo {charge_data.get('charge_type_name', '')}",
-                amount=Decimal(str(charge_data["amount"])),
-                currency=charge_data.get("currency", "PEN"),
+                reference_code=f"AR-CHG-{charge_id}-U{entry.unit_id}",
+                description=charge_entity.description or f"Cargo {charge_entity.charge_type_name or ''}",
+                amount=entry.amount,
+                currency=charge_entity.currency,
                 due_date=due_date,
-                period=period or charge_data.get("period_pattern"),
+                period=period or charge_entity.period_pattern,
                 charge_id=charge_id,
             ))
 
+        if not entries:
+            raise ValueError(
+                f"No AR entries generated. All {len(breakdown.entries)} units "
+                f"had no valid debtor. Check unit occupancy/ownership data."
+            )
+
+        # 3. Batch create ARs
         entities = self._cmd.create_batch(entries)
         return ResponseSuccessSchema(
             success=True,
@@ -160,9 +153,42 @@ class ARUseCase:
             data={
                 "charge_id": charge_id,
                 "ar_count": len(entities),
+                "skipped_no_debtor": skipped_no_debtor,
+                "units_omitted": breakdown.units_omitted,
+                "residual_assigned": float(breakdown.residual_assigned),
                 "ars": [e.to_dict() for e in entities],
             },
         )
+
+    def _resolve_debtor(self, unit_id: int):
+        """
+        Resolve debtor for a unit: primary occupant → owner.
+        Returns user_id or None.
+        """
+        occupancies, _ = self._occupancy_repo.list_by_unit(
+            unit_id=unit_id,
+            is_primary=True,
+            status="active",
+            include_deleted=False,
+            limit=1,
+        )
+        if occupancies:
+            return occupancies[0].user_id
+
+        from library.dddpy.core_unit_ownerships.infrastructure.unit_ownership_query_repository import (
+            UnitOwnershipQueryRepositoryImpl,
+        )
+        ownership_repo = UnitOwnershipQueryRepositoryImpl()
+        ownerships, _ = ownership_repo.list_by_unit(
+            unit_id=unit_id,
+            status="active",
+            include_deleted=False,
+            limit=1,
+        )
+        if ownerships:
+            return ownerships[0].user_id
+
+        return None
 
     # ── Read ────────────────────────────────────────────────────────────────
 
