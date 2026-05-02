@@ -261,52 +261,45 @@ Ruta API: `src/api/{modulo}/routes_{modulo}.py`
 
 ---
 
-## 7. Tareas de Implementación
+## 7. Roadmap FIN — Estado de Tareas (Completado 2026-05-01)
 
-### Task A — PRIORIDAD CRÍTICA
-**`core_charge_types` + `core_charges` + migración 027 + 028**
-- Crear DDD module `core_charge_types`
-- Crear DDD module `core_charges`
-- Seed `core_charge_types` con 5 tipos base
-- Endpoints CRUD de charges
-- Al crear un cargo recurrent, generar AR automáticamente para cada unidad activa
+| # | Tarea | Estado | PR | Notas |
+|---|-------|--------|-----|-------|
+| FIN-01 | Spec funcional distribución | ✅ Cerrada | — | Sección 3 de este doc |
+| FIN-02 | Extender core_charges | ✅ | #1 | Migración 051 + validación scope |
+| FIN-03 | Actualizar dominio charges | ✅ | #1 | Entity, data, mapper, schemas, usecase |
+| FIN-04 | Crear ProrationService | ✅ | #2 | Servicio de dominio puro |
+| FIN-05 | Prorrateo por torre | ✅ | #3 | Consolidado con FIN-06 |
+| FIN-06 | Prorrateo por condominio | ✅ | #3 | Consolidado con FIN-05 |
+| FIN-07 | Redondeo determinístico | ✅ | #2 | Incluido: residual → mayor coeff |
+| FIN-08 | Refactor generate_from_charge | ✅ | #4 | Bug corregido: entry.amount |
+| FIN-09 | Resolver deudor por unidad | ✅ | #5 | Prioridad: ocupante → propietario |
+| FIN-10 | Idempotencia AR | ✅ | #5 | exists_by_charge_period_unit() |
+| FIN-11 | Recurrencia mensual | ✅ | #6 | generate_recurring() |
+| FIN-12 | Validar payments/receipts/ledger | ✅ | #7 | Sin cambios requeridos |
+| FIN-13 | Tests | ✅ | #8 | 13 tests standalone pasando |
+| FIN-14 | Documentación y handoff | ✅ | #9 | Este doc |
 
-### Task B — PRIORIDAD CRÍTICA
-**`core_accounts_receivable` + migración 029**
-- Crear DDD module `accounts_receivable`
-- AR se genera desde charge (1 charge → N AR, uno por unidad)
-- Endpoints: create, list, get, get-by-unit-summary
-- Lógica AR-02: transición de status
+### Archivos nuevos
+- `src/alembic/versions/051_add_charge_scope_distribution.py`
+- `src/library/dddpy/core_charges/domain/proration_service.py`
+- `src/library/dddpy/core_charges/usecase/proration_usecase.py`
+- `tests/test_proration_pipeline.py`
+- `docs/09-sprint/fin-12-validation-payments-receipts-ledger.md`
 
-### Task C — PRIORIDAD ALTA
-**`core_payments` + migración 030 + `core_receipts` + migración 031**
-- Crear DDD modules `payments` y `receipts`
-- POST /payments: registra pago → genera receipt → actualiza AR status
-- PAY-01: validar que amount ≤ saldo pendiente del AR
-- REC-01: receipt_number = correlativo por condominio
+### Módulos modificados
+- `core_charges/` — scope, building_id, distribution_mode, validaciones 3-capas
+- `core_accounts_receivable/` — generate_from_charge refactor, debtor, idempotency, recurrence
 
-### Task D — PRIORIDAD ALTA
-**`core_ledger_entries` + migración 032**
-- Crear DDD module `ledger`
-- Cada charge y payment genera su ledger_entry
-- `GET /units/{unit_id}/ledger` con paginación y balance acumulado
-
-### Task E — PRIORIDAD MEDIA
-**`GET /condominiums/{id}/summary`**
-- Consolidado: total deuda pendiente por condominio, unidades con mora > 30 días
+### Módulos NO tocados
+- `core_payments` ✅ | `core_receipts` ✅ | `core_ledger_entries` ✅
 
 ---
 
-## 8. Permisos RBAC necesarios (Extensión Phase 2)
-
-Agregar a `core_permissions`:
+## 8. Permisos RBAC (extensión Phase 2)
 
 | code | resource | action | scope_default |
 |------|----------|--------|---------------|
-| finance.read | finance | read | condominium |
-| finance.write | finance | write | condominium |
-| finance.approve | finance | approve | condominium |
-| finance.export | finance | export | condominium |
 | charge.create | charge | create | condominium |
 | charge.read | charge | read | condominium |
 | charge.update | charge | update | condominium |
@@ -316,23 +309,16 @@ Agregar a `core_permissions`:
 
 ---
 
-## 9. Notas de Diseño Importantes
+## 9. Notas de Diseño (no negociables)
 
-1. **Unidad es el centro del universo financiero.** Todo cargo, pago y estado de cuenta parte de `core_units`. No hay excepción.
-
-2. **AR status machine:**
-   ```
-   pending → partial (cuando entra primer pago) → paid (cuando saldo = 0)
-   pending → overdue (cuando due_date < today AND saldo > 0)
-   ```
-
-3. **Decimal handling:** Usar `Decimal(12,2)` para todos los montos. Nunca `float`.
-
-4. **Concurrency:** Al registrar un pago, usar `session_scope` con transacciones para evitar race conditions en el saldo.
-
-5. **Ledger es append-only.** Las entradas nunca se modifican ni borran — solo se añade una entrada de ajuste (`adjustment`) si hay纠错.
+1. **Unidad es el centro del universo financiero.** Todo cargo, pago y estado de cuenta parte de `core_units`.
+2. **No se tocan `payments`, `receipts` ni `ledger`.** Se validan, no se rehacen.
+3. **Decimal handling:** `Decimal(12,2)` para todos los montos. Nunca `float`.
+4. **Ledger es append-only.** Solo se añade, nunca se modifica.
+5. **El prorrateo vive entre `charge` y `AR`.** charge = intención. AR = obligación concreta por unidad.
 
 ---
 
-*Documento preparado por Misato K — Coordinación Sprint 5*
-*Para Bulma S: empezar por Task A (charges + charge_types) antes de accounts_receivable*
+*Documento preparado por Misato K — Coordinación*
+*Basado en análisis de Lelouch S (2026-05-01)*
+*Implementado por Bulma S (2026-05-01) — Roadmap completado: 14/14 ✅*
