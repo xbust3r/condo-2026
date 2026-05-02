@@ -37,6 +37,17 @@ class BuildingTypeQueryUseCase:
             raise BuildingTypeNotFound()
         return entity
 
+    def get_by_code_in_scope(
+        self,
+        code: str,
+        condominium_id: Optional[int] = None,
+    ) -> Optional[BuildingTypeEntity]:
+        """Look up building type by code within a scope (global or condominium)."""
+        return self._query.get_by_code_in_scope(
+            code=code,
+            condominium_id=condominium_id,
+        )
+
     def list_all(
         self,
         skip: int = 0,
