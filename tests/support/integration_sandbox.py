@@ -510,17 +510,15 @@ def sandbox_cleanup(session, sandbox: dict) -> None:
     """
     Delete all entities created by create_integration_sandbox().
 
-    Deletion order respects FK constraints:
-    child tables → parent tables
+    Deletion order respects FK constraints (most-dependent → parent).
+    Key rule: referencing tables deleted BEFORE referenced tables.
     """
     deletion_order = [
-        # Leaf tables (most dependent)
+        # Leaf tables (most dependent, have FKs to everything else)
         ("ledger_entries", lambda e: e),
         ("notifications", lambda e: e),
         ("packages", lambda e: e),
-        ("receipts", lambda e: e),
-        ("payments", lambda e: e),
-        ("ar_entries", lambda e: e),
+        ("payments", lambda e: e),       # has FK → receipts, AR, units, users
         ("visitors", lambda e: e),
         ("incidents", lambda e: e),
         ("announcements", lambda e: e),
@@ -528,6 +526,8 @@ def sandbox_cleanup(session, sandbox: dict) -> None:
         ("votes", lambda e: e),
         ("meetings", lambda e: e),
         ("amenities", lambda e: e),
+        ("receipts", lambda e: e),       # referenced by payments (already deleted)
+        ("ar_entries", lambda e: e),     # referenced by ledger, payments, receipts
         ("charges", lambda e: e),
         ("charge_types", lambda e: e),
         # Parent tables
@@ -547,5 +547,4 @@ def sandbox_cleanup(session, sandbox: dict) -> None:
         for item in items:
             if item is not None:
                 session.delete(item)
-
-    session.flush()
+        session.flush()  # flush per-table to respect FK order

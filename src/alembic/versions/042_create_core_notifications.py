@@ -18,7 +18,7 @@ depends_on: Union[str, Sequence[str], None] = None
 def upgrade() -> None:
     op.create_table(
         'core_notifications',
-        sa.Column('id', sa.BigInteger(), autoincrement=True, nullable=False),
+        sa.Column('id', sa.BigInteger(), primary_key=True, autoincrement=True, nullable=False),
         sa.Column('uuid', sa.String(36), nullable=False, unique=True),
         sa.Column('user_id', sa.BigInteger(), nullable=False),
         sa.Column('channel', sa.String(20), nullable=False, server_default='in_app'),

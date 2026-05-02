@@ -35,7 +35,7 @@ def upgrade() -> None:
     if not _table_exists('core_meetings'):
         op.create_table(
             'core_meetings',
-            sa.Column('id', sa.BigInteger(), autoincrement=True, nullable=False),
+            sa.Column('id', sa.BigInteger(), primary_key=True, autoincrement=True, nullable=False),
             sa.Column('uuid', sa.String(36), nullable=False, unique=True),
             sa.Column('condominium_id', sa.BigInteger(), nullable=False, index=True),
             sa.Column('meeting_type', sa.String(20), nullable=False, server_default='assembly'),

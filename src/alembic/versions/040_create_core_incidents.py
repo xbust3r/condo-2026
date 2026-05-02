@@ -39,7 +39,7 @@ def upgrade() -> None:
     if not _table_exists('core_incidents'):
         op.create_table(
             'core_incidents',
-            sa.Column('id', sa.BigInteger(), autoincrement=True, nullable=False),
+            sa.Column('id', sa.BigInteger(), primary_key=True, autoincrement=True, nullable=False),
             sa.Column('uuid', sa.String(36), nullable=False, unique=True),
             sa.Column('condominium_id', sa.BigInteger(), nullable=False, index=True),
             sa.Column('building_id', sa.BigInteger(), nullable=True, index=True),
@@ -51,7 +51,7 @@ def upgrade() -> None:
             sa.Column('status', sa.String(30), nullable=False, server_default='pending'),
             sa.Column('title', sa.String(150), nullable=False),
             sa.Column('description', sa.Text(), nullable=True),
-            sa.Column('photos', sa.Text(), nullable=True),  # JSON array stored as TEXT
+            sa.Column('photos', sa.Text(), nullable=True),
             sa.Column('internal_notes', sa.Text(), nullable=True),
             sa.Column('resolution_notes', sa.Text(), nullable=True),
             sa.Column('scheduled_date', sa.Date(), nullable=True),
@@ -70,6 +70,10 @@ def upgrade() -> None:
             sa.Index('ix_incidents_assigned', 'assigned_to_user_id'),
             sa.Index('ix_incidents_reported_by', 'reported_by_user_id'),
         )
+        # MariaDB 10.5 workaround: ensure AUTO_INCREMENT is set on PK
+        op.execute(sa.text(
+            "ALTER TABLE core_incidents MODIFY id BIGINT NOT NULL AUTO_INCREMENT"
+        ))
 
 
 def downgrade() -> None:

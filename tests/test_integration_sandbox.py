@@ -49,11 +49,12 @@ class TestIntegrationSandbox:
             assert payment.condominium_id == sandbox["condo"].id
 
         # Cleanup
+        condo_id = sandbox["condo"].id
         sandbox_cleanup(db_session, sandbox)
         db_session.flush()
 
         from library.dddpy.core_condominiums.infrastructure.dbcondominiums import DBCondominiums
-        condo_check = db_session.get(DBCondominiums, sandbox["condo"].id)
+        condo_check = db_session.get(DBCondominiums, condo_id)
         assert condo_check is None
 
     def test_minimal_sandbox(self, db_session):

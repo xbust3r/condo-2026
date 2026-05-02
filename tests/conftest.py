@@ -98,6 +98,52 @@ def _run_alembic_migrations():
             f"Alembic migrations failed:\nSTDOUT:\n{result.stdout}\nSTDERR:\n{result.stderr}"
         )
 
+    # MariaDB 10.5 workaround: some BIGINT id columns lose AUTO_INCREMENT
+    # due to dialect mismatch. Fix them in bulk.
+    _fix_auto_increment()
+
+
+def _fix_auto_increment():
+    """
+    MariaDB 10.5 / SQLAlchemy 2.x workaround.
+    
+    Some alembic migrations may create BigIntegar id columns where the
+    AUTO_INCREMENT attribute is silently dropped by the dialect.
+    This function ALTERs every table that has a BIGINT id column without
+    AUTO_INCREMENT to add it (plus PRIMARY KEY if missing).
+    """
+    db_engine = create_engine(TEST_DATABASE_URL, echo=False)
+    try:
+        with db_engine.connect() as conn:
+            # Find all BIGINT id columns missing AUTO_INCREMENT
+            result = conn.execute(text("""
+                SELECT
+                    c.TABLE_NAME,
+                    c.COLUMN_KEY
+                FROM information_schema.COLUMNS c
+                WHERE c.TABLE_SCHEMA = DATABASE()
+                  AND c.COLUMN_NAME = 'id'
+                  AND c.DATA_TYPE = 'bigint'
+                  AND c.EXTRA NOT LIKE '%auto_increment%'
+            """))
+            rows = list(result)
+            for table, column_key in rows:
+                if column_key == 'PRI':
+                    # Already PK, just add AUTO_INCREMENT
+                    conn.execute(text(
+                        f"ALTER TABLE `{table}` MODIFY id BIGINT NOT NULL AUTO_INCREMENT"
+                    ))
+                else:
+                    # Add PK + AUTO_INCREMENT
+                    conn.execute(text(
+                        f"ALTER TABLE `{table}` MODIFY id BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY"
+                    ))
+            if rows:
+                conn.commit()
+                print(f"[conftest] Fixed AUTO_INCREMENT for: {', '.join(r[0] for r in rows)}")
+    finally:
+        db_engine.dispose()
+
 
 def _drop_test_database():
     """Drop db_condo_testings completely."""
