@@ -279,3 +279,16 @@ class ARQueryRepositoryImpl(ARQueryRepository):
                 "overdue_amount": float(overdue_amount),
                 "overdue_30_days_count": overdue_30_count,
             }
+
+    def exists_by_charge_period_unit(
+        self, charge_id: int, period: str, unit_id: int
+    ) -> bool:
+        """Check if an AR already exists for charge + period + unit (idempotency)."""
+        with session_scope() as session:
+            exists = session.query(DBAR).filter(
+                DBAR.charge_id == charge_id,
+                DBAR.period == period,
+                DBAR.unit_id == unit_id,
+                DBAR.deleted_at.is_(None),
+            ).first()
+            return exists is not None
