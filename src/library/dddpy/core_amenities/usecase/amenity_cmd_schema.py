@@ -7,7 +7,7 @@ Supports scope-aware creation:
 """
 from typing import Optional
 
-from pydantic import BaseModel, Field, model_validator
+from pydantic import BaseModel, Field, root_validator
 
 
 class CreateAmenitySchema(BaseModel):
@@ -21,15 +21,17 @@ class CreateAmenitySchema(BaseModel):
     scope: str = Field('CONDOMINIUM', description="Scope: CONDOMINIUM or BUILDING")
     building_id: Optional[int] = Field(None, description="Building ID (required when scope=BUILDING)")
 
-    @model_validator(mode='after')
-    def validate_scope_consistency(self) -> 'CreateAmenitySchema':
-        if self.scope == 'CONDOMINIUM' and self.building_id is not None:
+    @root_validator(skip_on_failure=True)
+    def validate_scope_consistency(cls, values):
+        scope = values.get("scope", "CONDOMINIUM")
+        building_id = values.get("building_id")
+        if scope == "CONDOMINIUM" and building_id is not None:
             raise ValueError("scope=CONDOMINIUM requires building_id=None (do not send building_id)")
-        if self.scope == 'BUILDING' and self.building_id is None:
+        if scope == "BUILDING" and building_id is None:
             raise ValueError("scope=BUILDING requires building_id")
-        if self.scope not in ('CONDOMINIUM', 'BUILDING'):
+        if scope not in ("CONDOMINIUM", "BUILDING"):
             raise ValueError("scope must be CONDOMINIUM or BUILDING")
-        return self
+        return values
 
 
 class UpdateAmenitySchema(BaseModel):
@@ -43,15 +45,15 @@ class UpdateAmenitySchema(BaseModel):
     building_id: Optional[int] = Field(None)
     status: Optional[str] = Field(None)
 
-    @model_validator(mode='after')
-    def validate_scope_consistency(self) -> 'UpdateAmenitySchema':
-        scope = self.scope
-        bid = self.building_id
+    @root_validator(skip_on_failure=True)
+    def validate_scope_consistency(cls, values):
+        scope = values.get("scope")
+        building_id = values.get("building_id")
         if scope is not None:
-            if scope not in ('CONDOMINIUM', 'BUILDING'):
+            if scope not in ("CONDOMINIUM", "BUILDING"):
                 raise ValueError("scope must be CONDOMINIUM or BUILDING")
-            if scope == 'CONDOMINIUM' and bid is not None:
+            if scope == "CONDOMINIUM" and building_id is not None:
                 raise ValueError("scope=CONDOMINIUM requires building_id=None")
-            if scope == 'BUILDING' and bid is None:
+            if scope == "BUILDING" and building_id is None:
                 raise ValueError("scope=BUILDING requires building_id")
-        return self
+        return values
