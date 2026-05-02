@@ -31,14 +31,15 @@ class UnitOccupancyCmdUseCase:
         """Look up occupancy type from the catalog. Raises OccupancyTypeNotFoundInCatalog if not found/inactive."""
         from library.dddpy.core_occupancy_types.usecase.occupancy_type_usecase import OccupancyTypeUseCase
         try:
-            ot = OccupancyTypeUseCase().get_by_id(occupancy_type_id)
-            if not ot.is_active_type():
+            ot_response = OccupancyTypeUseCase().get_by_id(occupancy_type_id)
+            ot = ot_response.data  # get_by_id returns ResponseSuccessSchema
+            if not ot.get("is_active"):
                 raise OccupancyTypeNotFoundInCatalog(occupancy_type_id)
             return {
-                "code": ot.code,
-                "name": ot.name,
-                "requires_authorization": ot.requires_authorization,
-                "allows_primary": ot.allows_primary,
+                "code": ot.get("code"),
+                "name": ot.get("name"),
+                "requires_authorization": ot.get("requires_authorization"),
+                "allows_primary": ot.get("allows_primary"),
             }
         except Exception:
             raise OccupancyTypeNotFoundInCatalog(occupancy_type_id)
@@ -181,7 +182,7 @@ class UnitOccupancyCmdUseCase:
             self._check_primary_conflict(schema.unit_id or self.repository.get_unit_id(id), exclude_id=id)
 
         # Phase 1d: validate authorized_by_user_id has real relation (owner or auth role)
-        unit_id_for_auth = schema.unit_id if schema.unit_id is not None else self.repository.get_unit_id(id)
+        unit_id_for_auth = getattr(schema, 'unit_id', None) if getattr(schema, 'unit_id', None) is not None else self.repository.get_unit_id(id)
         if unit_id_for_auth is not None:
             self._validate_authorized_by(schema.authorized_by_user_id, unit_id_for_auth)
 

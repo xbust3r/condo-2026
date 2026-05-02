@@ -284,7 +284,7 @@ class UnitOwnershipUseCase:
             new_percentage:    Percentage being added/updated
             exclude_id:       Ownership record id to exclude (for updates)
         """
-        active_ownerships = self.unit_ownership_cmd_usecase.find_active_by_unit(unit_id)
+        active_ownerships, _total = self.unit_ownership_query_usecase.list_by_unit(unit_id, status="active")
 
         current_sum = sum(
             float(o.ownership_percentage)

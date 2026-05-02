@@ -56,7 +56,7 @@ class UnitOwnershipQueryRepositoryImpl(UnitOwnershipQueryRepository):
                     condominium_name=condo.name if condo else None,
                     user_email=user.email if user else None,
                     user_full_name=(
-                        f"{user.first_name} {user.last_name}".strip() if user else None
+                        (getattr(user, 'first_name', None) and f"{getattr(user, 'first_name', '')} {getattr(user, 'last_name', '')}".strip()) or user.email if user else None
                     ),
                 )
                 result.append(entity)

@@ -56,7 +56,7 @@ class UnitOwnershipCmdUseCase:
     def _validate_user_exists(self, user_id: int) -> None:
         """Validate user exists and is active."""
         try:
-            from library.dddpy.users.infrastructure.user_query_repository import (
+            from library.dddpy.core_users.infrastructure.user_query_repository import (
                 UserQueryRepositoryImpl,
             )
             user_repo = UserQueryRepositoryImpl()

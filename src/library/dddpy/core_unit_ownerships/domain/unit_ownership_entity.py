@@ -89,7 +89,7 @@ class UnitOwnershipEntity:
             "condominium_name": self.condominium_name,
             "user_email": self.user_email,
             "user_full_name": self.user_full_name,
-            "ownership_type_name": self.ownership_type_name,
+            "ownership_type": self.ownership_type,
         }
 
     def is_deleted(self) -> bool:

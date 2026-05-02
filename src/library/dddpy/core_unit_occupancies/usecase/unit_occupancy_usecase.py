@@ -260,7 +260,7 @@ class UnitOccupancyUseCase:
             unit_id=unit_id,
             skip=skip,
             limit=limit,
-            occupancy_type=occupancy_type,
+            occupancy_type_id=occupancy_type,
             status=status,
             is_primary=is_primary,
             include_deleted=include_deleted,
