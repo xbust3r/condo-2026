@@ -37,7 +37,10 @@ class ChargeCmdRepositoryImpl(ChargeCmdRepository):
                 uuid=str(uuid_lib.uuid4()),
                 condominium_id=data.condominium_id,
                 charge_type_id=data.charge_type_id,
+                scope=data.scope,
                 unit_id=data.unit_id,
+                building_id=data.building_id,
+                distribution_mode=data.distribution_mode,
                 description=data.description,
                 amount=data.amount,
                 currency=data.currency,
@@ -60,6 +63,32 @@ class ChargeCmdRepositoryImpl(ChargeCmdRepository):
             if not db_c:
                 logger.warning(f"Charge not found for update id={id}")
                 return None
+
+            if data.scope is not None:
+                db_c.scope = data.scope
+            if data.unit_id is not None:
+                db_c.unit_id = data.unit_id
+            if data.building_id is not None:
+                db_c.building_id = data.building_id
+            if data.distribution_mode is not None:
+                db_c.distribution_mode = data.distribution_mode
+
+            # Explicit clear flags (for FK cleanup without scope change)
+            if data.clear_unit_id:
+                db_c.unit_id = None
+            if data.clear_building_id:
+                db_c.building_id = None
+
+            # Scope-driven FK cleanup: when scope changes, auto-clear FKs
+            # that don't belong to the new scope
+            if data.scope is not None:
+                if data.scope == "unit":
+                    db_c.building_id = None
+                elif data.scope == "building":
+                    db_c.unit_id = None
+                elif data.scope == "condominium":
+                    db_c.unit_id = None
+                    db_c.building_id = None
 
             if data.description is not None:
                 db_c.description = data.description

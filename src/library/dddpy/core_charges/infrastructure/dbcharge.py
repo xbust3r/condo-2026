@@ -22,12 +22,20 @@ class DBCharge(Base):
         nullable=False,
         index=True,
     )
+    scope = Column(String(20), nullable=False, server_default='unit')
     unit_id = Column(
         BigInteger,
         ForeignKey('core_units.id', name='fk_charges_unit'),
         nullable=True,
         index=True,
     )
+    building_id = Column(
+        BigInteger,
+        ForeignKey('core_buildings.id', name='fk_charges_building'),
+        nullable=True,
+        index=True,
+    )
+    distribution_mode = Column(String(40), nullable=False, server_default='fixed_unit_amount')
     description = Column(Text, nullable=True)
     amount = Column(Numeric(12, 2), nullable=False)
     currency = Column(String(3), nullable=False, server_default='PEN')

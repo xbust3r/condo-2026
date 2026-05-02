@@ -1,5 +1,4 @@
 """
-from typing import Optional
 Charge domain entity — DDD for condominium charges.
 """
 from datetime import datetime, date
@@ -11,6 +10,12 @@ class ChargeEntity:
     """Entidad de dominio para un cargo del condominio."""
 
     VALID_STATUSES = {"active", "inactive", "expired"}
+    VALID_SCOPES = {"unit", "building", "condominium"}
+    VALID_DISTRIBUTION_MODES = {
+        "fixed_unit_amount",
+        "prorated_by_building_coefficient",
+        "prorated_by_condominium_coefficient",
+    }
 
     def __init__(
         self,
@@ -18,7 +23,10 @@ class ChargeEntity:
         uuid: str,
         condominium_id: int,
         charge_type_id: int,
+        scope: str = "unit",
         unit_id: Optional[int] = None,
+        building_id: Optional[int] = None,
+        distribution_mode: str = "fixed_unit_amount",
         description: Optional[str] = None,
         amount: Decimal = Decimal("0.00"),
         currency: str = "PEN",
@@ -36,12 +44,16 @@ class ChargeEntity:
         charge_type_is_global: Optional[bool] = None,
         condominium_name: Optional[str] = None,
         unit_code: Optional[str] = None,
+        building_name: Optional[str] = None,
     ) -> None:
         self.id = id
         self.uuid = uuid
         self.condominium_id = condominium_id
         self.charge_type_id = charge_type_id
+        self.scope = scope
         self.unit_id = unit_id
+        self.building_id = building_id
+        self.distribution_mode = distribution_mode
         self.description = description
         self.amount = amount
         self.currency = currency
@@ -59,6 +71,8 @@ class ChargeEntity:
         self.charge_type_is_global = charge_type_is_global
         self.condominium_name = condominium_name
         self.unit_code = unit_code
+        self.building_name = building_name
+        self._validate_invariants()
 
     def _validate_invariants(self) -> None:
         """Validate business invariants. Raises ValueError if invalid."""
@@ -66,6 +80,30 @@ class ChargeEntity:
             raise ValueError(
                 f"status must be one of: {', '.join(sorted(self.VALID_STATUSES))}"
             )
+        if self.scope not in self.VALID_SCOPES:
+            raise ValueError(
+                f"scope must be one of: {', '.join(sorted(self.VALID_SCOPES))}"
+            )
+        if self.distribution_mode not in self.VALID_DISTRIBUTION_MODES:
+            raise ValueError(
+                f"distribution_mode must be one of: {', '.join(sorted(self.VALID_DISTRIBUTION_MODES))}"
+            )
+        # Scope-FK consistency: required FKs present, prohibited FKs absent
+        if self.scope == "unit":
+            if self.unit_id is None:
+                raise ValueError("unit_id is required when scope=unit")
+            if self.building_id is not None:
+                raise ValueError("building_id must be null when scope=unit")
+        elif self.scope == "building":
+            if self.building_id is None:
+                raise ValueError("building_id is required when scope=building")
+            if self.unit_id is not None:
+                raise ValueError("unit_id must be null when scope=building")
+        elif self.scope == "condominium":
+            if self.unit_id is not None or self.building_id is not None:
+                raise ValueError(
+                    "unit_id and building_id must be null when scope=condominium"
+                )
         if self.amount <= 0:
             raise ValueError("amount must be > 0")
         if self.end_date is not None and self.end_date < self.start_date:
@@ -79,7 +117,10 @@ class ChargeEntity:
             "uuid": self.uuid,
             "condominium_id": self.condominium_id,
             "charge_type_id": self.charge_type_id,
+            "scope": self.scope,
             "unit_id": self.unit_id,
+            "building_id": self.building_id,
+            "distribution_mode": self.distribution_mode,
             "description": self.description,
             "amount": float(self.amount),
             "currency": self.currency,
@@ -96,6 +137,7 @@ class ChargeEntity:
             "charge_type_is_global": self.charge_type_is_global,
             "condominium_name": self.condominium_name,
             "unit_code": self.unit_code,
+            "building_name": self.building_name,
         }
 
     def is_deleted(self) -> bool:
@@ -103,6 +145,3 @@ class ChargeEntity:
 
     def is_active(self) -> bool:
         return self.status == "active" and not self.is_deleted()
-
-    def is_global(self) -> bool:
-        return self.unit_id is None
