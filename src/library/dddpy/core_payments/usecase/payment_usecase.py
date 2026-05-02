@@ -80,8 +80,20 @@ class PaymentUseCase:
         receipt = self._receipt_usecase.create(receipt_data)
 
         # Create payment with receipt_id
+        from library.dddpy.core_payments.domain.payment_data import CreatePaymentData
+        from decimal import Decimal as D
+        cmd_data = CreatePaymentData(
+            condominium_id=ar["condominium_id"],
+            unit_id=ar["unit_id"],
+            ar_id=data.ar_id,
+            payer_user_id=data.payer_user_id,
+            amount=D(str(data.amount)),
+            payment_method=data.payment_method,
+            reference=data.reference,
+            paid_at=data.paid_at,
+        )
         payment_data = self._cmd.create(
-            data,
+            cmd_data,
             receipt_id=receipt.id,
         )
         return payment_data
@@ -114,7 +126,19 @@ class PaymentUseCase:
         receipt = self._receipt_usecase.create(receipt_data)
 
         # Create payment
-        payment = self._cmd.create(data, receipt_id=receipt.id)
+        from library.dddpy.core_payments.domain.payment_data import CreatePaymentData
+        from decimal import Decimal as D
+        cmd_data = CreatePaymentData(
+            condominium_id=ar["condominium_id"],
+            unit_id=ar["unit_id"],
+            ar_id=data.ar_id,
+            payer_user_id=data.payer_user_id,
+            amount=D(str(data.amount)),
+            payment_method=data.payment_method,
+            reference=data.reference,
+            paid_at=data.paid_at,
+        )
+        payment = self._cmd.create(cmd_data, receipt_id=receipt.id)
 
         # Update AR (recalculates status)
         from library.dddpy.core_accounts_receivable.usecase.ar_cmd_schema import RecordPaymentSchema

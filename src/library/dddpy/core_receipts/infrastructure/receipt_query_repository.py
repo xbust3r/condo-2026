@@ -28,7 +28,9 @@ class ReceiptQueryRepositoryImpl(ReceiptQueryRepository):
                  db_condo=None, db_ar=None) -> ReceiptEntity:
         entity = ReceiptMapper.to_domain(db_r)
         if db_user:
-            entity.payer_name = f"{db_user.first_name} {db_user.last_name}".strip()
+            first = getattr(db_user, 'first_name', '')
+            last = getattr(db_user, 'last_name', '')
+            entity.payer_name = f"{first} {last}".strip() or getattr(db_user, 'email', '')
             entity.payer_email = getattr(db_user, 'email', None)
         if db_unit:
             entity.unit_code = db_unit.code

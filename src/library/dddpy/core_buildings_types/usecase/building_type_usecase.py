@@ -41,6 +41,20 @@ class BuildingTypeUseCase:
     def create(self, data: CreateBuildingTypeSchema) -> ResponseSuccessSchema:
         logger.add_inside_method("create")
 
+        # Check for duplicate code in scope
+        existing = self._query_usecase.get_by_code_in_scope(
+            code=data.code,
+            condominium_id=data.condominium_id,
+        )
+        if existing:
+            from library.dddpy.core_buildings_types.domain.building_type_exception import (
+                DuplicateBuildingTypeCode,
+            )
+            raise DuplicateBuildingTypeCode(
+                code=data.code,
+                scope="global" if data.condominium_id is None else f"condominium:{data.condominium_id}",
+            )
+
         cmd_data = CreateBuildingTypeData(
             condominium_id=data.condominium_id,
             code=data.code,

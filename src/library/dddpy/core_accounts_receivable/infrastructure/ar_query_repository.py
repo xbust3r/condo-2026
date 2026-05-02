@@ -33,7 +33,9 @@ class ARQueryRepositoryImpl(ARQueryRepository):
         """Apply enrichment to an AR entity."""
         entity = ARMapper.to_domain(db_ar)
         if db_user:
-            entity.debtor_name = f"{db_user.first_name} {db_user.last_name}".strip()
+            first = getattr(db_user, 'first_name', '')
+            last = getattr(db_user, 'last_name', '')
+            entity.debtor_name = f"{first} {last}".strip() or getattr(db_user, 'email', '')
             entity.debtor_email = getattr(db_user, 'email', None)
         if db_unit:
             entity.unit_code = db_unit.code

@@ -339,10 +339,11 @@ class TestBuildingTypeUseCaseCreate:
     def test_create_duplicate_code_in_same_scope_raises(self):
         """create() should raise DuplicateBuildingTypeCode when code exists in scope."""
         cmd_mock = MagicMock()
-        cmd_mock.create.side_effect = DuplicateBuildingTypeCode(
-            code="RESIDENTIAL", scope="global"
-        )
         query_mock = MagicMock()
+        query_mock.get_by_code_in_scope.return_value = BuildingTypeEntity(
+            id=1, uuid="dup", code="RESIDENTIAL", name="Existing",
+            condominium_id=None, is_system=True,
+        )
 
         use_case = self._make_usecase(cmd_mock, query_mock)
         schema = CreateBuildingTypeSchema(
@@ -572,10 +573,7 @@ class TestBuildingTypeAssignmentValidation:
     def test_custom_type_invalid_for_other_condominium(self, custom_building_type):
         """Custom types from another condominium should raise BuildingTypeNotAccessible."""
         query_mock = MagicMock()
-        # Type exists (get_by_id returns it) but is not accessible to condo 99
-        # because it belongs to a different condominium (custom_building_type.condominium_id=5)
-        query_mock.get_active_for_building_assignment.return_value = None
-        query_mock.get_by_id.return_value = custom_building_type
+        query_mock.get_active_for_building_assignment.side_effect = BuildingTypeNotAccessible()
 
         use_case = self._make_usecase(query_mock)
 
@@ -588,8 +586,7 @@ class TestBuildingTypeAssignmentValidation:
     def test_inactive_type_raises_building_type_is_inactive(self, inactive_building_type):
         """Inactive types should raise BuildingTypeIsInactive."""
         query_mock = MagicMock()
-        query_mock.get_active_for_building_assignment.return_value = None
-        query_mock.get_by_id.return_value = inactive_building_type
+        query_mock.get_active_for_building_assignment.side_effect = BuildingTypeIsInactive()
 
         use_case = self._make_usecase(query_mock)
 
@@ -602,8 +599,7 @@ class TestBuildingTypeAssignmentValidation:
     def test_deleted_type_raises_building_type_is_deleted(self, deleted_building_type):
         """Soft-deleted types should raise BuildingTypeIsDeleted."""
         query_mock = MagicMock()
-        query_mock.get_active_for_building_assignment.return_value = None
-        query_mock.get_by_id.return_value = deleted_building_type
+        query_mock.get_active_for_building_assignment.side_effect = BuildingTypeIsDeleted()
 
         use_case = self._make_usecase(query_mock)
 
@@ -616,7 +612,7 @@ class TestBuildingTypeAssignmentValidation:
     def test_nonexistent_type_raises_not_found(self):
         """Non-existent type IDs should raise BuildingTypeNotFound."""
         query_mock = MagicMock()
-        query_mock.get_active_for_building_assignment.return_value = None
+        query_mock.get_active_for_building_assignment.side_effect = BuildingTypeNotFound()
 
         use_case = self._make_usecase(query_mock)
 
