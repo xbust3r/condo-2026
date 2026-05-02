@@ -42,7 +42,7 @@ class AnnouncementQueryRepositoryImpl(AnnouncementQueryRepository):
     def _fetch_author_names(self, rows: List[DBAnnouncement]) -> dict:
         if not rows:
             return {}
-        user_ids = [r.author_user_id for r in {r.author_user_id: r for r in rows}.keys()]
+        user_ids = list({r.author_user_id for r in rows})
         with session_scope() as session:
             result = session.execute(
                 text("""
@@ -58,7 +58,7 @@ class AnnouncementQueryRepositoryImpl(AnnouncementQueryRepository):
     def _fetch_condo_names(self, rows: List[DBAnnouncement]) -> dict:
         if not rows:
             return {}
-        condo_ids = [r.condominium_id for r in {r.condominium_id: r for r in rows}.keys()]
+        condo_ids = list({r.condominium_id for r in rows})
         with session_scope() as session:
             from library.dddpy.core_condominiums.infrastructure.dbcondominiums import DBCondominiums as DBCondominium
             result = session.query(DBCondominium.id, DBCondominium.name).filter(
