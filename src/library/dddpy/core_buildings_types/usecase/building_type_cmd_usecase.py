@@ -13,6 +13,9 @@ from library.dddpy.core_buildings_types.domain.building_type_exception import (
     BuildingTypeIsSystem,
     BuildingTypeIsInUse,
 )
+from library.dddpy.core_buildings_types.domain.building_type_entity import (
+    BuildingTypeEntity,
+)
 from library.dddpy.shared.logging.logging import Logger
 
 
@@ -27,7 +30,7 @@ class BuildingTypeCmdUseCase:
         self._query = query_repo
         logger.info("BuildingTypeCmdUseCase initialized")
 
-    def create(self, data: CreateBuildingTypeData) -> None:
+    def create(self, data: CreateBuildingTypeData) -> BuildingTypeEntity:
         logger.add_inside_method("create")
 
         # Check for duplicate in the same scope (active only)

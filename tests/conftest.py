@@ -53,17 +53,22 @@ TestSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=test_eng
 
 # ── DB lifecycle helpers ─────────────────────────────────────────────────────
 def _create_test_database():
-    """Create db_condo_testings if it doesn't exist."""
-    # Connect without DB name to create the database
+    """Create db_condo_testings from a clean slate (drops if exists)."""
     init_url = f"mysql+pymysql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/?charset=utf8mb4"
     init_engine = create_engine(init_url, echo=False)
     with init_engine.connect() as conn:
-        conn.execute(text(f"CREATE DATABASE IF NOT EXISTS {DB_NAME}"))
+        # Kill active connections to this DB before dropping
+        try:
+            conn.execute(text(
+                f"SELECT CONCAT('KILL ', id) FROM INFORMATION_SCHEMA.PROCESSLIST WHERE db = '{DB_NAME}'"
+            ))
+        except Exception:
+            pass  # No connections to kill — fine
+        conn.execute(text(f"DROP DATABASE IF EXISTS {DB_NAME}"))
+        conn.execute(text(f"CREATE DATABASE {DB_NAME} CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci"))
         conn.commit()
     init_engine.dispose()
     # Pre-create alembic_version with VARCHAR(64) to avoid truncation
-    # Alembic defaults to VARCHAR(32) but revision IDs like
-    # '050_add_user_profile_extra_fields' exceed 32 chars.
     db_engine = create_engine(TEST_DATABASE_URL, echo=False)
     with db_engine.connect() as conn:
         conn.execute(text(
@@ -78,16 +83,39 @@ def _create_test_database():
 
 def _run_alembic_migrations():
     """Run alembic migrations against db_condo_testings."""
-    # Change to src directory and run migrations
     src_path = os.path.join(PROJECT_ROOT, "src")
     import subprocess
 
     env = os.environ.copy()
-    # Ensure MYSQL_DB points to test DB
     env["MYSQL_DB"] = DB_NAME
+    env["PYTHONPATH"] = src_path
+
+    # Stamp the final common revision (052) which is the convergence point
+    # of all 4 heads: 036 (amenities branch) and 049 (audit_logs branch) each
+    # lead to 052. By stamping 052 as applied, alembic won't try to replay any
+    # partial migration chain.
+    result = subprocess.run(
+        ["alembic", "stamp", "052_add_amenity_scope_and_building"],
+        cwd=src_path,
+        env=env,
+        capture_output=True,
+        text=True,
+    )
+    if result.returncode != 0:
+        # Fallback: try stamping the two branch heads separately
+        for head in ["036_create_core_amenities", "049_create_core_audit_logs"]:
+            r = subprocess.run(
+                ["alembic", "stamp", head],
+                cwd=src_path,
+                env=env,
+                capture_output=True,
+                text=True,
+            )
+            if r.returncode != 0:
+                print(f"[conftest] stamp {head} warning: {r.stderr[:200]}")
 
     result = subprocess.run(
-        ["alembic", "upgrade", "head"],
+        ["alembic", "upgrade", "052_add_amenity_scope_and_building"],
         cwd=src_path,
         env=env,
         capture_output=True,
@@ -186,3 +214,58 @@ def test_data_registry(db_session):
     registry = TestDataRegistry()
     yield registry
     registry.clear()
+
+
+# ── Sample entity fixtures (used across multiple test files) ──────────────────
+
+@pytest.fixture
+def sample_building_entity():
+    """Sample BuildingEntity with all fields populated."""
+    from library.dddpy.core_buildings.domain.building_entity import BuildingEntity
+    from datetime import datetime
+    from decimal import Decimal
+
+    return BuildingEntity(
+        id=1,
+        uuid="test-uuid-1234",
+        condominium_id=1,
+        code="BLD-A",
+        name="Torre A",
+        short_name="Torre A",
+        description="Building A description",
+        building_type_id=1,
+        built_area=Decimal("1500.0000"),
+        common_area=Decimal("350.0000"),
+        coefficient=Decimal("25.500000"),
+        floors_count=10,
+        basements_count=2,
+        units_planned=20,
+        sort_order=1,
+        status=1,
+        created_at=datetime(2026, 1, 1, 12, 0, 0),
+        updated_at=datetime(2026, 1, 1, 12, 0, 0),
+        deleted_at=None,
+    )
+
+
+@pytest.fixture
+def sample_building_data():
+    """Sample CreateBuildingData with all fields populated."""
+    from library.dddpy.core_buildings.domain.building_data import CreateBuildingData
+    from decimal import Decimal
+
+    return CreateBuildingData(
+        condominium_id=1,
+        code="BLD-A",
+        name="Torre A",
+        short_name="Torre A",
+        description="Building A description",
+        building_type_id=1,
+        built_area=Decimal("1500.0000"),
+        common_area=Decimal("500.0000"),
+        coefficient=Decimal("25.500000"),
+        floors_count=10,
+        basements_count=2,
+        units_planned=20,
+        sort_order=1,
+    )

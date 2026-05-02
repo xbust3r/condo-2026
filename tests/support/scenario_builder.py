@@ -14,6 +14,7 @@ Usage:
     #     "residents": [DBResidentProfile, ...],
     # }
 """
+import uuid as uuid_module
 from typing import Optional
 from decimal import Decimal
 
@@ -76,15 +77,15 @@ def create_full_condo_scenario(
             )
             units.append(unit)
 
-    # 4. Users + Residents
+    # 4. Users + Residents (email uses unit.id + uuid to avoid unique constraint violations)
     users = []
     residents = []
-    counter = 1
     for unit in units:
         for r in range(residents_per_unit):
+            uid = uuid_module.uuid4().hex[:8]
             user = UserFactory.create(
                 session,
-                email=f"resident-{counter}@test.local",
+                email=f"resident-{unit.id}-{r}@{uid}.test.local",
             )
             resident = ResidentFactory.create(
                 session,
@@ -93,7 +94,6 @@ def create_full_condo_scenario(
             )
             users.append(user)
             residents.append(resident)
-            counter += 1
 
     return {
         "condo": condo,

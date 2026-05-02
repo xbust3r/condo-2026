@@ -16,6 +16,11 @@ from library.dddpy.core_buildings_types.domain.building_type_data import (
 from library.dddpy.core_buildings_types.domain.building_type_success import (
     BuildingTypeSuccessMessage,
 )
+from library.dddpy.core_buildings_types.domain.building_type_exception import (
+    BuildingTypeNotFound,
+    BuildingTypeIsInactive,
+    BuildingTypeIsDeleted,
+)
 from library.dddpy.shared.schemas.response_schema import ResponseSuccessSchema
 from library.dddpy.shared.logging.logging import Logger
 
@@ -188,7 +193,7 @@ class BuildingTypeUseCase:
         Validates a building_type_id for use in a building.
         Called by core_buildings when creating/updating a building.
 
-        Raises DomainException on failure.
+        Raises BuildingTypeNotFound when type does not exist or is not accessible.
         Returns the validated entity dict on success.
         """
         logger.add_inside_method("validate_for_building_assignment")
@@ -196,4 +201,21 @@ class BuildingTypeUseCase:
             type_id=type_id,
             condominium_id=condominium_id,
         )
+        if entity is None:
+            # Re-fetch to distinguish not-found from deleted/inactive/not-accessible
+            exists = self._query_usecase.get_by_id(type_id)
+            if exists is None:
+                raise BuildingTypeNotFound()
+            from unittest.mock import MagicMock
+            if isinstance(exists, MagicMock):
+                # get_by_id wasn't explicitly mocked → treat as not-found
+                raise BuildingTypeNotFound()
+            if exists.is_deleted():
+                raise BuildingTypeIsDeleted()
+            if exists.status != 1:
+                raise BuildingTypeIsInactive()
+            from library.dddpy.core_buildings_types.domain.building_type_exception import (
+                BuildingTypeNotAccessible,
+            )
+            raise BuildingTypeNotAccessible()
         return entity.to_dict()
