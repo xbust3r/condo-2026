@@ -1,6 +1,10 @@
 """
 Amenity mapper — maps between DB model and domain entity.
+
+Now supports scope + building_id enrichment.
 """
+from typing import Optional
+
 from library.dddpy.core_amenities.domain.amenity_entity import AmenityEntity
 from library.dddpy.core_amenities.infrastructure.dbamenity import DBAmenity
 
@@ -19,6 +23,8 @@ class AmenityMapper:
             max_capacity=db_row.max_capacity or 1,
             booking_duration_min=db_row.booking_duration_min or 60,
             requires_approval=db_row.requires_approval or False,
+            scope=db_row.scope or 'CONDOMINIUM',
+            building_id=db_row.building_id,
             status=db_row.status or 'active',
             created_at=db_row.created_at,
             updated_at=db_row.updated_at,
@@ -28,8 +34,10 @@ class AmenityMapper:
     @staticmethod
     def to_domain_enriched(
         db_row: DBAmenity,
-        condominium_name: str = None,
+        condominium_name: Optional[str] = None,
+        building_name: Optional[str] = None,
     ) -> AmenityEntity:
         entity = AmenityMapper.to_domain(db_row)
         entity.condominium_name = condominium_name
+        entity.building_name = building_name
         return entity

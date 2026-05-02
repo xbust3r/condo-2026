@@ -66,6 +66,13 @@ class ARQueryRepository(ABC):
         pass
 
     @abstractmethod
+    def exists_by_charge_period_unit(
+        self, charge_id: int, period: str, unit_id: int
+    ) -> bool:
+        """Check if an AR already exists for charge + period + unit (idempotency)."""
+        pass
+
+    @abstractmethod
     def _get_by_id_any_status(self, id: int) -> Optional[AREntity]:
         """Re-fetch entity ignoring soft-delete filter. For use after mutations."""
         pass

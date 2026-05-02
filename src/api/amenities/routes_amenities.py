@@ -2,7 +2,7 @@
 # API Routes: core_amenities
 #
 # Endpoints:
-#   GET    /amenities                      — health check
+#   GET    /amenities/health              — health check
 #   POST   /amenities                      — create [RBAC: amenities.create]
 #   GET    /amenities                      — list   [RBAC: amenities.read]
 #   GET    /amenities/{id}                 — get    [RBAC: amenities.read]
@@ -10,6 +10,10 @@
 #   PUT    /amenities/{id}                 — update [RBAC: amenities.update]
 #   DELETE /amenities/{id}                 — delete [RBAC: amenities.delete]
 #   DELETE /amenities/{id}/hard            — hard   [RBAC: amenities.delete]
+#
+# Scope-aware filtering:
+#   ?condominium_id=X           → CONDOMINIUM amenities only
+#   ?condominium_id=X&building_id=Y → CONDOMINIUM + BUILDING for building Y
 # =============================================================================
 
 from fastapi import APIRouter, Depends, Query
@@ -41,6 +45,9 @@ def create_amenity(
 ) -> dict:
     """
     Create a new amenity/common-area.
+
+    scope=CONDOMINIUM → common area shared by all buildings (building_id not required)
+    scope=BUILDING    → exclusive to a specific building (building_id required)
     """
     response = AmenityUseCase().create(
         condominium_id=request.condominium_id,
@@ -50,6 +57,8 @@ def create_amenity(
         max_capacity=request.max_capacity,
         booking_duration_min=request.booking_duration_min,
         requires_approval=request.requires_approval,
+        scope=request.scope,
+        building_id=request.building_id,
     )
     return response.dict()
 
@@ -58,15 +67,21 @@ def create_amenity(
 @api_handler
 def list_amenities(
     condominium_id: int = Query(None, description="Filter by condominium"),
+    building_id: int = Query(None, description="Filter by building (shows CONDOMINIUM + exclusive)"),
     status: str = Query(None, description="Filter by status (active/inactive)"),
     include_deleted: bool = Query(False),
     skip: int = Query(0, ge=0),
     limit: int = Query(100, ge=1, le=500),
     user: UserIdentity = Depends(rbac_required("amenities", "read")),
 ) -> dict:
-    """List amenities with optional filters."""
+    """List amenities with optional scope-aware filters.
+
+    - condominium_id only → CONDOMINIUM scope amenities
+    - condominium_id + building_id → CONDOMINIUM + BUILDING amenities for that building
+    """
     response = AmenityUseCase().list_all(
         condominium_id=condominium_id,
+        building_id=building_id,
         status=status,
         skip=skip,
         limit=limit,
@@ -104,7 +119,7 @@ def update_amenity(
     request: UpdateAmenitySchema,
     user: UserIdentity = Depends(rbac_required("amenities", "update")),
 ) -> dict:
-    """Update an amenity."""
+    """Update an amenity (supports scope/building changes)."""
     response = AmenityUseCase().update(id, request)
     return response.dict()
 

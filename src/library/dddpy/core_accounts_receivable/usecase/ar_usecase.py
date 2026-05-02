@@ -116,10 +116,31 @@ class ARUseCase:
         )
 
         # 2. For each proration entry, resolve debtor and build AR data
+        from library.dddpy.core_accounts_receivable.infrastructure.ar_query_repository import (
+            ARQueryRepositoryImpl,
+        )
+        ar_query = ARQueryRepositoryImpl()
+        eff_period = period or charge_entity.period_pattern
+
         entries = []
         skipped_no_debtor = 0
+        skipped_duplicate = 0
 
         for entry in breakdown.entries:
+            # FIN-10: Idempotency check — don't create duplicate ARs
+            if eff_period and ar_query.exists_by_charge_period_unit(
+                charge_id=charge_id,
+                period=eff_period,
+                unit_id=entry.unit_id,
+            ):
+                logger.warning(
+                    f"AR already exists for charge={charge_id} "
+                    f"period={eff_period} unit={entry.unit_id}, skipping"
+                )
+                skipped_duplicate += 1
+                continue
+
+            # FIN-09: Resolve debtor — occupant → owner → skip
             debtor_user_id = self._resolve_debtor(entry.unit_id)
             if debtor_user_id is None:
                 logger.warning(f"No debtor found for unit {entry.unit_id}, skipping")
@@ -135,14 +156,15 @@ class ARUseCase:
                 amount=entry.amount,
                 currency=charge_entity.currency,
                 due_date=due_date,
-                period=period or charge_entity.period_pattern,
+                period=eff_period,
                 charge_id=charge_id,
             ))
 
         if not entries:
             raise ValueError(
-                f"No AR entries generated. All {len(breakdown.entries)} units "
-                f"had no valid debtor. Check unit occupancy/ownership data."
+                f"No AR entries generated. {len(breakdown.entries)} total, "
+                f"{skipped_no_debtor} no debtor, {skipped_duplicate} duplicates. "
+                f"Check unit occupancy/ownership data."
             )
 
         # 3. Batch create ARs
@@ -154,6 +176,7 @@ class ARUseCase:
                 "charge_id": charge_id,
                 "ar_count": len(entities),
                 "skipped_no_debtor": skipped_no_debtor,
+                "skipped_duplicate": skipped_duplicate,
                 "units_omitted": breakdown.units_omitted,
                 "residual_assigned": float(breakdown.residual_assigned),
                 "ars": [e.to_dict() for e in entities],
@@ -162,8 +185,8 @@ class ARUseCase:
 
     def _resolve_debtor(self, unit_id: int):
         """
-        Resolve debtor for a unit: primary occupant → owner.
-        Returns user_id or None.
+        FIN-09: Resolve debtor for a unit.
+        Priority: primary active occupant → active owner → None (skip with warning).
         """
         occupancies, _ = self._occupancy_repo.list_by_unit(
             unit_id=unit_id,
