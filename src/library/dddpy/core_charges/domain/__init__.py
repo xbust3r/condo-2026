@@ -14,6 +14,12 @@ from library.dddpy.core_charges.domain.charge_exception import (
 )
 from library.dddpy.core_charges.domain.charge_cmd_repository import ChargeCmdRepository
 from library.dddpy.core_charges.domain.charge_query_repository import ChargeQueryRepository
+from library.dddpy.core_charges.domain.proration_service import (
+    ProrationService,
+    ProrationBreakdown,
+    ProrationEntry,
+    UnitCoefficients,
+)
 
 __all__ = [
     "ChargeEntity",
@@ -25,4 +31,8 @@ __all__ = [
     "ChargeAmountInvalid",
     "ChargeCmdRepository",
     "ChargeQueryRepository",
+    "ProrationService",
+    "ProrationBreakdown",
+    "ProrationEntry",
+    "UnitCoefficients",
 ]
