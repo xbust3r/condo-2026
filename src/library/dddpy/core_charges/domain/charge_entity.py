@@ -72,6 +72,7 @@ class ChargeEntity:
         self.condominium_name = condominium_name
         self.unit_code = unit_code
         self.building_name = building_name
+        self._validate_invariants()
 
     def _validate_invariants(self) -> None:
         """Validate business invariants. Raises ValueError if invalid."""
