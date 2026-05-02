@@ -80,6 +80,19 @@ class ProrationService:
         Returns:
             ProrationBreakdown with per-unit allocations
         """
+        # 0. Validate canonical scope + distribution_mode combinations
+        _canonical = {
+            "unit": {"fixed_unit_amount"},
+            "building": {"prorated_by_building_coefficient"},
+            "condominium": {"prorated_by_condominium_coefficient"},
+        }
+        if distribution_mode not in _canonical.get(scope, set()):
+            raise ValueError(
+                f"Invalid combination: scope='{scope}' with distribution_mode='{distribution_mode}'. "
+                f"Canonical: unit→fixed_unit_amount, building→prorated_by_building_coefficient, "
+                f"condominium→prorated_by_condominium_coefficient"
+            )
+
         # 1. Filter units by scope
         if scope == "unit":
             if charge_unit_id is None:
