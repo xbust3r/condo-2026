@@ -33,15 +33,26 @@ class LedgerUseCase:
         """
         logger.info(f"Creating ledger entry unit_id={data.unit_id}, type={data.entry_type}")
 
-        # Get condominium_id from unit
+        # Get condominium_id from unit (via building)
         unit_repo = UnitQueryRepositoryImpl()
         unit = unit_repo.get_by_id(data.unit_id)
         if not unit:
             from library.dddpy.core_ledger_entries.domain.ledger_exception import LedgerEntryNotFound
             raise LedgerEntryNotFound(f"Unit id={data.unit_id} not found")
 
+        # Resolve condominium_id from the building the unit belongs to
+        from library.dddpy.core_buildings.infrastructure.building_query_repository import (
+            BuildingQueryRepositoryImpl,
+        )
+        building_repo = BuildingQueryRepositoryImpl()
+        building = building_repo.get_by_id(unit.building_id)
+        condominium_id = building.condominium_id if building else None
+        if not condominium_id:
+            from library.dddpy.core_ledger_entries.domain.ledger_exception import LedgerEntryNotFound
+            raise LedgerEntryNotFound(f"Cannot resolve condominium for unit id={data.unit_id}")
+
         entry_data = CreateLedgerEntryData(
-            condominium_id=unit.condominium_id,
+            condominium_id=condominium_id,
             unit_id=data.unit_id,
             entry_type=data.entry_type,
             ar_id=data.ar_id,

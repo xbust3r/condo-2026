@@ -40,7 +40,7 @@ class ReceiptCmdRepositoryImpl(ReceiptCmdRepository):
             result = session.execute(
                 __import__('sqlalchemy').text(
                     "SELECT MAX(CAST(SUBSTRING(receipt_number, :prefix_len + 1) AS UNSIGNED)) "
-                    "FROM core_receipts WHERE receipt_number LIKE :prefix AND deleted_at IS NULL"
+                    "FROM core_receipts WHERE receipt_number LIKE :prefix"
                 ),
                 {"prefix": f"{prefix}%", "prefix_len": len(prefix)}
             )
