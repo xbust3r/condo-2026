@@ -19,5 +19,5 @@ class CreateLedgerEntrySchema(BaseModel):
     description: str = Field(..., max_length=500, description="Entry description")
     debit: float = Field(0.0, ge=0, description="Debit amount (increases balance)")
     credit: float = Field(0.0, ge=0, description="Credit amount (decreases balance)")
-    period: Optional[str] = Field(None, regex=r"^\d{4}-\d{2}$", description="Period YYYY-MM")
+    period: Optional[str] = Field(None, pattern=r"^\d{4}-\d{2}$", description="Period YYYY-MM")
     reference: Optional[str] = Field(None, max_length=100)

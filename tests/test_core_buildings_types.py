@@ -178,7 +178,7 @@ class TestBuildingTypeEntity:
         """is_active() returns False when status=0."""
         assert inactive_building_type.is_active() is False
 
-    def test_to_dict_includes_scope_field(self, global_building_type):
+    def test_to_dict_includes_scope_field(self, global_building_type, custom_building_type):
         """to_dict() should include 'scope' field set to 'global' or 'custom'."""
         d = global_building_type.to_dict()
         assert d["scope"] == "global"
@@ -545,8 +545,7 @@ class TestBuildingTypeAssignmentValidation:
     def test_global_type_valid_for_any_condominium(self, global_building_type):
         """Global types (condominium_id=NULL) should be usable by any condominium."""
         query_mock = MagicMock()
-        query_mock.get_active_in_scope.return_value = global_building_type
-        query_mock.get_by_id.return_value = global_building_type
+        query_mock.get_active_for_building_assignment.return_value = global_building_type
 
         use_case = self._make_usecase(query_mock)
         result = use_case.validate_for_building_assignment(
@@ -560,8 +559,7 @@ class TestBuildingTypeAssignmentValidation:
     def test_custom_type_valid_for_same_condominium(self, custom_building_type):
         """Custom types should be usable only by the condominium that owns them."""
         query_mock = MagicMock()
-        query_mock.get_active_in_scope.return_value = custom_building_type
-        query_mock.get_by_id.return_value = custom_building_type
+        query_mock.get_active_for_building_assignment.return_value = custom_building_type
 
         use_case = self._make_usecase(query_mock)
         result = use_case.validate_for_building_assignment(
@@ -575,8 +573,7 @@ class TestBuildingTypeAssignmentValidation:
     def test_custom_type_invalid_for_other_condominium(self, custom_building_type):
         """Custom types from another condominium should raise BuildingTypeNotAccessible."""
         query_mock = MagicMock()
-        query_mock.get_active_in_scope.return_value = None  # not accessible
-        query_mock.get_by_id.return_value = custom_building_type  # but it exists
+        query_mock.get_active_for_building_assignment.side_effect = BuildingTypeNotAccessible()
 
         use_case = self._make_usecase(query_mock)
 
@@ -589,8 +586,7 @@ class TestBuildingTypeAssignmentValidation:
     def test_inactive_type_raises_building_type_is_inactive(self, inactive_building_type):
         """Inactive types should raise BuildingTypeIsInactive."""
         query_mock = MagicMock()
-        query_mock.get_active_in_scope.return_value = None
-        query_mock.get_by_id.return_value = inactive_building_type
+        query_mock.get_active_for_building_assignment.side_effect = BuildingTypeIsInactive()
 
         use_case = self._make_usecase(query_mock)
 
@@ -603,8 +599,7 @@ class TestBuildingTypeAssignmentValidation:
     def test_deleted_type_raises_building_type_is_deleted(self, deleted_building_type):
         """Soft-deleted types should raise BuildingTypeIsDeleted."""
         query_mock = MagicMock()
-        query_mock.get_active_in_scope.return_value = None
-        query_mock.get_by_id.return_value = deleted_building_type
+        query_mock.get_active_for_building_assignment.side_effect = BuildingTypeIsDeleted()
 
         use_case = self._make_usecase(query_mock)
 
@@ -617,8 +612,7 @@ class TestBuildingTypeAssignmentValidation:
     def test_nonexistent_type_raises_not_found(self):
         """Non-existent type IDs should raise BuildingTypeNotFound."""
         query_mock = MagicMock()
-        query_mock.get_active_in_scope.return_value = None
-        query_mock.get_by_id.return_value = None
+        query_mock.get_active_for_building_assignment.side_effect = BuildingTypeNotFound()
 
         use_case = self._make_usecase(query_mock)
 

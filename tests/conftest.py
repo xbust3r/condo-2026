@@ -87,7 +87,7 @@ def _run_alembic_migrations():
     env["MYSQL_DB"] = DB_NAME
 
     result = subprocess.run(
-        ["alembic", "upgrade", "head"],
+        ["alembic", "upgrade", "heads"],
         cwd=src_path,
         env=env,
         capture_output=True,
@@ -186,3 +186,91 @@ def test_data_registry(db_session):
     registry = TestDataRegistry()
     yield registry
     registry.clear()
+
+
+# ── Unit test fixtures ───────────────────────────────────────────────────────
+
+@pytest.fixture
+def sample_unit_entity():
+    """Sample UnitEntity with all fields populated."""
+    from library.dddpy.core_units.domain.unit_entity import UnitEntity
+    return UnitEntity(
+        id=1,
+        uuid="test-uuid-unity",
+        building_id=1,
+        unit_type_id=1,
+        unit_number="101",
+        code="UNIT-101",
+        name="Apartamento 101",
+        private_area=Decimal("75.0"),
+        coefficient=Decimal("5.5"),
+        floor_number=1,
+        floor_label="Piso 1",
+        occupancy_status="vacant",
+        sort_order=0,
+        status=1,
+    )
+
+
+@pytest.fixture
+def sample_unit_data():
+    """Sample CreateUnitData with all fields populated."""
+    from library.dddpy.core_units.domain.unit_data import CreateUnitData
+    return CreateUnitData(
+        building_id=1,
+        unit_number="101",
+        unit_type_id=1,
+        code="UNIT-101",
+        name="Apartamento 101",
+        private_area=Decimal("75.0000"),
+        coefficient=Decimal("5.500000"),
+        floor_number=1,
+        floor_label="Piso 1",
+        occupancy_status="occupied",
+        sort_order=10,
+    )
+
+
+@pytest.fixture
+def sample_building_entity():
+    """Sample BuildingEntity with all fields populated."""
+    from library.dddpy.core_buildings.domain.building_entity import BuildingEntity
+    return BuildingEntity(
+        id=1,
+        uuid="test-uuid-1234",
+        condominium_id=1,
+        code="BLD-A",
+        name="Torre A",
+        short_name="Torre A",
+        description="Torre principal",
+        building_type_id=1,
+        built_area=Decimal("1500.0000"),
+        common_area=Decimal("350.00"),
+        coefficient=Decimal("25.500000"),
+        floors_count=10,
+        basements_count=2,
+        units_planned=20,
+        sort_order=1,
+        status=1,
+    )
+
+
+@pytest.fixture
+def sample_building_data():
+    """Sample CreateBuildingData with all fields populated."""
+    from library.dddpy.core_buildings.domain.building_data import CreateBuildingData
+    return CreateBuildingData(
+        condominium_id=1,
+        code="BLD-A",
+        name="Torre A",
+        short_name="TA",
+        description="Torre principal",
+        building_type_id=1,
+        built_area=Decimal("1500.0000"),
+        common_area=Decimal("300.00"),
+        coefficient=Decimal("25.500000"),
+        floors_count=10,
+        basements_count=2,
+        units_planned=20,
+        sort_order=0,
+    )
