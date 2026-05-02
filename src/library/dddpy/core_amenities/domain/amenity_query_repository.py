@@ -1,6 +1,7 @@
 """
-from typing import Optional
 Amenity query repository interface — DDD domain layer.
+
+Now supports building_id filtering for scope-aware queries.
 """
 from typing import Optional, List, Tuple
 
@@ -17,6 +18,7 @@ class AmenityQueryRepository:
     def list_all(
         self,
         condominium_id: Optional[int] = None,
+        building_id: Optional[int] = None,
         status: Optional[str] = None,
         skip: int = 0,
         limit: int = 100,
@@ -27,6 +29,7 @@ class AmenityQueryRepository:
     def list_active(
         self,
         condominium_id: int,
+        building_id: Optional[int] = None,
         skip: int = 0,
         limit: int = 100,
     ) -> Tuple[List[object], int]:

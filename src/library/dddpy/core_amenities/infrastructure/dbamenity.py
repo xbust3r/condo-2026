@@ -1,7 +1,7 @@
 """
 SQLAlchemy model for core_amenities.
 """
-from sqlalchemy import Column, BigInteger, String, Text, DateTime, Boolean, Index
+from sqlalchemy import Column, BigInteger, String, Text, DateTime, Boolean, ForeignKey, Index
 
 from library.dddpy.shared.mysql.base import Base
 
@@ -12,6 +12,8 @@ class DBAmenity(Base):
     id = Column(BigInteger, primary_key=True, autoincrement=True)
     uuid = Column(String(36), nullable=False, unique=True)
     condominium_id = Column(BigInteger, nullable=False, index=True)
+    scope = Column(String(20), nullable=False, default='CONDOMINIUM')
+    building_id = Column(BigInteger, ForeignKey('core_buildings.id', ondelete='SET NULL'), nullable=True, index=True)
     name = Column(String(200), nullable=False)
     description = Column(Text(), nullable=True)
     location = Column(String(255), nullable=True)
@@ -25,4 +27,5 @@ class DBAmenity(Base):
 
     __table_args__ = (
         Index('ix_amenities_condo_status', 'condominium_id', 'status'),
+        Index('ix_amenities_scope_lookup', 'condominium_id', 'scope', 'building_id'),
     )

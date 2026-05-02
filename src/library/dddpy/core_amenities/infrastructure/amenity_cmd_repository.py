@@ -1,5 +1,7 @@
 """
 Amenity command repository implementation — SQLAlchemy.
+
+Now supports scope + building_id persistence.
 """
 from datetime import datetime
 from typing import Optional
@@ -22,11 +24,16 @@ class AmenityCmdRepositoryImpl(AmenityCmdRepository):
         logger.info("AmenityCmdRepositoryImpl initialized")
 
     def create(self, entity: AmenityEntity) -> int:
-        logger.info(f"Creating amenity condominium_id={entity.condominium_id}")
+        logger.info(
+            f"Creating amenity condominium_id={entity.condominium_id} "
+            f"scope={entity.scope} building_id={entity.building_id}"
+        )
         with session_scope() as session:
             db_a = DBAmenity(
                 uuid=entity.uuid,
                 condominium_id=entity.condominium_id,
+                scope=entity.scope,
+                building_id=entity.building_id,
                 name=entity.name,
                 description=entity.description,
                 location=entity.location,
@@ -42,7 +49,10 @@ class AmenityCmdRepositoryImpl(AmenityCmdRepository):
             return db_a.id
 
     def update(self, entity: AmenityEntity) -> bool:
-        logger.info(f"Updating amenity id={entity.id}")
+        logger.info(
+            f"Updating amenity id={entity.id} scope={entity.scope} "
+            f"building_id={entity.building_id}"
+        )
         with session_scope() as session:
             db_a = session.query(DBAmenity).filter(
                 DBAmenity.id == entity.id,
@@ -56,6 +66,8 @@ class AmenityCmdRepositoryImpl(AmenityCmdRepository):
             db_a.max_capacity = entity.max_capacity
             db_a.booking_duration_min = entity.booking_duration_min
             db_a.requires_approval = entity.requires_approval
+            db_a.scope = entity.scope
+            db_a.building_id = entity.building_id
             db_a.status = entity.status
             db_a.updated_at = datetime.utcnow()
             session.flush()

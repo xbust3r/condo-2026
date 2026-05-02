@@ -1,10 +1,13 @@
 """
-from typing import Optional
 Amenity command schemas — Pydantic input models.
+
+Supports scope-aware creation:
+- scope=CONDOMINIUM → building_id not allowed
+- scope=BUILDING → building_id required
 """
 from typing import Optional
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
 
 
 class CreateAmenitySchema(BaseModel):
@@ -15,6 +18,18 @@ class CreateAmenitySchema(BaseModel):
     max_capacity: int = Field(1, ge=1, description="Maximum capacity")
     booking_duration_min: int = Field(60, ge=15, description="Default booking duration in minutes")
     requires_approval: bool = Field(False, description="Whether booking requires approval")
+    scope: str = Field('CONDOMINIUM', description="Scope: CONDOMINIUM or BUILDING")
+    building_id: Optional[int] = Field(None, description="Building ID (required when scope=BUILDING)")
+
+    @model_validator(mode='after')
+    def validate_scope_consistency(self) -> 'CreateAmenitySchema':
+        if self.scope == 'CONDOMINIUM' and self.building_id is not None:
+            raise ValueError("scope=CONDOMINIUM requires building_id=None (do not send building_id)")
+        if self.scope == 'BUILDING' and self.building_id is None:
+            raise ValueError("scope=BUILDING requires building_id")
+        if self.scope not in ('CONDOMINIUM', 'BUILDING'):
+            raise ValueError("scope must be CONDOMINIUM or BUILDING")
+        return self
 
 
 class UpdateAmenitySchema(BaseModel):
@@ -24,4 +39,19 @@ class UpdateAmenitySchema(BaseModel):
     max_capacity: Optional[int] = Field(None, ge=1)
     booking_duration_min: Optional[int] = Field(None, ge=15)
     requires_approval: Optional[bool] = Field(None)
+    scope: Optional[str] = Field(None)
+    building_id: Optional[int] = Field(None)
     status: Optional[str] = Field(None)
+
+    @model_validator(mode='after')
+    def validate_scope_consistency(self) -> 'UpdateAmenitySchema':
+        scope = self.scope
+        bid = self.building_id
+        if scope is not None:
+            if scope not in ('CONDOMINIUM', 'BUILDING'):
+                raise ValueError("scope must be CONDOMINIUM or BUILDING")
+            if scope == 'CONDOMINIUM' and bid is not None:
+                raise ValueError("scope=CONDOMINIUM requires building_id=None")
+            if scope == 'BUILDING' and bid is None:
+                raise ValueError("scope=BUILDING requires building_id")
+        return self
