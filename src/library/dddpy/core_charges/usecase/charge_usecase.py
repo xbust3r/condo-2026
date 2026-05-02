@@ -164,15 +164,21 @@ class ChargeUseCase:
 
     @staticmethod
     def _validate_effective_scope(scope: str, unit_id, building_id) -> None:
-        """Validate that scope + FK combination is not hybrid."""
+        """Validate that scope + FK combination is valid (required FKs present, prohibited FKs absent)."""
         valid_scopes = {"unit", "building", "condominium"}
         if scope not in valid_scopes:
             raise ValueError(f"scope must be one of: {', '.join(sorted(valid_scopes))}")
-        if scope == "unit" and building_id is not None:
-            raise ValueError("building_id must be null when scope=unit")
-        if scope == "building" and unit_id is not None:
-            raise ValueError("unit_id must be null when scope=building")
-        if scope == "condominium":
+        if scope == "unit":
+            if unit_id is None:
+                raise ValueError("unit_id is required when scope=unit")
+            if building_id is not None:
+                raise ValueError("building_id must be null when scope=unit")
+        elif scope == "building":
+            if building_id is None:
+                raise ValueError("building_id is required when scope=building")
+            if unit_id is not None:
+                raise ValueError("unit_id must be null when scope=building")
+        elif scope == "condominium":
             if unit_id is not None or building_id is not None:
                 raise ValueError("unit_id and building_id must be null when scope=condominium")
 

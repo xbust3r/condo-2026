@@ -92,10 +92,16 @@ class UpdateChargeSchema(BaseModel):
 
         # If scope is being set in this request, validate FK consistency
         if self.scope is not None:
-            if self.scope == "unit" and not self.clear_building_id and self.building_id is not None:
-                raise ValueError("building_id must be null when scope=unit. Set clear_building_id=true or omit building_id.")
-            if self.scope == "building" and not self.clear_unit_id and self.unit_id is not None:
-                raise ValueError("unit_id must be null when scope=building. Set clear_unit_id=true or omit unit_id.")
+            if self.scope == "unit":
+                if self.clear_unit_id:
+                    raise ValueError("cannot clear unit_id when scope=unit")
+                if self.clear_building_id is False and self.building_id is not None:
+                    raise ValueError("building_id must be null when scope=unit. Set clear_building_id=true or omit building_id.")
+            if self.scope == "building":
+                if self.clear_building_id:
+                    raise ValueError("cannot clear building_id when scope=building")
+                if self.clear_unit_id is False and self.unit_id is not None:
+                    raise ValueError("unit_id must be null when scope=building. Set clear_unit_id=true or omit unit_id.")
             if self.scope == "condominium":
                 if not self.clear_unit_id and self.unit_id is not None:
                     raise ValueError("unit_id must be null when scope=condominium. Set clear_unit_id=true or omit unit_id.")
