@@ -96,12 +96,9 @@ class ARUseCase:
         if charge_entity.status != "active":
             raise ValueError("Only active charges can generate AR")
 
-        # Only batch-generate for building/condominium scopes
-        if charge_entity.scope not in ("building", "condominium"):
-            raise ValueError(
-                f"Batch generation only supported for building/condominium scopes, "
-                f"got scope='{charge_entity.scope}'"
-            )
+        # Validate scope is supported
+        if charge_entity.scope not in ("unit", "building", "condominium"):
+            raise ValueError(f"Unknown scope: '{charge_entity.scope}'")
 
         from decimal import Decimal
 
@@ -212,6 +209,142 @@ class ARUseCase:
             return ownerships[0].user_id
 
         return None
+
+    # ── Recurrence ───────────────────────────────────────────────────────
+
+    def generate_recurring(self, charge_id: int, due_date=None, up_to_month: Optional[str] = None):
+        """
+        FIN-11: Generate ARs for a recurrent charge across all periods
+        from start_date to end_date (or current month if end_date is null).
+
+        The pipeline decides HOW to generate (proration, debtor, idempotency);
+        this method only decides WHEN to fire — one invocation per period.
+
+        Args:
+            charge_id: The recurrent charge to process
+            due_date: Optional override for AR due_date (defaults to last day of period)
+            up_to_month: Optional 'YYYY-MM' cap (defaults to current month)
+
+        Returns:
+            Aggregated response with per-period results
+        """
+        logger.add_inside_method("generate_recurring")
+
+        from datetime import date, timedelta
+        from calendar import monthrange
+
+        from library.dddpy.core_charges.infrastructure.charge_query_repository import (
+            ChargeQueryRepositoryImpl,
+        )
+        charge_repo = ChargeQueryRepositoryImpl()
+        charge_entity = charge_repo.get_by_id(charge_id)
+        if not charge_entity:
+            raise ARNotFound(f"Charge id={charge_id} not found")
+
+        if not charge_entity.is_recurrent:
+            raise ValueError(f"Charge id={charge_id} is not recurrent")
+
+        if charge_entity.status != "active":
+            raise ValueError("Only active charges can generate AR")
+
+        if not charge_entity.period_pattern:
+            raise ValueError("Recurrent charge requires period_pattern")
+
+        # Compute periods from start_date to end_date (or current month)
+        periods = self._compute_periods(
+            start_date=charge_entity.start_date,
+            end_date=charge_entity.end_date,
+            up_to_month=up_to_month,
+        )
+
+        logger.info(
+            f"Generating recurring ARs for charge id={charge_id} "
+            f"across {len(periods)} periods: {periods[0]} → {periods[-1]}"
+        )
+
+        results = []
+        total_created = 0
+        total_skipped_duplicate = 0
+        total_skipped_no_debtor = 0
+
+        for period in periods:
+            # Compute due_date: last day of the period month
+            year, month = int(period[:4]), int(period[5:7])
+            _, last_day = monthrange(year, month)
+            period_due_date = due_date or date(year, month, last_day)
+
+            try:
+                result = self.generate_from_charge(
+                    charge_id=charge_id,
+                    due_date=period_due_date,
+                    period=period,
+                )
+                data = result.data
+                total_created += data.get("ar_count", 0)
+                total_skipped_duplicate += data.get("skipped_duplicate", 0)
+                total_skipped_no_debtor += data.get("skipped_no_debtor", 0)
+                results.append({
+                    "period": period,
+                    "status": "generated",
+                    "ar_count": data.get("ar_count", 0),
+                    "skipped_duplicate": data.get("skipped_duplicate", 0),
+                    "skipped_no_debtor": data.get("skipped_no_debtor", 0),
+                })
+            except ValueError as e:
+                # Period where all units were skipped (no debtor, etc.) — not fatal
+                logger.warning(f"Period {period}: {e}")
+                results.append({
+                    "period": period,
+                    "status": "skipped",
+                    "reason": str(e),
+                })
+
+        return ResponseSuccessSchema(
+            success=True,
+            message=ARSuccessMessage.CREATED,
+            data={
+                "charge_id": charge_id,
+                "periods_processed": len(periods),
+                "periods_with_ar": len([r for r in results if r["status"] == "generated"]),
+                "total_ar_created": total_created,
+                "total_skipped_duplicate": total_skipped_duplicate,
+                "total_skipped_no_debtor": total_skipped_no_debtor,
+                "periods": results,
+            },
+        )
+
+    @staticmethod
+    def _compute_periods(
+        start_date,
+        end_date,
+        up_to_month: Optional[str] = None,
+    ):
+        """
+        Compute all 'YYYY-MM' periods from start_date to end_date.
+        If end_date is None, goes up to up_to_month (defaults to current month).
+        """
+        from datetime import date
+
+        # Determine end boundary
+        if end_date:
+            end_year, end_month = end_date.year, end_date.month
+        elif up_to_month:
+            end_year, end_month = int(up_to_month[:4]), int(up_to_month[5:7])
+        else:
+            today = date.today()
+            end_year, end_month = today.year, today.month
+
+        periods = []
+        year, month = start_date.year, start_date.month
+
+        while (year < end_year) or (year == end_year and month <= end_month):
+            periods.append(f"{year:04d}-{month:02d}")
+            month += 1
+            if month > 12:
+                month = 1
+                year += 1
+
+        return periods
 
     # ── Read ────────────────────────────────────────────────────────────────
 
