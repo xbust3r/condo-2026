@@ -66,8 +66,10 @@ def upgrade() -> None:
     )
 
     # 3. Make scope and distribution_mode NOT NULL now that data is backfilled
-    op.alter_column('core_charges', 'scope', nullable=False)
-    op.alter_column('core_charges', 'distribution_mode', nullable=False,
+    op.alter_column('core_charges', 'scope',
+                    existing_type=sa.String(20), nullable=False)
+    op.alter_column('core_charges', 'distribution_mode',
+                    existing_type=sa.String(40), nullable=False,
                     server_default='fixed_unit_amount')
 
     # 4. Indexes

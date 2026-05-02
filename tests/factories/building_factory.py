@@ -9,6 +9,7 @@ from decimal import Decimal
 from sqlalchemy.orm import Session
 
 from library.dddpy.core_buildings.infrastructure.dbbuildings import DBBuildings
+from sqlalchemy import func
 
 
 class BuildingFactory:
@@ -62,6 +63,7 @@ class BuildingFactory:
             basements_count=basements_count if basements_count is not None else 2,
             units_planned=units_planned if units_planned is not None else 20,
             sort_order=sort_order if sort_order is not None else 1,
+            updated_at=kwargs.get("updated_at", func.now()),
             status=status,
         )
         session.add(db_building)

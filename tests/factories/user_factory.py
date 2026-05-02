@@ -9,6 +9,7 @@ import hashlib
 from sqlalchemy.orm import Session
 
 from library.dddpy.core_users.infrastructure.dbuser import DBUser
+from sqlalchemy import func
 
 
 class UserFactory:
@@ -41,6 +42,7 @@ class UserFactory:
             email=email,
             password_hash=UserFactory._hash_password(password),
             status=status,
+            updated_at=kwargs.get("updated_at", func.now()),
             email_verified_at=kwargs.get("email_verified_at"),
             last_login_at=kwargs.get("last_login_at"),
             failed_login_attempts=kwargs.get("failed_login_attempts", 0),

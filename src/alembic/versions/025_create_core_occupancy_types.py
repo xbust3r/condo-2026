@@ -105,8 +105,9 @@ def upgrade() -> None:
                    ['scope', 'condominium_id', 'code'], unique=True)
 
     # Seed base system types
+    conn = op.get_bind()
     for t in OCCUPANCY_TYPES_SEED:
-        op.execute(
+        conn.execute(
             text("""
                 INSERT INTO core_occupancy_types
                     (uuid, code, name, description, scope, condominium_id,

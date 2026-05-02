@@ -9,6 +9,7 @@ from decimal import Decimal
 from sqlalchemy.orm import Session
 
 from library.dddpy.core_condominiums.infrastructure.dbcondominiums import DBCondominiums
+from sqlalchemy import func
 
 
 class CondoFactory:
@@ -51,6 +52,7 @@ class CondoFactory:
             country=country or "Perú",
             contact_email=contact_email,
             document_number=document_number,
+            updated_at=kwargs.get("updated_at", func.now()),
             status=kwargs.get("status", 1),
         )
         session.add(db_condo)

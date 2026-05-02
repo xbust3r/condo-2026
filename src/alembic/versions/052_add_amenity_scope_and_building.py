@@ -18,7 +18,7 @@ import sqlalchemy as sa
 revision: str = '052_add_amenity_scope_and_building'
 down_revision: Union[str, None] = '051_add_charge_scope_distribution'
 branch_labels: Union[str, Sequence[str], None] = None
-depends_on: Union[str, Sequence[str], None] = None
+depends_on: Union[str, Sequence[str], None] = ['036_create_core_amenities']
 
 
 def upgrade() -> None:
@@ -62,7 +62,8 @@ def upgrade() -> None:
     """))
 
     # 4. Remove server_default now that backfill is done (avoid future ambiguity)
-    op.alter_column('core_amenities', 'scope', server_default=None)
+    op.alter_column('core_amenities', 'scope',
+                    existing_type=sa.String(20), server_default=None)
 
     # 5. Add composite index for scope-aware lookups
     op.create_index(

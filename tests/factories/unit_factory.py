@@ -8,6 +8,7 @@ from decimal import Decimal
 from sqlalchemy.orm import Session
 
 from library.dddpy.core_units.infrastructure.dbunits import DBUnits
+from sqlalchemy import func
 
 
 class UnitFactory:
@@ -60,6 +61,7 @@ class UnitFactory:
             floor_label=floor_label or f"Floor {floor_number or 1}",
             occupancy_status=occupancy_status,
             sort_order=sort_order if sort_order is not None else 10,
+            updated_at=kwargs.get("updated_at", func.now()),
             status=status,
         )
         session.add(db_unit)

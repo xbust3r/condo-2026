@@ -31,7 +31,7 @@ def upgrade() -> None:
     if not _table_exists('core_resident_profiles'):
         op.create_table(
             'core_resident_profiles',
-            sa.Column('id', sa.BigInteger(), autoincrement=True, nullable=False),
+            sa.Column('id', sa.BigInteger(), primary_key=True, autoincrement=True, nullable=False),
             sa.Column('uuid', sa.String(36), nullable=False, unique=True),
             sa.Column('user_id', sa.BigInteger(), nullable=False),
             sa.Column('condominium_id', sa.BigInteger(), nullable=False),

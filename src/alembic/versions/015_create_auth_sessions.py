@@ -42,7 +42,7 @@ def upgrade() -> None:
             'auth_sessions',
             sa.Column('id', sa.BigInteger(), autoincrement=True, nullable=False),
             sa.Column('uuid', sa.String(36), nullable=False, server_default=sa.text('(UUID())')),
-            sa.Column('user_id', sa.BigInteger(), nullable=False, index=True),
+            sa.Column('user_id', sa.BigInteger(), nullable=False),
             sa.Column('refresh_token_hash', sa.String(255), nullable=False),
             sa.Column('user_agent', sa.String(500), nullable=True),
             sa.Column('ip_address', sa.String(45), nullable=True),
@@ -62,7 +62,7 @@ def upgrade() -> None:
                 name='fk_auth_sessions_user',
                 ondelete='CASCADE',
             ),
-            sa.Index('ix_auth_sessions_user_id', 'user_id'),
+
             sa.Index('ix_auth_sessions_refresh_hash', 'refresh_token_hash'),
         )
 

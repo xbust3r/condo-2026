@@ -54,7 +54,7 @@ def upgrade() -> None:
         sa.text("""
             SELECT UPDATE_RULE
             FROM information_schema.REFERENTIAL_CONSTRAINTS
-            WHERE TABLE_SCHEMA = DATABASE()
+            WHERE CONSTRAINT_SCHEMA = DATABASE()
               AND TABLE_NAME = 'core_buildings'
               AND CONSTRAINT_NAME = :fk_name
             LIMIT 1

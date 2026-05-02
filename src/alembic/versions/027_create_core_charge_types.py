@@ -86,8 +86,9 @@ def upgrade() -> None:
     op.create_index('ix_charge_types_code', 'core_charge_types', ['code'], unique=True)
 
     # Seed base system types
+    conn = op.get_bind()
     for t in CHARGE_TYPES_SEED:
-        op.execute(
+        conn.execute(
             text("""
                 INSERT INTO core_charge_types
                     (uuid, code, name, description, is_global, is_active, sort_order)

@@ -61,6 +61,19 @@ def _create_test_database():
         conn.execute(text(f"CREATE DATABASE IF NOT EXISTS {DB_NAME}"))
         conn.commit()
     init_engine.dispose()
+    # Pre-create alembic_version with VARCHAR(64) to avoid truncation
+    # Alembic defaults to VARCHAR(32) but revision IDs like
+    # '050_add_user_profile_extra_fields' exceed 32 chars.
+    db_engine = create_engine(TEST_DATABASE_URL, echo=False)
+    with db_engine.connect() as conn:
+        conn.execute(text(
+            "CREATE TABLE IF NOT EXISTS alembic_version ("
+            "  version_num VARCHAR(64) NOT NULL, "
+            "  PRIMARY KEY (version_num)"
+            ") ENGINE=InnoDB"
+        ))
+        conn.commit()
+    db_engine.dispose()
 
 
 def _run_alembic_migrations():
