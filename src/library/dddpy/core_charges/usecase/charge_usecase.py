@@ -126,6 +126,17 @@ class ChargeUseCase:
         if not existing:
             raise ChargeNotFound()
 
+        # Domain-level scope consistency: validate that the resulting state
+        # (existing + patch) won't produce a hybrid invalid state.
+        eff_scope = data.scope if data.scope is not None else existing.scope
+        eff_unit_id = data.unit_id if data.unit_id is not None else (
+            None if data.clear_unit_id else existing.unit_id
+        )
+        eff_building_id = data.building_id if data.building_id is not None else (
+            None if data.clear_building_id else existing.building_id
+        )
+        self._validate_effective_scope(eff_scope, eff_unit_id, eff_building_id)
+
         from library.dddpy.core_charges.domain.charge_data import UpdateChargeData
         from decimal import Decimal
 
@@ -133,6 +144,8 @@ class ChargeUseCase:
             scope=data.scope,
             unit_id=data.unit_id,
             building_id=data.building_id,
+            clear_unit_id=data.clear_unit_id,
+            clear_building_id=data.clear_building_id,
             distribution_mode=data.distribution_mode,
             description=data.description,
             amount=Decimal(str(data.amount)) if data.amount is not None else None,
@@ -148,6 +161,20 @@ class ChargeUseCase:
             message=ChargeSuccessMessage.UPDATED,
             data=entity.to_dict(),
         )
+
+    @staticmethod
+    def _validate_effective_scope(scope: str, unit_id, building_id) -> None:
+        """Validate that scope + FK combination is not hybrid."""
+        valid_scopes = {"unit", "building", "condominium"}
+        if scope not in valid_scopes:
+            raise ValueError(f"scope must be one of: {', '.join(sorted(valid_scopes))}")
+        if scope == "unit" and building_id is not None:
+            raise ValueError("building_id must be null when scope=unit")
+        if scope == "building" and unit_id is not None:
+            raise ValueError("unit_id must be null when scope=building")
+        if scope == "condominium":
+            if unit_id is not None or building_id is not None:
+                raise ValueError("unit_id and building_id must be null when scope=condominium")
 
     # ── Delete / Restore ─────────────────────────────────────────────────
 

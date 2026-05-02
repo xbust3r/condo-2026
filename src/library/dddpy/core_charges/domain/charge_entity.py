@@ -87,6 +87,17 @@ class ChargeEntity:
             raise ValueError(
                 f"distribution_mode must be one of: {', '.join(sorted(self.VALID_DISTRIBUTION_MODES))}"
             )
+        # Scope-FK consistency: no hybrid states
+        if self.scope == "unit" and self.building_id is not None:
+            raise ValueError("building_id must be null when scope=unit")
+        if self.scope == "building" and self.unit_id is not None:
+            raise ValueError("unit_id must be null when scope=building")
+        if self.scope == "condominium" and (
+            self.unit_id is not None or self.building_id is not None
+        ):
+            raise ValueError(
+                "unit_id and building_id must be null when scope=condominium"
+            )
         if self.amount <= 0:
             raise ValueError("amount must be > 0")
         if self.end_date is not None and self.end_date < self.start_date:

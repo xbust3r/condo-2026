@@ -72,6 +72,24 @@ class ChargeCmdRepositoryImpl(ChargeCmdRepository):
                 db_c.building_id = data.building_id
             if data.distribution_mode is not None:
                 db_c.distribution_mode = data.distribution_mode
+
+            # Explicit clear flags (for FK cleanup without scope change)
+            if data.clear_unit_id:
+                db_c.unit_id = None
+            if data.clear_building_id:
+                db_c.building_id = None
+
+            # Scope-driven FK cleanup: when scope changes, auto-clear FKs
+            # that don't belong to the new scope
+            if data.scope is not None:
+                if data.scope == "unit":
+                    db_c.building_id = None
+                elif data.scope == "building":
+                    db_c.unit_id = None
+                elif data.scope == "condominium":
+                    db_c.unit_id = None
+                    db_c.building_id = None
+
             if data.description is not None:
                 db_c.description = data.description
             if data.amount is not None:

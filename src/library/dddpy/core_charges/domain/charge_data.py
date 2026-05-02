@@ -28,13 +28,20 @@ class CreateChargeData:
 
 @dataclass(frozen=True)
 class UpdateChargeData:
-    """Data required to update a charge."""
+    """Data required to update a charge.
+    
+    For scope changes, the caller should set the new scope and the
+    repository will auto-clear FKs that don't apply to the new scope.
+    To explicitly clear a FK without a scope change, use clear_unit_id / clear_building_id.
+    """
     description: Optional[str] = None
     amount: Optional[Decimal] = None
     distribution_mode: Optional[str] = None
     scope: Optional[str] = None
     unit_id: Optional[int] = None
     building_id: Optional[int] = None
+    clear_unit_id: bool = False
+    clear_building_id: bool = False
     is_recurrent: Optional[bool] = None
     period_pattern: Optional[str] = None
     start_date: Optional[date] = None

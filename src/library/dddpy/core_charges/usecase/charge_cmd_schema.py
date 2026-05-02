@@ -68,9 +68,11 @@ class UpdateChargeSchema(BaseModel):
     description: Optional[str] = Field(None)
     amount: Optional[float] = Field(None, gt=0)
     scope: Optional[str] = Field(None, description="Scope: unit | building | condominium")
-    unit_id: Optional[int] = Field(None)
-    building_id: Optional[int] = Field(None)
+    unit_id: Optional[int] = Field(None, description="Unit ID (set to override; clear_unit_id=True to null)")
+    building_id: Optional[int] = Field(None, description="Building ID (set to override; clear_building_id=True to null)")
     distribution_mode: Optional[str] = Field(None)
+    clear_unit_id: bool = Field(False, description="Explicitly set unit_id to null")
+    clear_building_id: bool = Field(False, description="Explicitly set building_id to null")
     is_recurrent: Optional[bool] = Field(None)
     period_pattern: Optional[str] = Field(None, max_length=7, pattern=r"^\d{4}-\d{2}$")
     start_date: Optional[date] = Field(None)
@@ -79,9 +81,25 @@ class UpdateChargeSchema(BaseModel):
 
     @model_validator(mode="after")
     def validate_scope_consistency(self):
-        """Validate scope consistency only when scope is being updated."""
+        """Validate scope consistency. When scope is provided, check it doesn't conflict
+        with unit_id/building_id also provided in the same request."""
         if self.scope is not None and self.scope not in VALID_SCOPES:
             raise ValueError(f"scope must be one of: {', '.join(sorted(VALID_SCOPES))}")
         if self.distribution_mode is not None and self.distribution_mode not in VALID_DISTRIBUTION_MODES:
-            raise ValueError(f"distribution_mode must be one of: {', '.join(sorted(VALID_DISTRIBUTION_MODES))}")
+            raise ValueError(
+                f"distribution_mode must be one of: {', '.join(sorted(VALID_DISTRIBUTION_MODES))}"
+            )
+
+        # If scope is being set in this request, validate FK consistency
+        if self.scope is not None:
+            if self.scope == "unit" and not self.clear_building_id and self.building_id is not None:
+                raise ValueError("building_id must be null when scope=unit. Set clear_building_id=true or omit building_id.")
+            if self.scope == "building" and not self.clear_unit_id and self.unit_id is not None:
+                raise ValueError("unit_id must be null when scope=building. Set clear_unit_id=true or omit unit_id.")
+            if self.scope == "condominium":
+                if not self.clear_unit_id and self.unit_id is not None:
+                    raise ValueError("unit_id must be null when scope=condominium. Set clear_unit_id=true or omit unit_id.")
+                if not self.clear_building_id and self.building_id is not None:
+                    raise ValueError("building_id must be null when scope=condominium. Set clear_building_id=true or omit building_id.")
+
         return self
