@@ -69,7 +69,10 @@ class ChargeUseCase:
         cmd_data = CreateChargeData(
             condominium_id=data.condominium_id,
             charge_type_id=data.charge_type_id,
+            scope=data.scope,
             unit_id=data.unit_id,
+            building_id=data.building_id,
+            distribution_mode=data.distribution_mode,
             description=data.description,
             amount=Decimal(str(data.amount)),
             currency=data.currency,
@@ -81,12 +84,13 @@ class ChargeUseCase:
         )
         entity = self._cmd.create(cmd_data)
         message = ChargeSuccessMessage.CREATED
+        needs_ar = data.is_recurrent and data.scope in ("building", "condominium")
         return ResponseSuccessSchema(
             success=True,
             message=message,
             data={
                 "charge": entity.to_dict(),
-                "ar_generation_needed": data.is_recurrent and entity.is_global(),
+                "ar_generation_needed": needs_ar,
             },
         )
 
@@ -126,6 +130,10 @@ class ChargeUseCase:
         from decimal import Decimal
 
         cmd_data = UpdateChargeData(
+            scope=data.scope,
+            unit_id=data.unit_id,
+            building_id=data.building_id,
+            distribution_mode=data.distribution_mode,
             description=data.description,
             amount=Decimal(str(data.amount)) if data.amount is not None else None,
             is_recurrent=data.is_recurrent,

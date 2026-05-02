@@ -37,7 +37,10 @@ class ChargeCmdRepositoryImpl(ChargeCmdRepository):
                 uuid=str(uuid_lib.uuid4()),
                 condominium_id=data.condominium_id,
                 charge_type_id=data.charge_type_id,
+                scope=data.scope,
                 unit_id=data.unit_id,
+                building_id=data.building_id,
+                distribution_mode=data.distribution_mode,
                 description=data.description,
                 amount=data.amount,
                 currency=data.currency,
@@ -61,6 +64,14 @@ class ChargeCmdRepositoryImpl(ChargeCmdRepository):
                 logger.warning(f"Charge not found for update id={id}")
                 return None
 
+            if data.scope is not None:
+                db_c.scope = data.scope
+            if data.unit_id is not None:
+                db_c.unit_id = data.unit_id
+            if data.building_id is not None:
+                db_c.building_id = data.building_id
+            if data.distribution_mode is not None:
+                db_c.distribution_mode = data.distribution_mode
             if data.description is not None:
                 db_c.description = data.description
             if data.amount is not None:
