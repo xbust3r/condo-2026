@@ -197,12 +197,12 @@ def db_session():
 
 # ── Test data registry ───────────────────────────────────────────────────────
 
-class TestDataRegistry:
+class DataRegistry:
     """
     Tracks records created during a test for debugging and cleanup.
 
     Usage:
-        registry = TestDataRegistry()
+        registry = DataRegistry()
         registry.register("core_condominiums", condo.id, condo.uuid)
         registry.register("core_buildings", bldg.id, bldg.uuid)
         yield registry
@@ -228,8 +228,8 @@ class TestDataRegistry:
 
 @pytest.fixture
 def test_data_registry(db_session):
-    """Fixture that provides a clean TestDataRegistry per test."""
-    registry = TestDataRegistry()
+    """Fixture that provides a clean DataRegistry per test."""
+    registry = DataRegistry()
     yield registry
     registry.clear()
 

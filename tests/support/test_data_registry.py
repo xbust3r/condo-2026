@@ -22,11 +22,14 @@ import json
 from typing import Optional
 
 
-class TestDataRegistry:
+class DataRegistry:
     """
     Tracks records created during a test for debugging and cleanup.
 
     Tables are grouped by name, each record stores id + optional uuid.
+    
+    Note: named DataRegistry (not TestDataRegistry) to avoid pytest
+    collecting it as a test class.
     """
 
     def __init__(self):

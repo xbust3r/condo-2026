@@ -2,7 +2,7 @@
 Scenario Builder — creates complete test data graphs.
 
 Each scenario method returns a dict with all created entities/IDs,
-which is then registered in TestDataRegistry for cleanup/debugging.
+which is then registered in DataRegistry for cleanup/debugging.
 
 Usage:
     scenario = create_full_condo_scenario(session, condo_name="Las Lomas")
