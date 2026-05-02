@@ -157,6 +157,17 @@ verify_network:
 	    (docker network create ${DOCKER_NETWORK});\
 	fi
 
+test: ## run all tests (unit + integration)
+	@docker run --rm -u ${UID_LOCAL}:${GID_LOCAL} -t \
+			--net ${DOCKER_NETWORK} \
+			-v $$PWD:/app \
+			-v $$HOME/.ssh:/home/${USERNAME_LOCAL}/.ssh \
+			-v $$HOME/.aws:/home/${USERNAME_LOCAL}/.aws \
+			-e AWS_DEFAULT_REGION=${DEPLOY_REGION} \
+			-e PYTHONPATH=src \
+			-e MYSQL_HOST=${MYSQL_HOST} \
+			${IMAGE_CLI} python3 -m pytest tests/ -q
+
 help:
 	@printf "\033[31m%-16s %-59s %s\033[0m\n" "Target" "Help" "Usage"; \
 	printf "\033[31m%-16s %-59s %s\033[0m\n" "------" "----" "-----"; \
