@@ -1,4 +1,4 @@
-from sqlalchemy import Column, BigInteger, String, Text, DECIMAL, Integer, DateTime, func
+from sqlalchemy import Column, BigInteger, String, Text, DECIMAL, Integer, DateTime, JSON, func
 from library.dddpy.shared.mysql.base import Base
 
 
@@ -22,6 +22,7 @@ class DBCondominiums(Base):
     contact_phone = Column(String(50), nullable=True)
     status = Column(Integer, nullable=False, server_default='1')
     theme_id = Column(String(100), nullable=True)
+    amenity_settings = Column("amenity_settings", JSON, nullable=True)
     created_at = Column(DateTime, nullable=False, server_default=func.now())
     updated_at = Column(DateTime, nullable=False, server_default=func.now(), onupdate=func.now())
     deleted_at = Column(DateTime, nullable=True)

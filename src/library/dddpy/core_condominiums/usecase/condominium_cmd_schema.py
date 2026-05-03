@@ -1,6 +1,5 @@
-from typing import Optional
+from typing import Optional, Dict, Any
 from pydantic import BaseModel, Field, EmailStr
-from typing import Optional
 from decimal import Decimal
 from enum import Enum
 
@@ -25,6 +24,7 @@ class CreateCondominiumSchema(BaseModel):
     contact_email: Optional[EmailStr] = Field(None)
     contact_phone: Optional[str] = Field(None, max_length=50)
     theme_id: Optional[str] = Field(None, max_length=100)
+    amenity_settings: Optional[Dict[str, Any]] = Field(None)
 
 
 class UpdateCondominiumSchema(BaseModel):
@@ -41,4 +41,5 @@ class UpdateCondominiumSchema(BaseModel):
     contact_email: Optional[EmailStr] = Field(None)
     contact_phone: Optional[str] = Field(None, max_length=50)
     theme_id: Optional[str] = Field(None, max_length=100)
+    amenity_settings: Optional[Dict[str, Any]] = Field(None)
     status: Optional[int] = Field(None, ge=0)

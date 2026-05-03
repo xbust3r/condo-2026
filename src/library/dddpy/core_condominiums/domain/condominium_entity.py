@@ -1,7 +1,15 @@
-from typing import Optional
-from datetime import datetime
 from typing import Optional, Dict, Any
+from datetime import datetime
 from decimal import Decimal
+
+
+# Default amenity booking settings per condominium
+DEFAULT_AMENITY_SETTINGS = {
+    "enable_amenity_booking_charges": False,
+    "include_amenity_bookings_in_receipts": False,
+    "include_amenity_bookings_in_building_balance": False,
+    "include_amenity_bookings_in_condominium_balance": False,
+}
 
 
 class CondominiumEntity:
@@ -26,6 +34,7 @@ class CondominiumEntity:
         contact_phone: Optional[str] = None,
         status: int = 1,
         theme_id: Optional[str] = None,
+        amenity_settings: Optional[Dict[str, Any]] = None,
         created_at: Optional[datetime] = None,
         updated_at: Optional[datetime] = None,
         deleted_at: Optional[datetime] = None,
@@ -47,6 +56,7 @@ class CondominiumEntity:
         self.contact_phone = contact_phone
         self.status = status
         self.theme_id = theme_id
+        self.amenity_settings = amenity_settings or dict(DEFAULT_AMENITY_SETTINGS)
         self.created_at = created_at
         self.updated_at = updated_at
         self.deleted_at = deleted_at
@@ -70,6 +80,7 @@ class CondominiumEntity:
             "contact_phone": self.contact_phone,
             "status": self.status,
             "theme_id": self.theme_id,
+            "amenity_settings": self.amenity_settings,
             "created_at": self.created_at.isoformat() if self.created_at else None,
             "updated_at": self.updated_at.isoformat() if self.updated_at else None,
             "deleted_at": self.deleted_at.isoformat() if self.deleted_at else None,

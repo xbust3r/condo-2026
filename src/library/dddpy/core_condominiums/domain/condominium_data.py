@@ -1,6 +1,5 @@
-from typing import Optional
+from typing import Optional, Dict, Any
 from dataclasses import dataclass
-from typing import Optional
 from decimal import Decimal
 
 
@@ -20,6 +19,7 @@ class CreateCondominiumData:
     contact_email: Optional[str] = None
     contact_phone: Optional[str] = None
     theme_id: Optional[str] = None
+    amenity_settings: Optional[Dict[str, Any]] = None
 
 
 @dataclass(frozen=True)
@@ -37,4 +37,5 @@ class UpdateCondominiumData:
     contact_email: Optional[str] = None
     contact_phone: Optional[str] = None
     theme_id: Optional[str] = None
+    amenity_settings: Optional[Dict[str, Any]] = None
     status: Optional[int] = None
