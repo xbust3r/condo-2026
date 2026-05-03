@@ -113,4 +113,31 @@ El dashboard actual solo tiene 4 iconos de acceso rápido + tarjeta de info del 
 
 ---
 
+## Verificación + Gaps pendientes
+
+> Documento completo: `docs/BULMA/flow-verify-planning-20260503.md`
+
+### Estado: ✅ UI completada — 🔴 Faltan endpoints de backend
+
+La implementación de Bulma es sólida — la UI funciona con fallbacks. Lo que bloquea el funcionamiento real de las tarjetas informativas son gaps en el backend.
+
+### Brechas identificadas
+
+| # | Gap | Gravedad | Responsable |
+|---|---|---|---|
+| B1 | Falta `GET /ar/user-summary?condominium_id=X` (resumen deuda por usuario) | 🔴 Alta | Backend |
+| B2 | `/announcements` response shape difiere del parsing del frontend | 🟡 Media | Backend |
+| B3 | Verificar que rol "residente" tiene `announcement.read` | 🟡 Media | Backend |
+| F1 | Quick links actuales son admin, no residente | 🟡 Media | Bulma |
+| F2 | Parsing de announcements según response real | 🟡 Baja | Bulma |
+
+### Orden de implementación
+
+1. **B1** (backend — bloquea tarjeta pagos)
+2. **B2 + B3** (backend — limpia comunicados)
+3. **F1 + F2** (frontend — solo ajuste)
+4. **Test completo** del flujo login → select → dashboard
+
+---
+
 *Misato coordina, Bulma ejecuta, Lelouch valida al cierre.*
