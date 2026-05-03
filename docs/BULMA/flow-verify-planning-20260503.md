@@ -223,7 +223,8 @@ Agregar sección de verification y gaps encontrados.
 - [x] **Backend**: Verificar que rol "residente" tiene `announcement.read` en `core_role_permissions`
 - [x] **Frontend**: Corregir quick links (sacar Residentes, Torres, Unidades — agregar Pagos, Incidencias, Visitantes, Áreas, Perfil) ✅ F1
 - [x] **Frontend**: Ajustar parsing de announcements según response real ✅ F2
-- [ ] **Frontend**: Test completo login → select-condo → dashboard (con datos reales)
+- [x] **Frontend**: Role-aware bottom navigation (admin vs resident tabs) ✅ F3
+- [x] **Frontend**: Build limpio — 15 rutas, 0 errores
 
 ---
 
