@@ -241,7 +241,9 @@ Agregar a settings/condominium config:
 - [x] Tests: 287/287 pasando con la nueva migración
 
 #### Fase 2.5 — Reporte Detallado
-- [ ] Reporte de reservas por período: por edificio, por amenity, ingresos por reserva
+- [x] Reporte de reservas por período: por edificio, por amenity, ingresos por reserva
+- [x] `GET /bookings/report` endpoint con filtros (date_from, date_to, building_id, amenity_id)
+- [x] UI: `/dashboard/bookings/report` con gráficos de summary, status, building, amenity
 
 #### Fase 2.6 — Tests Sprint 2
 - [ ] Tests de UI (si aplica)
