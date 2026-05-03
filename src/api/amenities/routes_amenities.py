@@ -59,6 +59,9 @@ def create_amenity(
         requires_approval=request.requires_approval,
         scope=request.scope,
         building_id=request.building_id,
+        booking_price=request.booking_price,
+        security_deposit_amount=request.security_deposit_amount,
+        is_reservable=request.is_reservable,
     )
     return response.dict()
 

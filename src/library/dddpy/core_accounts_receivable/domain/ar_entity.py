@@ -34,6 +34,8 @@ class AREntity:
         due_date: date = None,
         period: Optional[str] = None,
         charge_id: Optional[int] = None,
+        origin_type: Optional[str] = None,
+        origin_id: Optional[int] = None,
         created_at: Optional[datetime] = None,
         updated_at: Optional[datetime] = None,
         deleted_at: Optional[datetime] = None,
@@ -58,6 +60,8 @@ class AREntity:
         self.due_date = due_date
         self.period = period
         self.charge_id = charge_id
+        self.origin_type = origin_type
+        self.origin_id = origin_id
         self.created_at = created_at
         self.updated_at = updated_at
         self.deleted_at = deleted_at
@@ -115,6 +119,8 @@ class AREntity:
             "due_date": self.due_date.isoformat() if self.due_date else None,
             "period": self.period,
             "charge_id": self.charge_id,
+            "origin_type": self.origin_type,
+            "origin_id": self.origin_id,
             "created_at": self.created_at.isoformat() if self.created_at else None,
             "updated_at": self.updated_at.isoformat() if self.updated_at else None,
             # Enrichment

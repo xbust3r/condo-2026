@@ -42,6 +42,8 @@ class DBAR(Base):
         nullable=True,
         index=True,
     )
+    origin_type = Column(String(50), nullable=True, comment='amenity_booking_fee | amenity_security_deposit')
+    origin_id = Column(BigInteger, nullable=True, comment='FK to origin table (e.g. booking_id)')
     created_at = Column(DateTime, nullable=False, server_default=func.now())
     updated_at = Column(DateTime, nullable=False, server_default=func.now(), onupdate=func.now())
     deleted_at = Column(DateTime, nullable=True)

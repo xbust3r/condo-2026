@@ -28,6 +28,9 @@ class AmenityEntity:
         requires_approval: bool = False,
         scope: str = 'CONDOMINIUM',
         building_id: Optional[int] = None,
+        booking_price: float = 0.0,
+        security_deposit_amount: float = 0.0,
+        is_reservable: bool = False,
         status: str = 'active',
         created_at: Optional[datetime] = None,
         updated_at: Optional[datetime] = None,
@@ -47,6 +50,9 @@ class AmenityEntity:
         self.requires_approval = requires_approval
         self.scope = scope
         self.building_id = building_id
+        self.booking_price = booking_price
+        self.security_deposit_amount = security_deposit_amount
+        self.is_reservable = is_reservable
         self.status = status
         self.created_at = created_at
         self.updated_at = updated_at
@@ -65,6 +71,14 @@ class AmenityEntity:
     @property
     def scope_label(self) -> str:
         return 'General' if self.is_condominium_scope else 'Exclusiva edificio'
+
+    @property
+    def has_booking_fee(self) -> bool:
+        return self.booking_price > 0
+
+    @property
+    def has_security_deposit(self) -> bool:
+        return self.security_deposit_amount > 0
 
     def validate_scope_consistency(self) -> None:
         """Raise if scope/building_id invariants are violated."""
@@ -93,6 +107,11 @@ class AmenityEntity:
             'status': self.status,
             'created_at': self.created_at.isoformat() if self.created_at else None,
             'updated_at': self.updated_at.isoformat() if self.updated_at else None,
+            'booking_price': float(self.booking_price) if self.booking_price else 0.0,
+            'security_deposit_amount': float(self.security_deposit_amount) if self.security_deposit_amount else 0.0,
+            'is_reservable': self.is_reservable,
+            'has_booking_fee': self.has_booking_fee,
+            'has_security_deposit': self.has_security_deposit,
             'condominium_name': self.condominium_name,
             'building_name': self.building_name,
             'scope_label': self.scope_label,

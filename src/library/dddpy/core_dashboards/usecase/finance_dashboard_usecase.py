@@ -151,6 +151,9 @@ class FinanceDashboardUseCase:
                 "total_amount": float(charge_sum),
             })
 
+        # ── 5. Amenity bookings summary ──────────────────────────────────────
+        booking_summary = self._get_booking_summary(condominium_id)
+
         return {
             "condominium_id": condominium_id,
             "as_of": datetime.utcnow().isoformat() + "Z",
@@ -174,4 +177,37 @@ class FinanceDashboardUseCase:
                 "active_charge_types": len(charge_types),
                 "by_charge_type": by_charge_type,
             },
+            "amenity_bookings": booking_summary,
+        }
+
+    def _get_booking_summary(self, condominium_id: int) -> dict:
+        """Get amenity bookings summary for the dashboard."""
+        from sqlalchemy import text
+        from library.dddpy.shared.mysql.session_manager import session_scope as ss
+
+        with ss() as session:
+            result = session.execute(
+                text("""
+                    SELECT
+                        COUNT(*) AS total,
+                        SUM(CASE WHEN status = 'confirmed' THEN 1 ELSE 0 END) AS confirmed,
+                        SUM(CASE WHEN status = 'completed' THEN 1 ELSE 0 END) AS completed,
+                        COALESCE(SUM(booking_fee_amount), 0) AS total_fees,
+                        COALESCE(SUM(CASE
+                            WHEN deposit_status IN ('pending', 'paid')
+                            THEN security_deposit_amount ELSE 0
+                        END), 0) AS deposits_in_custody
+                    FROM core_amenity_bookings
+                    WHERE condominium_id = :condo_id
+                      AND deleted_at IS NULL
+                """),
+                {"condo_id": condominium_id},
+            ).fetchone()
+
+        return {
+            "total_bookings": int(result.total or 0),
+            "confirmed": int(result.confirmed or 0),
+            "completed": int(result.completed or 0),
+            "total_fees": float(result.total_fees or 0),
+            "deposits_in_custody": float(result.deposits_in_custody or 0),
         }

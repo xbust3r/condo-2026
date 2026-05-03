@@ -96,6 +96,8 @@ from api.incidents.routes_incidents import incident_routes, condominium_incident
 from api.notifications.routes_notifications import notification_routes
 from api.visitors.routes_visitors import visitor_routes, condominium_visitor_routes
 from api.amenities.routes_amenities import amenity_routes
+from api.bookings.routes_bookings import booking_routes
+from api.balances.routes_balances import balance_routes
 from api.packages.routes_packages import package_routes
 from api.residents.routes_residents import resident_routes
 from api.audit_logs.routes_audit_logs import audit_log_routes
@@ -171,6 +173,8 @@ app.include_router(notification_routes)
 app.include_router(visitor_routes)
 app.include_router(condominium_visitor_routes)
 app.include_router(amenity_routes)
+app.include_router(booking_routes)
+app.include_router(balance_routes)
 app.include_router(package_routes)
 app.include_router(resident_routes)
 app.include_router(permission_routes)

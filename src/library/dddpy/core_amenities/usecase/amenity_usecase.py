@@ -103,6 +103,9 @@ class AmenityUseCase:
         requires_approval: bool = False,
         scope: str = 'CONDOMINIUM',
         building_id: Optional[int] = None,
+        booking_price: float = 0.0,
+        security_deposit_amount: float = 0.0,
+        is_reservable: bool = False,
     ) -> ResponseSuccessSchema:
         logger.add_inside_method("create")
 
@@ -125,6 +128,9 @@ class AmenityUseCase:
             requires_approval=requires_approval,
             scope=scope,
             building_id=building_id,
+            booking_price=booking_price,
+            security_deposit_amount=security_deposit_amount,
+            is_reservable=is_reservable,
             status='active',
             created_at=datetime.utcnow(),
         )
@@ -257,6 +263,9 @@ class AmenityUseCase:
             requires_approval=request.requires_approval if request.requires_approval is not None else existing.requires_approval,
             scope=new_scope,
             building_id=new_building_id,
+            booking_price=request.booking_price if request.booking_price is not None else existing.booking_price,
+            security_deposit_amount=request.security_deposit_amount if request.security_deposit_amount is not None else existing.security_deposit_amount,
+            is_reservable=request.is_reservable if request.is_reservable is not None else existing.is_reservable,
             status=request.status if request.status is not None else existing.status,
             created_at=existing.created_at,
             updated_at=datetime.utcnow(),

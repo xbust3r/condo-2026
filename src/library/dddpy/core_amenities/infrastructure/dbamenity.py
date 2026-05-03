@@ -1,7 +1,7 @@
 """
 SQLAlchemy model for core_amenities.
 """
-from sqlalchemy import Column, BigInteger, String, Text, DateTime, Boolean, ForeignKey, Index
+from sqlalchemy import Column, BigInteger, String, Text, DateTime, Boolean, Numeric, ForeignKey, Index
 
 from library.dddpy.shared.mysql.base import Base
 
@@ -20,6 +20,9 @@ class DBAmenity(Base):
     max_capacity = Column(BigInteger, nullable=False, server_default='1')
     booking_duration_min = Column(BigInteger, nullable=False, server_default='60')
     requires_approval = Column(Boolean(), nullable=False, server_default='0')
+    booking_price = Column(Numeric(12, 2), nullable=False, server_default='0.00')
+    security_deposit_amount = Column(Numeric(12, 2), nullable=False, server_default='0.00')
+    is_reservable = Column(Boolean(), nullable=False, server_default='0')
     status = Column(String(20), nullable=False, server_default='active')
     created_at = Column(DateTime(), nullable=False, server_default='CURRENT_TIMESTAMP')
     updated_at = Column(DateTime(), nullable=True)

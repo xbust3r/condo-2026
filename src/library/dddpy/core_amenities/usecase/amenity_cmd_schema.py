@@ -20,6 +20,9 @@ class CreateAmenitySchema(BaseModel):
     requires_approval: bool = Field(False, description="Whether booking requires approval")
     scope: str = Field('CONDOMINIUM', description="Scope: CONDOMINIUM or BUILDING")
     building_id: Optional[int] = Field(None, description="Building ID (required when scope=BUILDING)")
+    booking_price: float = Field(0.0, ge=0, description="Booking price (0 = free)")
+    security_deposit_amount: float = Field(0.0, ge=0, description="Security deposit amount (0 = no deposit)")
+    is_reservable: bool = Field(False, description="Whether the amenity accepts bookings")
 
     @root_validator(skip_on_failure=True)
     def validate_scope_consistency(cls, values):
@@ -43,6 +46,9 @@ class UpdateAmenitySchema(BaseModel):
     requires_approval: Optional[bool] = Field(None)
     scope: Optional[str] = Field(None)
     building_id: Optional[int] = Field(None)
+    booking_price: Optional[float] = Field(None, ge=0)
+    security_deposit_amount: Optional[float] = Field(None, ge=0)
+    is_reservable: Optional[bool] = Field(None)
     status: Optional[str] = Field(None)
 
     @root_validator(skip_on_failure=True)
