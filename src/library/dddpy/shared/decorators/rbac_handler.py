@@ -200,10 +200,13 @@ def rbac_required(
         if scope_param:
             scope_value = _extract_int(request, scope_param)
         else:
-            # Try to infer from common params
+            # Try to infer from common params.
+            # NOTE: we intentionally exclude "id" — for GET /resource/{id}
+            # the {id} is the resource's own id, not a condominium_id.
+            # Routes where {id} actually IS a condominium_id (e.g.
+            # GET /condominiums/{id}) must pass scope_param="id" explicitly.
             scope_value = (
                 _extract_int(request, "condominium_id")
-                or _extract_int(request, "id")
                 or _extract_int(request, "unit_id")
             )
 

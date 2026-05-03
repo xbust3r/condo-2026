@@ -68,7 +68,7 @@ def list_condominiums(
 @api_handler
 def get_condominium(
     id: int,
-    user: UserIdentity = Depends(rbac_required("condominium", "read")),
+    user: UserIdentity = Depends(rbac_required("condominium", "read", "id")),
 ) -> dict:
     response = CondominiumUseCase().get_by_id(id)
     return response.dict()
@@ -101,7 +101,7 @@ def get_condominium_users(
     role_status: Optional[str] = Query(None, description="Filter roles by status (active/inactive/historical)"),
     limit: int = Query(100, ge=1, le=500),
     offset: int = Query(0, ge=0),
-    user: UserIdentity = Depends(rbac_required("condominium", "read")),
+    user: UserIdentity = Depends(rbac_required("condominium", "read", "id")),
 ) -> dict:
     """
     Get all users with an active role in a condominium.
@@ -157,7 +157,7 @@ def get_condominium_users(
 @api_handler
 def get_condominium_admins(
     id: int,
-    user: UserIdentity = Depends(rbac_required("condominium", "read")),
+    user: UserIdentity = Depends(rbac_required("condominium", "read", "id")),
 ) -> dict:
     """
     Get all users with roles in a condominium, including their profile and role details.
@@ -207,7 +207,7 @@ def get_condominium_admins(
 @api_handler
 def get_condominium_summary(
     id: int,
-    user: UserIdentity = Depends(rbac_required("condominium", "read")),
+    user: UserIdentity = Depends(rbac_required("condominium", "read", "id")),
 ) -> dict:
     """
     Consolidated summary for a condominium.
@@ -238,7 +238,7 @@ def create_condominium(
 def update_condominium(
     id: int,
     request: UpdateCondominiumSchema,
-    user: UserIdentity = Depends(rbac_required("condominium", "update")),
+    user: UserIdentity = Depends(rbac_required("condominium", "update", "id")),
 ) -> dict:
     response = CondominiumUseCase().update(id, request)
     return response.dict()
@@ -248,7 +248,7 @@ def update_condominium(
 @api_handler
 def delete_condominium(
     id: int,
-    user: UserIdentity = Depends(rbac_required("condominium", "delete")),
+    user: UserIdentity = Depends(rbac_required("condominium", "delete", "id")),
 ) -> dict:
     """Soft delete a condominium (sets deleted_at timestamp)."""
     response = CondominiumUseCase().delete(id)
@@ -259,7 +259,7 @@ def delete_condominium(
 @api_handler
 def restore_condominium(
     id: int,
-    user: UserIdentity = Depends(rbac_required("condominium", "update")),
+    user: UserIdentity = Depends(rbac_required("condominium", "update", "id")),
 ) -> dict:
     """Restore a soft-deleted condominium."""
     response = CondominiumUseCase().restore(id)
