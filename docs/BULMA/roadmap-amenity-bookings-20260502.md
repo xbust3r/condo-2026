@@ -233,8 +233,12 @@ Agregar a settings/condominium config:
 - [ ] Filtros de inclusión/exclusión según flags de configuración
 
 #### Fase 2.4 — Configuración
-- [ ] Panel de configuración por condominio: los 4 flags
-- [ ] Validación: no permitir `building=true` + `condominium=false`
+- [x] Panel de configuración por condominio: los 4 flags (`/dashboard/settings`)
+- [x] Validación: no permitir `building=true` + `condominium=false` (enforced en frontend)
+- [x] Migración 056: agregar columna `amenity_settings` JSON a `core_condominiums`
+- [x] Backend: schema, data classes, mapper, repo extendidos para `amenity_settings`
+- [x] `PUT /condominiums/{id}` acepta `amenity_settings` (partial update)
+- [x] Tests: 287/287 pasando con la nueva migración
 
 #### Fase 2.5 — Reporte Detallado
 - [ ] Reporte de reservas por período: por edificio, por amenity, ingresos por reserva
