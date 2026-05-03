@@ -216,14 +216,15 @@ Agregar a settings/condominium config:
 ### SPRINT 2 — UI Completa + Balances
 
 #### Fase 2.1 — UI Reservas
-- [ ] Página/panel de reservas de áreas comunes
-- [ ] Formulario de reserva: selector edificio → amenity → fecha/hora → unidad → propietario
-- [ ] Estados visuales: draft / confirmed / cancelled / completed
-- [ ] Gestión de garantía: badge de estado, botón devolver/aplicar
+- [x] Página/panel de reservas de áreas comunes (`/dashboard/bookings`)
+- [x] Formulario de reserva: selector edificio → amenity → fecha/hora → unidad → propietario
+- [x] Estados visuales: draft / confirmed / cancelled / completed
+- [x] Gestión de garantía: badge de estado, botón devolver/aplicar
 
 #### Fase 2.2 — Extender Amenities Admin
-- [ ] En formulario de amenity: agregar campos `booking_price` + `security_deposit_amount`
-- [ ] Listado: mostrar precio de reserva
+- [x] En formulario de amenity: agregar campos `booking_price` + `security_deposit_amount`
+- [x] Listado: mostrar precio de reserva y garantía (`/dashboard/amenities`)
+- [x] CRUD completo de amenities en condo-net (create, edit, delete con Dialog)
 
 #### Fase 2.3 — Balances
 - [ ] Balance de edificio: línea separada "Reservas de áreas comunes"
@@ -309,8 +310,8 @@ tests/test_amenity_pricing.py          # extensión de tests existentes de ameni
 - [ ] Snapshot de unit_number y owner_name guardado
 
 ### Sprint 2
-- [ ] Balance de edificio incluye reservas cuando flag activo
-- [ ] Balance condominio incluye reservas cuando flag activo
+- [x] Balance de edificio incluye reservas cuando flag activo
+- [x] Balance condominio incluye reservas cuando flag activo
 - [ ] Garantía devuelta → security_deposit_status = returned
 - [ ] Garantía aplicada → security_deposit_status = applied
 - [ ] Garantía parcialmente aplicada → status correcto
