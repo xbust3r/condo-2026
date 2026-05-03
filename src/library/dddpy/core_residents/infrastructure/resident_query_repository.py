@@ -90,8 +90,8 @@ class ResidentQueryRepositoryImpl(ResidentQueryRepository):
                     WHERE occ.user_id = :uid
                       AND occ.end_date IS NULL
                       AND v.condominium_id = :condo_id
-                      AND DATE(v.expected_at) <= :tomorrow
-                      AND v.check_in_at IS NULL
+                      AND DATE(v.expected_date) <= :tomorrow
+                      AND v.actual_checkin_at IS NULL
                       AND v.deleted_at IS NULL
                 """),
                 {"uid": user_id, "condo_id": condominium_id, "tomorrow": tomorrow},
@@ -234,7 +234,7 @@ class ResidentQueryRepositoryImpl(ResidentQueryRepository):
         with session_scope() as session:
             rows = session.execute(
                 text("""
-                    SELECT v.uuid, v.visitor_name, v.expected_at, v.status,
+                    SELECT v.uuid, v.visitor_name, v.expected_date, v.status,
                            v.access_code, u.unit_code
                     FROM core_visitors v
                     JOIN core_unit_occupancies occ ON occ.unit_id = v.unit_id
@@ -243,7 +243,7 @@ class ResidentQueryRepositoryImpl(ResidentQueryRepository):
                       AND occ.end_date IS NULL
                       AND v.condominium_id = :condo_id
                       AND v.deleted_at IS NULL
-                    ORDER BY v.expected_at DESC
+                    ORDER BY v.expected_date DESC
                     LIMIT :limit OFFSET :skip
                 """),
                 {"uid": user_id, "condo_id": condominium_id, "limit": limit, "skip": skip},

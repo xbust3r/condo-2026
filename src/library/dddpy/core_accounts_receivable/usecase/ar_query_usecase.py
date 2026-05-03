@@ -81,6 +81,9 @@ class ARQueryUseCase:
     def get_summary_by_unit(self, unit_id: int) -> dict:
         return self._repo.get_summary_by_unit(unit_id)
 
+    def get_summary_by_user(self, condominium_id: int, user_id: int) -> dict:
+        return self._repo.get_summary_by_user(condominium_id, user_id)
+
     def _get_by_id_any_status(self, id: int) -> Optional[AREntity]:
         return self._repo._get_by_id_any_status(id)
 
