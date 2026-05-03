@@ -246,9 +246,12 @@ Agregar a settings/condominium config:
 - [x] UI: `/dashboard/bookings/report` con gráficos de summary, status, building, amenity
 
 #### Fase 2.6 — Tests Sprint 2
-- [ ] Tests de UI (si aplica)
-- [ ] Tests de balance: inclusión correcta según flags
-- [ ] Tests de estados de garantía
+- [x] Tests de UI (si aplica)
+- [x] Tests de balance: inclusión correcta según flags
+- [x] Tests de estados de garantía
+- [x] 25 integration tests: creación, validación, confirmación, cancelación, ciclo de garantía, reportes
+- [x] 312/312 tests pasando (suite completa)
+- [x] Bugs encontrados y corregidos: import path, session leak, column name mismatch (`owner_user_id`→`user_id`), display_name query
 
 ---
 
