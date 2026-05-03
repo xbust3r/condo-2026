@@ -294,3 +294,39 @@ class ARQueryRepositoryImpl(ARQueryRepository):
                 DBAR.deleted_at.is_(None),
             ).first()
             return exists is not None
+
+    def get_summary_by_user(self, condominium_id: int, user_id: int) -> dict:
+        """
+        Get debt summary for a user across all their units in a condominium.
+
+        Returns dict with: is_up_to_date, pending_amount, currency, pending_count
+        """
+        from sqlalchemy import text
+        with session_scope() as session:
+            result = session.execute(
+                text("""
+                    SELECT
+                        COALESCE(SUM(ar.amount - COALESCE(ar.paid_amount, 0)), 0) AS pending_amount,
+                        COUNT(ar.id) AS pending_count
+                    FROM core_accounts_receivable ar
+                    JOIN core_units u ON u.id = ar.unit_id
+                        AND u.deleted_at IS NULL
+                    JOIN core_buildings b ON b.id = u.building_id
+                        AND b.deleted_at IS NULL
+                        AND b.condominium_id = :condo_id
+                    WHERE ar.debtor_user_id = :user_id
+                        AND ar.deleted_at IS NULL
+                        AND ar.status IN ('pending', 'partial')
+                """),
+                {"condo_id": condominium_id, "user_id": user_id},
+            ).mappings().fetchone()
+
+            pending_amount = float(result.pending_amount or 0) if result else 0.0
+            pending_count = result.pending_count or 0 if result else 0
+
+            return {
+                "is_up_to_date": pending_amount == 0,
+                "pending_amount": pending_amount,
+                "currency": "PEN",
+                "pending_count": pending_count,
+            }

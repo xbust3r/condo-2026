@@ -8,8 +8,9 @@
 #   GET    /accounts-receivable                        — list         [RBAC: ar.read]
 #   GET    /accounts-receivable/{id}                 — get          [RBAC: ar.read]
 #   GET    /accounts-receivable/uuid/{uuid}          — get          [RBAC: ar.read]
-#   GET    /accounts-receivable/unit/{unit_id}/summary — summary     [RBAC: ar.read]
-#   GET    /accounts-receivable/overdue              — overdue      [RBAC: ar.read]
+#   GET    /accounts-receivable/unit/{unit_id}/summary — summary       [RBAC: ar.read]
+#   GET    /accounts-receivable/user-summary         — user summary  [RBAC: ar.read]
+#   GET    /accounts-receivable/overdue              — overdue        [RBAC: ar.read]
 #   PUT    /accounts-receivable/{id}                 — update       [RBAC: ar.write]
 #   POST   /accounts-receivable/{id}/payment         — record       [RBAC: ar.write]
 #   DELETE /accounts-receivable/{id}                 — soft delete  [RBAC: ar.delete]
@@ -95,6 +96,17 @@ def list_ar(
         charge_id=charge_id,
         include_deleted=include_deleted,
     )
+    return response.dict()
+
+
+@ar_routes.get("/user-summary")
+@api_handler
+def get_ar_summary_by_user(
+    condominium_id: int = Query(..., description="Condominium ID"),
+    user: UserIdentity = Depends(rbac_required("ar", "read")),
+) -> dict:
+    """Get debt summary for the current user across all their units in a condominium."""
+    response = ARUseCase().get_summary_by_user(condominium_id, user.user_id)
     return response.dict()
 
 

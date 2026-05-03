@@ -526,3 +526,15 @@ class ARUseCase:
             message="AR summary retrieved",
             data=summary,
         )
+
+    def get_summary_by_user(
+        self, condominium_id: int, user_id: int
+    ) -> ResponseSuccessSchema:
+        """Get debt summary for a user across all their units in a condominium."""
+        logger.add_inside_method("get_summary_by_user")
+        summary = self._query.get_summary_by_user(condominium_id, user_id)
+        return ResponseSuccessSchema(
+            success=True,
+            message="User AR summary retrieved",
+            data=summary,
+        )

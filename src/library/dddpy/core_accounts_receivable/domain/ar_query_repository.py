@@ -66,6 +66,11 @@ class ARQueryRepository(ABC):
         pass
 
     @abstractmethod
+    def get_summary_by_user(self, condominium_id: int, user_id: int) -> dict:
+        """Get debt summary for a user across all their units in a condominium."""
+        pass
+
+    @abstractmethod
     def exists_by_charge_period_unit(
         self, charge_id: int, period: str, unit_id: int
     ) -> bool:
