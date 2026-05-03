@@ -138,7 +138,7 @@ Esto cubre **propietarios** (que tienen ownership registrado). Pero un **inquili
 
 ### Tarea abierta
 
-- [ ] **Gap inquilino:** Verificar que `payment_pending_total` cubre también a residentes sin ownership (solo occupancy). Si no — ajustar query o documentar limitaciones.
+- [x] **Gap inquilino:** ✅ Completado — `get_dashboard_summary()` ahora hace UNION de ownerships + occupancies activas con deduplicación (`set(owner_units) | set(occupancy_units)`). Occupancy vencida excluida. Documentado en `docs/BULMA/task-payment-occupancy-20260503.md`.
 
 ---
 
@@ -148,7 +148,7 @@ Esto cubre **propietarios** (que tienen ownership registrado). Pero un **inquili
 |---|---|
 | `condo-net/src/src/app/select-condo/page.tsx` | Tarjeta enriquecida |
 | `condo-net/src/src/app/dashboard/page.tsx` | Rewired a `/residents/dashboard` + quick links residente |
-| `condo-py/src/library/dddpy/core_residents/infrastructure/resident_query_repository.py` | ✅ Ya existente, sin cambios — Gap inquilino pendiente |
+| `condo-py/src/library/dddpy/core_residents/infrastructure/resident_query_repository.py` | ✅ Ajustado — UNION ownerships + occupancies activas con deduplicación |
 
 ---
 

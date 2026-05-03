@@ -123,19 +123,45 @@ class ResidentQueryRepositoryImpl(ResidentQueryRepository):
                 for r in recent_announcements_raw
             ]
 
-            # Payment summary (last 30 days pending)
-            payment_pending = session.execute(
+            # Payment summary — units via ownership OR active occupancy (deduplicated)
+            # Business rule: active tenant assumes unit obligations (debts, payments, fines).
+            # See docs/BULMA/task-payment-occupancy-20260503.md
+            owner_units = session.execute(
                 text("""
-                    SELECT COALESCE(SUM(ar.amount - ar.paid_amount), 0) AS pending
-                    FROM core_accounts_receivable ar
-                    JOIN core_unit_ownerships ow ON ow.unit_id = ar.unit_id
+                    SELECT DISTINCT ow.unit_id
+                    FROM core_unit_ownerships ow
                     WHERE ow.user_id = :uid
-                      AND ar.condominium_id = :condo_id
-                      AND ar.status NOT IN ('paid', 'cancelled')
-                      AND ar.deleted_at IS NULL
                 """),
-                {"uid": user_id, "condo_id": condominium_id},
-            ).scalar() or 0.0
+                {"uid": user_id},
+            ).scalars().all()
+
+            occupancy_units = session.execute(
+                text("""
+                    SELECT DISTINCT occ.unit_id
+                    FROM core_unit_occupancies occ
+                    WHERE occ.user_id = :uid
+                      AND occ.end_date IS NULL
+                """),
+                {"uid": user_id},
+            ).scalars().all()
+
+            # UNION with set deduplication — prevents double-counting when
+            # user is both owner and active occupant of the same unit
+            all_unit_ids = set(owner_units) | set(occupancy_units)
+
+            payment_pending = 0.0
+            if all_unit_ids:
+                payment_pending = session.execute(
+                    text("""
+                        SELECT COALESCE(SUM(ar.amount - ar.paid_amount), 0) AS pending
+                        FROM core_accounts_receivable ar
+                        WHERE ar.unit_id IN :unit_ids
+                          AND ar.condominium_id = :condo_id
+                          AND ar.status NOT IN ('paid', 'cancelled')
+                          AND ar.deleted_at IS NULL
+                    """),
+                    {"unit_ids": tuple(all_unit_ids), "condo_id": condominium_id},
+                ).scalar() or 0.0
 
             return {
                 "user_id": user_id,
