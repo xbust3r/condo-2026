@@ -6,7 +6,6 @@ Revises: 054_seed_booking_permissions
 """
 from typing import Sequence, Union
 from alembic import op
-import sqlalchemy as sa
 
 
 revision: str = '055_seed_booking_charge_types'
@@ -36,17 +35,19 @@ CHARGE_TYPES_SEED = [
 def upgrade() -> None:
     for ct in CHARGE_TYPES_SEED:
         op.execute(
-            sa.text("""
-                INSERT IGNORE INTO core_charge_types (code, name, description, is_global, sort_order)
-                VALUES (:code, :name, :description, :is_global, :sort_order)
-            """),
-            ct,
+            f"""
+            INSERT INTO core_charge_types (uuid, code, name, description, is_global, sort_order)
+            SELECT UUID(), '{ct["code"]}', '{ct["name"]}',
+                   '{ct["description"]}', {ct["is_global"]}, {ct["sort_order"]}
+            WHERE NOT EXISTS (
+                SELECT 1 FROM core_charge_types WHERE code = '{ct["code"]}'
+            )
+            """
         )
 
 
 def downgrade() -> None:
     for ct in CHARGE_TYPES_SEED:
         op.execute(
-            sa.text("DELETE FROM core_charge_types WHERE code = :code"),
-            {"code": ct["code"]},
+            f"DELETE FROM core_charge_types WHERE code = '{ct['code']}'"
         )

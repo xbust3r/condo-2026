@@ -6,7 +6,6 @@ Revises: 053_create_amenity_bookings
 """
 from typing import Sequence, Union
 from alembic import op
-import sqlalchemy as sa
 
 
 revision: str = '054_seed_booking_permissions'
@@ -33,25 +32,21 @@ BOOKING_PERMISSIONS = [
 def upgrade() -> None:
     for code, resource, action, scope_default, description in BOOKING_PERMISSIONS:
         op.execute(
-            sa.text("""
-                INSERT IGNORE INTO core_permissions (code, resource, action, scope_default, description)
-                VALUES (:code, :resource, :action, :scope_default, :description)
-            """),
-            {
-                "code": code,
-                "resource": resource,
-                "action": action,
-                "scope_default": scope_default,
-                "description": description,
-            },
+            f"""
+            INSERT INTO core_permissions (code, resource, action, scope_default, description)
+            SELECT * FROM (
+                SELECT '{code}' AS code, '{resource}' AS resource, '{action}' AS action,
+                       '{scope_default}' AS scope_default, "{description}" AS description
+            ) AS tmp
+            WHERE NOT EXISTS (
+                SELECT 1 FROM core_permissions WHERE code = '{code}'
+            )
+            """
         )
 
 
 def downgrade() -> None:
-    codes = [p[0] for p in BOOKING_PERMISSIONS]
-    op.execute(
-        sa.text(
-            f"DELETE FROM core_permissions WHERE code IN ({','.join([':c' + str(i) for i in range(len(codes))])})"
-        ),
-        {f"c{i}": code for i, code in enumerate(codes)},
-    )
+    for code, _, _, _, _ in BOOKING_PERMISSIONS:
+        op.execute(
+            f"DELETE FROM core_permissions WHERE code = '{code}'"
+        )
