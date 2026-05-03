@@ -586,3 +586,129 @@ class BookingUseCase:
             message=f"Deposit {movement_type} — {amount} applied",
             data=updated.to_dict(),
         )
+
+    # ── Report ────────────────────────────────────────────────────
+
+    def get_report(
+        self,
+        condominium_id: int,
+        building_id: Optional[int] = None,
+        amenity_id: Optional[int] = None,
+        date_from: Optional[date] = None,
+        date_to: Optional[date] = None,
+    ) -> ResponseSuccessSchema:
+        """
+        Generate a detailed booking report for a date range.
+
+        Returns:
+        - summary: total bookings, total revenue (fees), total deposits held
+        - by_status: count per status
+        - by_building: breakdown per building
+        - by_amenity: breakdown per amenity
+        """
+        from sqlalchemy import text
+
+        with session_scope() as session:
+            # Build common WHERE clause
+            wheres = ["b.condominium_id = :condo_id", "b.deleted_at IS NULL"]
+            params: dict = {"condo_id": condominium_id}
+
+            if building_id:
+                wheres.append("b.building_id = :building_id")
+                params["building_id"] = building_id
+            if amenity_id:
+                wheres.append("b.amenity_id = :amenity_id")
+                params["amenity_id"] = amenity_id
+            if date_from:
+                wheres.append("b.booking_date >= :date_from")
+                params["date_from"] = date_from
+            if date_to:
+                wheres.append("b.booking_date <= :date_to")
+                params["date_to"] = date_to
+
+            where_clause = " AND ".join(wheres)
+
+            # ── Summary ──
+            summary = session.execute(
+                text(f"""
+                    SELECT
+                        COUNT(*) AS total_bookings,
+                        COALESCE(SUM(b.booking_fee_amount), 0) AS total_fees,
+                        COALESCE(SUM(CASE WHEN b.deposit_status IN ('paid','pending')
+                            THEN b.security_deposit_amount ELSE 0 END), 0) AS deposits_held,
+                        COALESCE(SUM(CASE WHEN b.deposit_status = 'applied'
+                            THEN b.security_deposit_amount ELSE 0 END), 0) AS deposits_applied,
+                        COALESCE(SUM(CASE WHEN b.deposit_status = 'returned'
+                            THEN b.security_deposit_amount ELSE 0 END), 0) AS deposits_returned
+                    FROM core_amenity_bookings b
+                    WHERE {where_clause}
+                """),
+                params,
+            ).mappings().fetchone()
+
+            # ── By status ──
+            by_status = session.execute(
+                text(f"""
+                    SELECT b.status, COUNT(*) AS count,
+                           COALESCE(SUM(b.booking_fee_amount), 0) AS revenue
+                    FROM core_amenity_bookings b
+                    WHERE {where_clause}
+                    GROUP BY b.status
+                    ORDER BY COUNT(*) DESC
+                """),
+                params,
+            ).mappings().fetchall()
+
+            # ── By building ──
+            by_building = session.execute(
+                text(f"""
+                    SELECT
+                        b.building_id,
+                        bld.name AS building_name,
+                        COUNT(*) AS bookings,
+                        COALESCE(SUM(b.booking_fee_amount), 0) AS revenue,
+                        COALESCE(SUM(b.security_deposit_amount), 0) AS deposits
+                    FROM core_amenity_bookings b
+                    LEFT JOIN core_buildings bld ON bld.id = b.building_id
+                    WHERE {where_clause}
+                    GROUP BY b.building_id, bld.name
+                    ORDER BY revenue DESC
+                """),
+                params,
+            ).mappings().fetchall()
+
+            # ── By amenity ──
+            by_amenity = session.execute(
+                text(f"""
+                    SELECT
+                        b.amenity_id,
+                        a.name AS amenity_name,
+                        COUNT(*) AS bookings,
+                        COALESCE(SUM(b.booking_fee_amount), 0) AS revenue,
+                        COALESCE(SUM(b.security_deposit_amount), 0) AS deposits
+                    FROM core_amenity_bookings b
+                    LEFT JOIN core_amenities a ON a.id = b.amenity_id
+                    WHERE {where_clause}
+                    GROUP BY b.amenity_id, a.name
+                    ORDER BY revenue DESC
+                """),
+                params,
+            ).mappings().fetchall()
+
+        return ResponseSuccessSchema(
+            success=True,
+            message="Booking report generated",
+            data={
+                "filters": {
+                    "condominium_id": condominium_id,
+                    "building_id": building_id,
+                    "amenity_id": amenity_id,
+                    "date_from": date_from.isoformat() if date_from else None,
+                    "date_to": date_to.isoformat() if date_to else None,
+                },
+                "summary": dict(summary) if summary else {},
+                "by_status": [dict(r) for r in by_status],
+                "by_building": [dict(r) for r in by_building],
+                "by_amenity": [dict(r) for r in by_amenity],
+            },
+        )

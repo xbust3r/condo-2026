@@ -4,6 +4,7 @@ API Routes: amenity_bookings
 Endpoints:
   POST   /bookings                  — create booking  [RBAC: bookings.create]
   GET    /bookings                  — list bookings   [RBAC: bookings.read]
+  GET    /bookings/report           — booking report  [RBAC: bookings.read]
   GET    /bookings/{id}             — get booking     [RBAC: bookings.read]
   GET    /bookings/uuid/{uuid}      — get by uuid     [RBAC: bookings.read]
   PUT    /bookings/{id}             — update booking  [RBAC: bookings.update]
@@ -84,6 +85,28 @@ def list_bookings(
         skip=skip,
         limit=limit,
         include_deleted=include_deleted,
+    )
+    return response.dict()
+
+
+@booking_routes.get("/report")
+@api_handler
+def booking_report(
+    condominium_id: int = Query(..., description="Condominium ID"),
+    building_id: int = Query(None, description="Filter by building"),
+    amenity_id: int = Query(None, description="Filter by amenity"),
+    date_from: str = Query(None, description="Start date (YYYY-MM-DD)"),
+    date_to: str = Query(None, description="End date (YYYY-MM-DD)"),
+    user: UserIdentity = Depends(rbac_required("bookings", "read")),
+) -> dict:
+    """Generate detailed booking report with breakdowns."""
+    from datetime import date as date_type
+    response = BookingUseCase().get_report(
+        condominium_id=condominium_id,
+        building_id=building_id,
+        amenity_id=amenity_id,
+        date_from=date_type.fromisoformat(date_from) if date_from else None,
+        date_to=date_type.fromisoformat(date_to) if date_to else None,
     )
     return response.dict()
 
