@@ -1,5 +1,5 @@
 """Booking domain exceptions."""
-from library.dddpy.shared.exceptions.domain_exception import DomainException
+from library.dddpy.shared.decorators.domain_exception import DomainException
 
 
 class BookingNotFound(DomainException):

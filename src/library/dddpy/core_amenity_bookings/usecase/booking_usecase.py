@@ -49,20 +49,18 @@ class BookingUseCase:
             ).first()
             if not amenity:
                 raise BookingValidationError(f"Amenity id={amenity_id} not found")
+            # Load lazy attributes before session is closed by session_scope()
+            _ = (
+                amenity.is_reservable,
+                amenity.requires_approval,
+                amenity.booking_price,
+                amenity.security_deposit_amount,
+            )
+            session.expunge(amenity)
             return amenity
 
     def _validate_unit_belongs_to_building(self, unit_id: int, building_id: int):
-        from library.dddpy.core_buildings.infrastructure.dbbuildings import DBBuildings
         with session_scope() as session:
-            from library.dddpy.shared.mysql.base import Base
-            # core_units belongs to core_buildings
-            result = session.execute(
-                session.query(DBBuildings.id).filter(
-                    DBBuildings.id == building_id,
-                    DBBuildings.deleted_at.is_(None),
-                ).exists()
-            )
-            # Check unit → building relationship via core_buildings
             from sqlalchemy import text
             row = session.execute(
                 text("""
@@ -88,7 +86,7 @@ class BookingUseCase:
                 text("""
                     SELECT 1 FROM core_unit_ownerships
                     WHERE unit_id = :unit_id
-                    AND owner_user_id = :owner_id
+                    AND user_id = :owner_id
                     AND deleted_at IS NULL
                 """),
                 {"unit_id": unit_id, "owner_id": owner_id},
@@ -104,9 +102,14 @@ class BookingUseCase:
         with session_scope() as session:
             result = session.execute(
                 text("""
-                    SELECT u.code AS unit_code, u2.display_name AS owner_name
+                    SELECT u.code AS unit_code,
+                           CONCAT(COALESCE(up.first_name, ''),
+                                  IF(up.last_name IS NOT NULL, CONCAT(' ', up.last_name), ''),
+                                  IF(up.first_name IS NULL AND up.last_name IS NULL, u2.email, '')
+                           ) AS owner_name
                     FROM core_units u
                     JOIN users u2 ON u2.id = :owner_id
+                    LEFT JOIN user_profiles up ON up.user_id = u2.id
                     WHERE u.id = :unit_id AND u.deleted_at IS NULL
                 """),
                 {"unit_id": unit_id, "owner_id": owner_id},
