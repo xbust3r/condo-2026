@@ -14,6 +14,13 @@ Endpoints:
   POST   /bookings/{id}/complete    — complete        [RBAC: bookings.update]
   POST   /bookings/{id}/deposit/return   — return deposit  [RBAC: bookings.update]
   POST   /bookings/{id}/deposit/apply    — apply deposit   [RBAC: bookings.update]
+
+  B8 — Usage & Observability:
+  POST   /bookings/{id}/usage/check-in    — record check-in
+  POST   /bookings/{id}/usage/check-out   — record check-out
+  POST   /bookings/{id}/usage/no-show     — mark no-show
+  GET    /bookings/{id}/usage             — usage timeline
+  GET    /bookings/{id}/allocation-audit  — audit trail per booking
 """
 from fastapi import APIRouter, Depends, Query
 
@@ -56,6 +63,8 @@ def create_booking(
         end_at=request.end_at,
         notes=request.notes,
         created_by=user.user_id if user else None,
+        guest_count=request.guest_count,
+        idempotency_key=request.idempotency_key,
     )
     return response.dict()
 
@@ -221,3 +230,83 @@ def apply_deposit(
         notes=request.notes,
     )
     return response.dict()
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# B8 — Usage & Observability
+# ═══════════════════════════════════════════════════════════════════════
+
+from library.dddpy.core_amenity_bookings.usecase.amenity_usage_usecase import AmenityUsageUseCase
+from library.dddpy.core_amenity_bookings.usecase.usage_report_usecase import UsageReportUseCase
+from typing import Optional, List
+from datetime import date as date_type
+
+
+# ── Usage: check-in / check-out / no-show ────────────────────────────
+
+@booking_routes.post("/{id}/usage/check-in")
+@api_handler
+def usage_check_in(
+    id: int,
+    notes: Optional[str] = Query(None),
+    user: UserIdentity = Depends(rbac_required("bookings", "update")),
+) -> dict:
+    """Record a check-in event for a confirmed booking."""
+    return AmenityUsageUseCase().check_in(
+        booking_id=id,
+        recorded_by=user.user_id if user else None,
+        notes=notes,
+    )
+
+
+@booking_routes.post("/{id}/usage/check-out")
+@api_handler
+def usage_check_out(
+    id: int,
+    notes: Optional[str] = Query(None),
+    user: UserIdentity = Depends(rbac_required("bookings", "update")),
+) -> dict:
+    """Record a check-out event. Requires prior check-in."""
+    return AmenityUsageUseCase().check_out(
+        booking_id=id,
+        recorded_by=user.user_id if user else None,
+        notes=notes,
+    )
+
+
+@booking_routes.post("/{id}/usage/no-show")
+@api_handler
+def usage_no_show(
+    id: int,
+    notes: Optional[str] = Query(None),
+    user: UserIdentity = Depends(rbac_required("bookings", "update")),
+) -> dict:
+    """Mark booking as no-show. Must not have active check-in."""
+    return AmenityUsageUseCase().mark_no_show(
+        booking_id=id,
+        recorded_by=user.user_id if user else None,
+        notes=notes,
+    )
+
+
+@booking_routes.get("/{id}/usage")
+@api_handler
+def get_booking_usage(
+    id: int,
+    user: UserIdentity = Depends(rbac_required("bookings", "read")),
+) -> list:
+    """Get usage timeline for a booking."""
+    return AmenityUsageUseCase().get_booking_usage(id)
+
+
+# ── Allocation audit ─────────────────────────────────────────────────
+
+@booking_routes.get("/{id}/allocation-audit")
+@api_handler
+def booking_allocation_audit(
+    id: int,
+    limit: int = Query(50, ge=1, le=200),
+    user: UserIdentity = Depends(rbac_required("bookings", "read")),
+) -> list:
+    """Get allocation audit trail for a specific booking."""
+    return UsageReportUseCase().allocation_audit_trail(booking_id=id, limit=limit)

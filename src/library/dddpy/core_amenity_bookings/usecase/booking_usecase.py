@@ -10,7 +10,9 @@ Handles:
 import uuid as uuid_lib
 from datetime import datetime, date
 from decimal import Decimal
-from typing import Optional
+from typing import Optional, Any
+
+from sqlalchemy import text
 
 from library.dddpy.core_amenity_bookings.domain.booking_entity import BookingEntity
 from library.dddpy.core_amenity_bookings.domain.booking_exception import (
@@ -36,6 +38,7 @@ class BookingUseCase:
     def __init__(self):
         self._cmd_repo = BookingCmdRepositoryImpl()
         self._query_repo = BookingQueryRepositoryImpl()
+        self._lock_session = None  # held during named-lock scope (B5)
 
     # ── Validation helpers ───────────────────────────────────────────
 
@@ -131,6 +134,42 @@ class BookingUseCase:
                 f"booking(s) in the requested time range"
             )
 
+    def _check_unit_overlap(
+        self, amenity_id: int, unit_id: int, start_at, end_at,
+        exclude_id: Optional[int] = None,
+    ):
+        """Check that the same unit doesn't double-book the same time slot."""
+        from sqlalchemy import text
+        with session_scope() as session:
+            params = {
+                'amenity_id': amenity_id,
+                'unit_id': unit_id,
+                'start_at': start_at,
+                'end_at': end_at,
+            }
+            exclude = ''
+            if exclude_id is not None:
+                exclude = ' AND b.id != :exclude_id'
+                params['exclude_id'] = exclude_id
+            row = session.execute(
+                text(f"""
+                    SELECT COUNT(*) FROM core_amenity_bookings b
+                    WHERE b.amenity_id = :amenity_id
+                      AND b.unit_id = :unit_id
+                      AND b.status IN ('draft', 'pending_approval', 'confirmed')
+                      AND b.deleted_at IS NULL
+                      AND b.start_at < :end_at
+                      AND b.end_at > :start_at
+                      {exclude}
+                """),
+                params,
+            ).fetchone()
+            if row and row[0] > 0:
+                raise BookingOverlapError(
+                    f"Unit id={unit_id} already has {row[0]} booking(s) "
+                    f"for amenity id={amenity_id} in this time range"
+                )
+
     def _generate_ar(
         self,
         condominium_id: int,
@@ -185,30 +224,264 @@ class BookingUseCase:
         end_at: datetime,
         notes: Optional[str] = None,
         created_by: Optional[int] = None,
+        guest_count: int = 1,
+        idempotency_key: Optional[str] = None,
+        allocation_source: str = 'DIRECT',
     ) -> ResponseSuccessSchema:
         logger.add_inside_method("create")
 
-        # Validate amenity exists and is reservable
+        # ── Phase 0: Idempotency check — if key was already used, return existing (B5)
+        # Must run before any validation or lock: retries are safe by definition
+        if idempotency_key:
+            existing = self._query_repo.find_by_idempotency_key(
+                condominium_id, idempotency_key
+            )
+            if existing:
+                return ResponseSuccessSchema(
+                    success=True,
+                    message='Booking already exists (idempotent retry)',
+                    data=existing.to_dict(),
+                )
+
+        # ── Phase 1: Basic integrity ─────────────────────────────────
         amenity = self._get_amenity(amenity_id)
         if not amenity.is_reservable:
             raise BookingValidationError(f"Amenity id={amenity_id} is not reservable")
 
-        # Validate unit → building
         self._validate_unit_belongs_to_building(unit_id, building_id)
-
-        # Validate owner → unit
         self._validate_owner_belongs_to_unit(unit_id, owner_id)
 
-        # Validate no overlap
-        self._check_overlap(amenity_id, start_at, end_at)
+        # ── Acquire per-amenity lock to serialize concurrent bookings (B5) ──
+        # MySQL named lock: blocks other sessions trying to book the same amenity
+        # timeout=10s prevents indefinite deadlock; different amenities don't contend
+        lock_name = f'booking_amenity_{amenity_id}'
+        self._acquire_amenity_lock(lock_name)
+        try:
+            result = self._create_locked(
+                condominium_id=condominium_id,
+                building_id=building_id,
+                amenity_id=amenity_id,
+                unit_id=unit_id,
+                owner_id=owner_id,
+                booking_date=booking_date,
+                start_at=start_at,
+                end_at=end_at,
+                notes=notes,
+                created_by=created_by,
+                guest_count=guest_count,
+                idempotency_key=idempotency_key,
+                amenity=amenity,
+                allocation_source=allocation_source,
+            )
+        except (BookingValidationError, BookingOverlapError) as e:
+            # B7: Allocation audit — booking rejected
+            from library.dddpy.core_amenity_bookings.usecase.allocation_audit_usecase import AllocationAuditUseCase
+            try:
+                AllocationAuditUseCase().record(
+                    amenity_id=amenity_id,
+                    decision_type='BOOKING_REJECTED',
+                    decision_reason=str(e)[:255],
+                    context={
+                        'unit_id': unit_id,
+                        'owner_id': owner_id,
+                        'booking_date': booking_date.isoformat() if booking_date else None,
+                        'guest_count': guest_count,
+                    },
+                )
+            except Exception:
+                pass  # Audit failure must not block the rejection
+            raise
+        finally:
+            self._release_amenity_lock(lock_name)
 
-        # Capture snapshots
+        return result
+
+    def _acquire_amenity_lock(self, lock_name: str) -> None:
+        """Acquire MySQL named lock with 10s timeout."""
+        self._lock_session = session_scope().__enter__()
+        row = self._lock_session.execute(
+            text("SELECT GET_LOCK(:name, 10) AS acquired"),
+            {'name': lock_name},
+        ).fetchone()
+        if not row or not row[0]:
+            self._lock_session.__exit__(None, None, None)
+            self._lock_session = None
+            raise BookingValidationError(
+                f"Could not acquire lock for amenity — try again later."
+            )
+
+    def _release_amenity_lock(self, lock_name: str) -> None:
+        """Release MySQL named lock."""
+        try:
+            self._lock_session.execute(
+                text("SELECT RELEASE_LOCK(:name)"),
+                {'name': lock_name},
+            )
+        finally:
+            self._lock_session.__exit__(None, None, None)
+            self._lock_session = None
+
+    def _create_locked(
+        self,
+        condominium_id: int,
+        building_id: int,
+        amenity_id: int,
+        unit_id: int,
+        owner_id: int,
+        booking_date: date,
+        start_at: datetime,
+        end_at: datetime,
+        notes: Optional[str] = None,
+        created_by: Optional[int] = None,
+        guest_count: int = 1,
+        idempotency_key: Optional[str] = None,
+        amenity: Any = None,
+        allocation_source: str = 'DIRECT',
+    ) -> ResponseSuccessSchema:
+        logger.add_inside_method("_create_locked")
+
+        # ── Phase 2: Policy resolution + validation (B2-B4) ──────────
+        from library.dddpy.core_amenity_bookings.usecase.policy_resolver import get_policy_resolver
+        from library.dddpy.core_amenity_bookings.usecase.booking_policy_validator import BookingPolicyValidator
+
+        resolver = get_policy_resolver()
+        policy = resolver.resolve(condominium_id, amenity_id)
+        amenity_type = resolver._lookup_amenity_type(amenity_id)
+        validator = BookingPolicyValidator()
+
+        # Overlap check: depends on slot_mode from policy
+        #   DISCRETE_WINDOWS → strict: no two bookings at same time
+        #   CONTINUOUS_SLOTS → capacity handles concurrency; only block same-unit overlap
+        try:
+            if policy.slot_mode == 'DISCRETE_WINDOWS':
+                self._check_overlap(amenity_id, start_at, end_at)
+            else:
+                self._check_unit_overlap(amenity_id, unit_id, start_at, end_at)
+        except BookingOverlapError as overlap_err:
+            # B6: DISCRETE_WINDOWS overlap = slot full → route to waitlist
+            if policy.waitlist_mode and policy.waitlist_mode not in ('none', 'disabled'):
+                from library.dddpy.core_amenity_bookings.usecase.waitlist_usecase import WaitlistUseCase
+                wl_uc = WaitlistUseCase()
+                wl_snapshot = validator.build_policy_snapshot(policy)
+                wl_id = wl_uc.create_entry(
+                    amenity_id=amenity_id,
+                    unit_id=unit_id,
+                    user_id=owner_id,
+                    booking_date=booking_date,
+                    requested_start_at=start_at,
+                    requested_end_at=end_at,
+                    guest_count=guest_count,
+                    idempotency_key=idempotency_key,
+                    policy_snapshot=wl_snapshot,
+                    notes=f"Auto-waitlisted (DISCRETE_WINDOWS full): {overlap_err}",
+                )
+                return ResponseSuccessSchema(
+                    success=True,
+                    message=f"Slot occupied — added to waitlist (entry #{wl_id}). {overlap_err}",
+                    data={
+                        'waitlist_entry_id': wl_id,
+                        'status': 'waitlisted',
+                        'amenity_id': amenity_id,
+                        'booking_date': booking_date.isoformat(),
+                        'start_at': start_at.isoformat(),
+                        'end_at': end_at.isoformat(),
+                        'guest_count': guest_count,
+                    },
+                )
+            raise
+
+        passed_checks = []
+        validator.validate(
+            policy=policy,
+            condominium_id=condominium_id,
+            unit_id=unit_id,
+            owner_id=owner_id,
+            amenity_id=amenity_id,
+            amenity_type=amenity_type,
+            guest_count=guest_count,
+            booking_date=booking_date,
+            start_at=start_at,
+            end_at=end_at,
+        )
+
+        # Slot capacity check — separate from validate() because it may
+        # need to be called independently during reallocation (B5+)
+        # B6: If capacity exceeded and waitlist is enabled, insert into waitlist
+        try:
+            validator.check_slot_capacity(
+                policy=policy,
+                amenity_id=amenity_id,
+                start_at=start_at,
+                end_at=end_at,
+                guest_count=guest_count,
+            )
+        except BookingValidationError as cap_err:
+            # Slot full → try waitlist (B6)
+            if policy.waitlist_mode and policy.waitlist_mode not in ('none', 'disabled'):
+                from library.dddpy.core_amenity_bookings.usecase.waitlist_usecase import WaitlistUseCase
+                wl_uc = WaitlistUseCase()
+                wl_policy_snapshot = validator.build_policy_snapshot(policy)
+                wl_id = wl_uc.create_entry(
+                    amenity_id=amenity_id,
+                    unit_id=unit_id,
+                    user_id=owner_id,
+                    booking_date=booking_date,
+                    requested_start_at=start_at,
+                    requested_end_at=end_at,
+                    guest_count=guest_count,
+                    idempotency_key=idempotency_key,
+                    policy_snapshot=wl_policy_snapshot,
+                    notes=f"Auto-waitlisted: {cap_err}",
+                )
+                return ResponseSuccessSchema(
+                    success=True,
+                    message=f"Slot full — added to waitlist (entry #{wl_id}). {cap_err}",
+                    data={
+                        'waitlist_entry_id': wl_id,
+                        'status': 'waitlisted',
+                        'amenity_id': amenity_id,
+                        'booking_date': booking_date.isoformat(),
+                        'start_at': start_at.isoformat(),
+                        'end_at': end_at.isoformat(),
+                        'guest_count': guest_count,
+                    },
+                )
+            raise
+
+        # Build check list for audit
+        if policy.has_usage_limit():
+            passed_checks.append('period_limit')
+        if policy.has_active_limit():
+            passed_checks.append('active_limit')
+        if policy.has_guest_limit():
+            passed_checks.append('guest_limit')
+        if policy.blocked_dates:
+            passed_checks.append('blocked_dates')
+        if policy.advance_booking_days is not None:
+            passed_checks.append(f'advance_booking:{policy.advance_booking_days}d')
+        if policy.cancel_window_hours is not None:
+            passed_checks.append(f'cancel_window:{policy.cancel_window_hours}h')
+        passed_checks.append(f'eligibility:{policy.eligibility_mode}')
+        passed_checks.append(f'slot_mode:{policy.slot_mode}')
+        passed_checks.append(f'capacity:{policy.max_capacity_per_slot}')
+        if idempotency_key:
+            passed_checks.append('idempotency')
+        passed_checks.append('overlap')
+
+        # ── Phase 3: Snapshots + entity ───────────────────────────────
         unit_code, owner_name = self._get_unit_and_owner_snapshots(unit_id, owner_id)
 
-        # Determine initial status
-        initial_status = 'pending_approval' if amenity.requires_approval else 'draft'
+        # Determine initial status from policy approval_mode
+        #   auto                        → draft (never force approval)
+        #   amenity_requires_approval   → defer to amenity.requires_approval flag
+        #   admin_only                  → always pending_approval
+        if policy.approval_mode == 'admin_only':
+            initial_status = 'pending_approval'
+        elif policy.approval_mode == 'amenity_requires_approval':
+            initial_status = 'pending_approval' if amenity.requires_approval else 'draft'
+        else:
+            initial_status = 'draft'
 
-        # Determine deposit status
         deposit_status = 'not_required'
         if float(amenity.security_deposit_amount or 0) > 0:
             deposit_status = 'pending'
@@ -234,11 +507,30 @@ class BookingUseCase:
             notes=notes,
             created_by=created_by,
             created_at=datetime.utcnow(),
+            guest_count=guest_count,
+            allocation_source=allocation_source,
+            idempotency_key=idempotency_key,
+            policy_snapshot_json=validator.build_policy_snapshot(policy),
+            allocation_reason_json=validator.build_allocation_reason(policy, passed_checks),
         )
 
         booking_id = self._cmd_repo.create(entity)
         entity.id = booking_id
-        logger.info(f"Booking created id={booking_id} amenity={amenity_id} unit={unit_id}")
+        logger.info(
+            f"Booking created id={booking_id} amenity={amenity_id} unit={unit_id} "
+            f"guest_count={guest_count} policy_scope={policy.scope_level}"
+        )
+
+        # B7: Allocation audit — booking accepted
+        from library.dddpy.core_amenity_bookings.usecase.allocation_audit_usecase import AllocationAuditUseCase
+        audit_uc = AllocationAuditUseCase()
+        audit_uc.record(
+            amenity_id=amenity_id,
+            decision_type='BOOKING_ACCEPTED',
+            decision_reason=f"{policy.scope_level} policy, source={allocation_source}",
+            booking_id=booking_id,
+            context=validator.build_allocation_reason(policy, passed_checks),
+        )
 
         return ResponseSuccessSchema(
             success=True,
@@ -426,6 +718,14 @@ class BookingUseCase:
             raise BookingStatusError(
                 f"Cannot cancel booking in status '{existing.status}'"
             )
+
+        # ── Cancel window enforcement (B4) ──
+        from library.dddpy.core_amenity_bookings.usecase.policy_resolver import get_policy_resolver
+        from library.dddpy.core_amenity_bookings.usecase.booking_policy_validator import BookingPolicyValidator
+
+        policy = get_policy_resolver().resolve(existing.condominium_id, existing.amenity_id)
+        validator = BookingPolicyValidator()
+        validator.check_cancel_window(policy, existing.start_at)
 
         existing.status = 'cancelled'
         existing.notes = (existing.notes or '') + (f"\nCancel reason: {reason}" if reason else '')

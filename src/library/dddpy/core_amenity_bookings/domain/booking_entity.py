@@ -43,6 +43,13 @@ class BookingEntity:
         created_at: Optional[datetime] = None,
         updated_at: Optional[datetime] = None,
         deleted_at: Optional[datetime] = None,
+        # Policy / allocation (B1-B3)
+        guest_count: int = 1,
+        allocation_source: str = 'DIRECT',
+        waitlist_entry_id: Optional[int] = None,
+        idempotency_key: Optional[str] = None,
+        policy_snapshot_json: Optional[Dict[str, Any]] = None,
+        allocation_reason_json: Optional[Dict[str, Any]] = None,
         # Enriched
         amenity_name: Optional[str] = None,
         unit_code: Optional[str] = None,
@@ -73,6 +80,13 @@ class BookingEntity:
         self.created_at = created_at
         self.updated_at = updated_at
         self.deleted_at = deleted_at
+        # Policy / allocation
+        self.guest_count = guest_count
+        self.allocation_source = allocation_source
+        self.waitlist_entry_id = waitlist_entry_id
+        self.idempotency_key = idempotency_key
+        self.policy_snapshot_json = policy_snapshot_json
+        self.allocation_reason_json = allocation_reason_json
         # Enrichment
         self.amenity_name = amenity_name
         self.unit_code = unit_code
@@ -140,6 +154,13 @@ class BookingEntity:
             'created_by': self.created_by,
             'created_at': self.created_at.isoformat() if self.created_at else None,
             'updated_at': self.updated_at.isoformat() if self.updated_at else None,
+            # Policy / allocation
+            'guest_count': self.guest_count,
+            'allocation_source': self.allocation_source,
+            'waitlist_entry_id': self.waitlist_entry_id,
+            'idempotency_key': self.idempotency_key,
+            'policy_snapshot_json': self.policy_snapshot_json,
+            'allocation_reason_json': self.allocation_reason_json,
             # Enriched
             'amenity_name': self.amenity_name,
             'unit_code': self.unit_code,

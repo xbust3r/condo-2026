@@ -147,3 +147,70 @@ def hard_delete_amenity(
     """Permanently delete an amenity."""
     response = AmenityUseCase().hard_delete(id)
     return response.dict()
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# B8 — Observability endpoints
+# ═══════════════════════════════════════════════════════════════════════
+
+from library.dddpy.core_amenity_bookings.usecase.amenity_observability_usecase import (
+    AmenityObservabilityUseCase,
+)
+from library.dddpy.core_amenity_bookings.usecase.usage_report_usecase import UsageReportUseCase
+from typing import Optional
+from datetime import date as date_type
+
+
+@amenity_routes.get("/{id}/allocation-audit")
+@api_handler
+def amenity_allocation_audit(
+    id: int,
+    from_date: Optional[str] = Query(None, description="YYYY-MM-DD"),
+    to_date: Optional[str] = Query(None, description="YYYY-MM-DD"),
+    decision_type: Optional[str] = Query(None),
+    limit: int = Query(100, ge=1, le=500),
+    user: UserIdentity = Depends(rbac_required("amenities", "read")),
+) -> list:
+    """Get allocation audit trail for an amenity."""
+    decision_types = [decision_type] if decision_type else None
+    return UsageReportUseCase().allocation_audit_trail(
+        amenity_id=id,
+        from_date=date_type.fromisoformat(from_date) if from_date else None,
+        to_date=date_type.fromisoformat(to_date) if to_date else None,
+        decision_types=decision_types,
+        limit=limit,
+    )
+
+
+@amenity_routes.get("/{id}/usage-timeline")
+@api_handler
+def amenity_usage_timeline(
+    id: int,
+    from_date: Optional[str] = Query(None, description="YYYY-MM-DD"),
+    to_date: Optional[str] = Query(None, description="YYYY-MM-DD"),
+    limit: int = Query(100, ge=1, le=500),
+    user: UserIdentity = Depends(rbac_required("amenities", "read")),
+) -> list:
+    """Get usage timeline for an amenity."""
+    return AmenityObservabilityUseCase().usage_timeline(
+        amenity_id=id,
+        from_date=date_type.fromisoformat(from_date) if from_date else None,
+        to_date=date_type.fromisoformat(to_date) if to_date else None,
+        limit=limit,
+    )
+
+
+@amenity_routes.get("/{id}/metrics")
+@api_handler
+def amenity_metrics(
+    id: int,
+    from_date: Optional[str] = Query(None, description="YYYY-MM-DD"),
+    to_date: Optional[str] = Query(None, description="YYYY-MM-DD"),
+    user: UserIdentity = Depends(rbac_required("amenities", "read")),
+) -> dict:
+    """Get combined metrics snapshot for an amenity."""
+    return AmenityObservabilityUseCase().combined_amenity_metrics(
+        amenity_id=id,
+        from_date=date_type.fromisoformat(from_date) if from_date else None,
+        to_date=date_type.fromisoformat(to_date) if to_date else None,
+    )

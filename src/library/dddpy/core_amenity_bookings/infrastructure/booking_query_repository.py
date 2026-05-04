@@ -88,3 +88,17 @@ class BookingQueryRepositoryImpl(BookingQueryRepository):
 
             rows = query.all()
             return [BookingMapper.to_domain(row) for row in rows]
+
+    def find_by_idempotency_key(
+        self, condominium_id: int, idempotency_key: str
+    ) -> Optional[BookingEntity]:
+        """Find booking by its idempotency key (B5)."""
+        with session_scope() as session:
+            row = session.query(DBBooking).filter(
+                DBBooking.condominium_id == condominium_id,
+                DBBooking.idempotency_key == idempotency_key,
+                DBBooking.deleted_at.is_(None),
+            ).first()
+            if row:
+                return BookingMapper.to_domain(row)
+            return None

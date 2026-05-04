@@ -264,3 +264,30 @@ def restore_condominium(
     """Restore a soft-deleted condominium."""
     response = CondominiumUseCase().restore(id)
     return response.dict()
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# B8 — Amenity metrics per condominium
+# ═══════════════════════════════════════════════════════════════════════
+
+from library.dddpy.core_amenity_bookings.usecase.amenity_observability_usecase import (
+    AmenityObservabilityUseCase,
+)
+from typing import Optional
+from datetime import date as date_type
+
+
+@condominium_routes.get("/{id}/amenity-metrics")
+@api_handler
+def condominium_amenity_metrics(
+    id: int,
+    from_date: Optional[str] = Query(None, description="YYYY-MM-DD"),
+    to_date: Optional[str] = Query(None, description="YYYY-MM-DD"),
+    user: UserIdentity = Depends(rbac_required("condominium", "read")),
+) -> list:
+    """Get per-amenity metrics for the whole condominium."""
+    return AmenityObservabilityUseCase().condominium_amenity_metrics(
+        condominium_id=id,
+        from_date=date_type.fromisoformat(from_date) if from_date else None,
+        to_date=date_type.fromisoformat(to_date) if to_date else None,
+    )

@@ -37,6 +37,12 @@ class BookingMapper:
             created_at=db_row.created_at,
             updated_at=db_row.updated_at,
             deleted_at=db_row.deleted_at,
+            guest_count=db_row.guest_count or 1,
+            allocation_source=db_row.allocation_source or 'DIRECT',
+            waitlist_entry_id=db_row.waitlist_entry_id,
+            idempotency_key=db_row.idempotency_key,
+            policy_snapshot_json=db_row.policy_snapshot_json,
+            allocation_reason_json=db_row.allocation_reason_json,
         )
 
     @staticmethod

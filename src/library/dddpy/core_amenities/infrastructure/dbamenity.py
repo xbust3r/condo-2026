@@ -22,6 +22,7 @@ class DBAmenity(Base):
     requires_approval = Column(Boolean(), nullable=False, server_default='0')
     booking_price = Column(Numeric(12, 2), nullable=False, server_default='0.00')
     security_deposit_amount = Column(Numeric(12, 2), nullable=False, server_default='0.00')
+    amenity_type = Column(String(30), nullable=True)
     is_reservable = Column(Boolean(), nullable=False, server_default='0')
     status = Column(String(20), nullable=False, server_default='active')
     created_at = Column(DateTime(), nullable=False, server_default='CURRENT_TIMESTAMP')

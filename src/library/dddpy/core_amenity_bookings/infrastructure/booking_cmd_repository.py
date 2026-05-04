@@ -36,6 +36,12 @@ class BookingCmdRepositoryImpl(BookingCmdRepository):
                 created_by=entity.created_by,
                 created_at=entity.created_at or datetime.utcnow(),
                 updated_at=datetime.utcnow(),
+                guest_count=entity.guest_count,
+                allocation_source=entity.allocation_source,
+                waitlist_entry_id=entity.waitlist_entry_id,
+                idempotency_key=entity.idempotency_key,
+                policy_snapshot_json=entity.policy_snapshot_json,
+                allocation_reason_json=entity.allocation_reason_json,
             )
             session.add(db_booking)
             session.flush()
@@ -58,6 +64,11 @@ class BookingCmdRepositoryImpl(BookingCmdRepository):
             db_booking.notes = entity.notes
             db_booking.start_at = entity.start_at
             db_booking.end_at = entity.end_at
+            db_booking.guest_count = entity.guest_count
+            db_booking.allocation_source = entity.allocation_source
+            db_booking.idempotency_key = entity.idempotency_key
+            db_booking.policy_snapshot_json = entity.policy_snapshot_json
+            db_booking.allocation_reason_json = entity.allocation_reason_json
             db_booking.updated_at = datetime.utcnow()
             session.flush()
 

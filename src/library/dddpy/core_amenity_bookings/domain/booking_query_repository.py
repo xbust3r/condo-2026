@@ -38,3 +38,10 @@ class BookingQueryRepository(ABC):
     ) -> List[BookingEntity]:
         """Find bookings that overlap with the given time range for an amenity."""
         ...
+
+    @abstractmethod
+    def find_by_idempotency_key(
+        self, condominium_id: int, idempotency_key: str
+    ) -> Optional[BookingEntity]:
+        """Find booking by its idempotency key (B5)."""
+        ...

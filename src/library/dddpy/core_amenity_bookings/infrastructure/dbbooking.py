@@ -3,7 +3,7 @@ SQLAlchemy model for core_amenity_bookings.
 """
 from sqlalchemy import (
     Column, BigInteger, String, Text, Date, DateTime,
-    Numeric, Boolean, ForeignKey, Index, func,
+    Numeric, Boolean, ForeignKey, Index, func, JSON,
 )
 
 from library.dddpy.shared.mysql.base import Base
@@ -40,6 +40,14 @@ class DBBooking(Base):
 
     notes = Column(Text, nullable=True)
     created_by = Column(BigInteger, nullable=True)
+
+    # ── Policy / allocation (B1-B3) ──
+    guest_count = Column(BigInteger, nullable=False, server_default='1')
+    allocation_source = Column(String(30), nullable=False, server_default='DIRECT')
+    waitlist_entry_id = Column(BigInteger, nullable=True)
+    idempotency_key = Column(String(64), nullable=True)
+    policy_snapshot_json = Column(JSON, nullable=True)
+    allocation_reason_json = Column(JSON, nullable=True)
 
     created_at = Column(DateTime, nullable=False, server_default=func.now())
     updated_at = Column(DateTime, nullable=False, server_default=func.now(), onupdate=func.now())

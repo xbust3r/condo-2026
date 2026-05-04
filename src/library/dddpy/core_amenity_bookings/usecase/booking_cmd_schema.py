@@ -17,6 +17,8 @@ class CreateBookingSchema(BaseModel):
     start_at: datetime = Field(..., description="Start datetime")
     end_at: datetime = Field(..., description="End datetime")
     notes: Optional[str] = Field(None, description="Optional notes")
+    guest_count: int = Field(1, ge=1, description="Number of people in the group")
+    idempotency_key: Optional[str] = Field(None, max_length=64, description="Client-supplied key for retry safety")
 
     @root_validator(skip_on_failure=True)
     def validate_dates(cls, values):
