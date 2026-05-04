@@ -7,7 +7,7 @@ Now scope-aware:
 - Cross-condominium building_id is rejected
 """
 import uuid as uuid_lib
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Optional
 
 from library.dddpy.core_amenities.domain.amenity_entity import AmenityEntity
@@ -132,7 +132,7 @@ class AmenityUseCase:
             security_deposit_amount=security_deposit_amount,
             is_reservable=is_reservable,
             status='active',
-            created_at=datetime.utcnow(),
+            created_at=datetime.now(timezone.utc),
         )
         entity_id = self._cmd_repo.create(entity)
         entity.id = entity_id
@@ -268,7 +268,7 @@ class AmenityUseCase:
             is_reservable=request.is_reservable if request.is_reservable is not None else existing.is_reservable,
             status=request.status if request.status is not None else existing.status,
             created_at=existing.created_at,
-            updated_at=datetime.utcnow(),
+            updated_at=datetime.now(timezone.utc),
         )
         self._cmd_repo.update(entity)
         updated = self._query_repo.get_by_id(id)

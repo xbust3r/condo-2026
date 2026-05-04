@@ -4,7 +4,7 @@ Add scope + building_id to core_amenities.
 - scope ENUM('CONDOMINIUM','BUILDING') NOT NULL
 - building_id BIGINT NULLABLE (FK → core_buildings.id)
 - Backfill: all existing → scope='CONDOMINIUM', building_id=NULL
-- CHECK constraint: scope/building_id consistency
+- CHECK constraint: scope/building_id consistency ✅
 - Composite index: (condominium_id, scope, building_id)
 
 Revision ID: 052_add_amenity_scope_and_building
