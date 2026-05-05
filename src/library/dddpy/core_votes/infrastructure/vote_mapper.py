@@ -61,6 +61,9 @@ class VoteMapper:
             created_at=db_vote.created_at,
             updated_at=db_vote.updated_at,
             deleted_at=db_vote.deleted_at,
+            scope_type=db_vote.scope_type,
+            vote_calculation_type=db_vote.vote_calculation_type,
+            building_id=db_vote.building_id,
             options=options,
             rules_snapshot=rules_snapshot,
         )

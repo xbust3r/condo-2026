@@ -47,6 +47,9 @@ class VoteCmdRepositoryImpl(VoteRepository):
                 total_no_votes=0,
                 total_abstain_votes=0,
                 rules_snapshot=entity.rules_snapshot.to_dict() if entity.rules_snapshot else None,
+                scope_type=entity.scope_type,
+                vote_calculation_type=entity.vote_calculation_type,
+                building_id=entity.building_id,
                 created_by_user_id=entity.created_by_user_id,
             )
             session.add(db_vote)
@@ -92,6 +95,12 @@ class VoteCmdRepositoryImpl(VoteRepository):
             db_vote.result_proclaimed_at = entity.result_proclaimed_at
             if entity.rules_snapshot is not None:
                 db_vote.rules_snapshot = entity.rules_snapshot.to_dict()
+            if entity.scope_type is not None:
+                db_vote.scope_type = entity.scope_type
+            if entity.vote_calculation_type is not None:
+                db_vote.vote_calculation_type = entity.vote_calculation_type
+            if entity.building_id is not None:
+                db_vote.building_id = entity.building_id
 
             session.flush()
             session.refresh(db_vote)

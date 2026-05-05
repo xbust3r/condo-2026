@@ -85,6 +85,10 @@ class VoteEntity:
         created_at: Optional[datetime] = None,
         updated_at: Optional[datetime] = None,
         deleted_at: Optional[datetime] = None,
+        # Denormalized scope/calculation columns (backed by rules_snapshot at creation)
+        scope_type: Optional[str] = None,
+        vote_calculation_type: Optional[str] = None,
+        building_id: Optional[int] = None,
         # Enrichment fields
         created_by_user_full_name: Optional[str] = None,
         condominium_name: Optional[str] = None,
@@ -118,6 +122,10 @@ class VoteEntity:
         self.deleted_at = deleted_at
         # Frozen rules
         self.rules_snapshot: Optional[VotingRulesSnapshot] = rules_snapshot
+        # Denormalized columns (backed by rules_snapshot)
+        self.scope_type: Optional[str] = scope_type
+        self.vote_calculation_type: Optional[str] = vote_calculation_type
+        self.building_id: Optional[int] = building_id
         # Enrichment
         self.created_by_user_full_name = created_by_user_full_name
         self.condominium_name = condominium_name
@@ -183,6 +191,10 @@ class VoteEntity:
             "condominium_name": self.condominium_name,
             # Embedded
             "options": [opt.to_dict() for opt in self.options],
+            # Denormalized columns
+            "scope_type": self.scope_type,
+            "vote_calculation_type": self.vote_calculation_type,
+            "building_id": self.building_id,
             # Frozen rules
             "rules_snapshot": self.rules_snapshot.to_dict() if self.rules_snapshot else None,
         }

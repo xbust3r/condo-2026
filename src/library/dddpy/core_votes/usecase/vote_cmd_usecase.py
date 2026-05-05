@@ -165,6 +165,10 @@ class VoteCmdUseCase:
             total_abstain_votes=0,
             result_proclaimed_at=None,
             created_by_user_id=created_by_user_id,
+            # Denormalized from rules_snapshot
+            scope_type=rules_snapshot.scope.value,
+            vote_calculation_type=rules_snapshot.vote_calculation_type.value,
+            building_id=rules_snapshot.building_id,
             options=options,
             rules_snapshot=rules_snapshot,
         )
