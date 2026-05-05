@@ -1,9 +1,8 @@
-"""
 from typing import Optional
 Vote command schemas — Pydantic input models.
 """
 from datetime import datetime
-from typing import Optional, List
+from typing import Optional, List, Dict, Any
 
 from pydantic import BaseModel, Field
 
@@ -23,10 +22,21 @@ class CreateVoteSchema(BaseModel):
         description="List of options as [{\"option_text\": \"Sí\", \"option_key\": \"yes\"}, ...]",
     )
     meeting_id: Optional[int] = Field(None, description="Associated meeting ID (optional)")
+    rules_snapshot: Optional[Dict[str, Any]] = Field(
+        None,
+        description=(
+            "Frozen VotingRulesSnapshot dict. If omitted, defaults to "
+            "BY_UNIT, CONDOMINIUM scope, owners only, max_debt_months=2."
+        ),
+    )
 
 
 class CastVoteSchema(BaseModel):
     option_key: str = Field(..., description="The option key being voted for")
+    unit_ownership_id: int = Field(
+        ...,
+        description="Electoral identity — the unit_ownership_id that is voting",
+    )
 
 
 class UpdateVoteSchema(BaseModel):

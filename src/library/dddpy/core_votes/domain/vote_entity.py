@@ -1,9 +1,10 @@
 """
-from typing import Optional
 Vote domain entity — DDD for digital voting system.
 """
 from datetime import datetime
 from typing import Dict, Any, Optional, List
+
+from library.dddpy.core_votes.domain.vote_rules_snapshot import VotingRulesSnapshot
 
 
 class VoteStatus:
@@ -89,6 +90,8 @@ class VoteEntity:
         condominium_name: Optional[str] = None,
         # Embedded options/records
         options: Optional[List[VoteOptionEntity]] = None,
+        # Frozen rules snapshot (null for legacy votes created before snapshot support)
+        rules_snapshot: Optional[VotingRulesSnapshot] = None,
     ) -> None:
         self.id = id
         self.uuid = uuid
@@ -113,6 +116,8 @@ class VoteEntity:
         self.created_at = created_at
         self.updated_at = updated_at
         self.deleted_at = deleted_at
+        # Frozen rules
+        self.rules_snapshot: Optional[VotingRulesSnapshot] = rules_snapshot
         # Enrichment
         self.created_by_user_full_name = created_by_user_full_name
         self.condominium_name = condominium_name
@@ -178,4 +183,6 @@ class VoteEntity:
             "condominium_name": self.condominium_name,
             # Embedded
             "options": [opt.to_dict() for opt in self.options],
+            # Frozen rules
+            "rules_snapshot": self.rules_snapshot.to_dict() if self.rules_snapshot else None,
         }

@@ -1,7 +1,7 @@
 """
 SQLAlchemy models for core_votes, core_vote_options, core_vote_records.
 """
-from sqlalchemy import Column, BigInteger, String, Text, DateTime, Boolean, Integer, ForeignKey, UniqueConstraint
+from sqlalchemy import Column, BigInteger, String, Text, DateTime, Boolean, Integer, DECIMAL, JSON, ForeignKey, UniqueConstraint
 from library.dddpy.shared.mysql.base import Base
 
 
@@ -27,6 +27,7 @@ class DBVote(Base):
     total_no_votes = Column(Integer(), nullable=False, server_default='0')
     total_abstain_votes = Column(Integer(), nullable=False, server_default='0')
     result_proclaimed_at = Column(DateTime(), nullable=True)
+    rules_snapshot = Column(JSON, nullable=True, comment="Frozen VotingRulesSnapshot — never mutated after creation")
     created_by_user_id = Column(BigInteger, nullable=False, index=True)
     created_at = Column(DateTime(), nullable=False, server_default='CURRENT_TIMESTAMP')
     updated_at = Column(DateTime(), nullable=True)
@@ -58,9 +59,11 @@ class DBVoteRecord(Base):
     id = Column(BigInteger, primary_key=True, autoincrement=True)
     vote_id = Column(BigInteger, nullable=False, index=True)
     user_id = Column(BigInteger, nullable=False, index=True)
+    unit_ownership_id = Column(BigInteger, nullable=False, index=True, comment="Electoral identity — one per unit_ownership_id per vote")
     option_key = Column(String(20), nullable=False)
+    weight = Column(DECIMAL(12, 4), nullable=False, server_default='1.0000', comment="Vote weight: 1.0 for BY_UNIT, coefficient for BY_COEFFICIENT")
     voted_at = Column(DateTime(), nullable=False, server_default='CURRENT_TIMESTAMP')
 
     __table_args__ = (
-        UniqueConstraint('vote_id', 'user_id', name='uk_vote_user'),
+        UniqueConstraint('vote_id', 'unit_ownership_id', name='uk_vote_unit_ownership'),
     )

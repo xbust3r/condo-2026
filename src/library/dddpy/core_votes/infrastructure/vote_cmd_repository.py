@@ -1,5 +1,4 @@
 """
-from typing import Optional
 Vote command repository implementation — write operations.
 """
 from datetime import datetime
@@ -7,7 +6,9 @@ from typing import Optional
 
 from library.dddpy.core_votes.domain.vote_entity import VoteEntity
 from library.dddpy.core_votes.domain.vote_repository import VoteRepository
+from library.dddpy.core_votes.domain.voter_eligibility_policy import EligibilityResult
 from library.dddpy.core_votes.infrastructure.dbvote import DBVote, DBVoteOption, DBVoteRecord
+from library.dddpy.core_votes.infrastructure.db_voter_eligibility import DBVoterEligibilityLog
 from library.dddpy.core_votes.infrastructure.vote_mapper import VoteMapper
 from library.dddpy.shared.mysql.session_manager import session_scope
 from library.dddpy.shared.logging.logging import Logger
@@ -45,6 +46,7 @@ class VoteCmdRepositoryImpl(VoteRepository):
                 total_yes_votes=0,
                 total_no_votes=0,
                 total_abstain_votes=0,
+                rules_snapshot=entity.rules_snapshot.to_dict() if entity.rules_snapshot else None,
                 created_by_user_id=entity.created_by_user_id,
             )
             session.add(db_vote)
@@ -88,6 +90,8 @@ class VoteCmdRepositoryImpl(VoteRepository):
             db_vote.total_no_votes = entity.total_no_votes
             db_vote.total_abstain_votes = entity.total_abstain_votes
             db_vote.result_proclaimed_at = entity.result_proclaimed_at
+            if entity.rules_snapshot is not None:
+                db_vote.rules_snapshot = entity.rules_snapshot.to_dict()
 
             session.flush()
             session.refresh(db_vote)
@@ -167,29 +171,38 @@ class VoteCmdRepositoryImpl(VoteRepository):
             )
             return VoteMapper.to_domain(db_vote, db_options=db_options)
 
+    # ── Vote record operations (updated for unit_ownership_id identity) ──
+
     def add_vote_record(
-        self, vote_id: int, user_id: int, option_key: str
+        self,
+        vote_id: int,
+        user_id: int,
+        unit_ownership_id: int,
+        option_key: str,
+        weight: float,
     ) -> bool:
         """
-        Add a vote record and increment counters.
-        Returns True on success, raises AlreadyVoted if duplicate.
+        Add a vote record with electoral identity = unit_ownership_id.
+        Idempotent via UNIQUE(vote_id, unit_ownership_id).
+        Raises AlreadyVoted if duplicate.
         """
         from library.dddpy.core_votes.domain.vote_exception import AlreadyVoted
 
         logger.info(
-            f"Recording vote vote_id={vote_id}, user_id={user_id}, option_key={option_key}"
+            f"Recording vote vote_id={vote_id}, unit_ownership_id={unit_ownership_id}, "
+            f"user_id={user_id}, option_key={option_key}, weight={weight}"
         )
         with session_scope() as session:
-            # Check for existing record (VOT-04)
+            # Check existing by unit_ownership_id (electoral identity)
             existing = (
                 session.query(DBVoteRecord)
                 .filter(DBVoteRecord.vote_id == vote_id)
-                .filter(DBVoteRecord.user_id == user_id)
+                .filter(DBVoteRecord.unit_ownership_id == unit_ownership_id)
                 .first()
             )
             if existing:
                 logger.warning(
-                    f"User {user_id} already voted in vote {vote_id}"
+                    f"Unit ownership {unit_ownership_id} already voted in vote {vote_id}"
                 )
                 raise AlreadyVoted()
 
@@ -197,7 +210,9 @@ class VoteCmdRepositoryImpl(VoteRepository):
             db_record = DBVoteRecord(
                 vote_id=vote_id,
                 user_id=user_id,
+                unit_ownership_id=unit_ownership_id,
                 option_key=option_key,
+                weight=weight,
                 voted_at=datetime.utcnow(),
             )
             session.add(db_record)
@@ -228,6 +243,57 @@ class VoteCmdRepositoryImpl(VoteRepository):
 
             session.flush()
             logger.info(
-                f"Vote recorded for user_id={user_id} in vote_id={vote_id}"
+                f"Vote recorded for unit_ownership_id={unit_ownership_id} "
+                f"in vote_id={vote_id}"
             )
             return True
+
+    def vote_record_exists(
+        self,
+        vote_id: int,
+        unit_ownership_id: int,
+    ) -> bool:
+        """Check if a unit_ownership_id has already voted in this vote."""
+        with session_scope() as session:
+            existing = (
+                session.query(DBVoteRecord)
+                .filter(DBVoteRecord.vote_id == vote_id)
+                .filter(DBVoteRecord.unit_ownership_id == unit_ownership_id)
+                .first()
+            )
+            return existing is not None
+
+    # ── Eligibility log (audit trail) ──
+
+    def record_eligibility_log(
+        self,
+        vote_id: int,
+        unit_ownership_id: int,
+        user_id: int,
+        result: EligibilityResult,
+        rules_snapshot_hash: str,
+    ) -> None:
+        """
+        Record an eligibility evaluation in the audit log.
+        Always called — whether eligible or rejected.
+        """
+        logger.debug(
+            f"Recording eligibility log vote_id={vote_id}, "
+            f"unit_ownership_id={unit_ownership_id}, "
+            f"eligible={result.eligible}, reason_code={result.reason_code}"
+        )
+        with session_scope() as session:
+            log_entry = DBVoterEligibilityLog(
+                vote_id=vote_id,
+                unit_ownership_id=unit_ownership_id,
+                user_id=user_id,
+                eligible=result.eligible,
+                reason_code=result.reason_code,
+                debt_months_observed=result.debt_months_observed,
+                ownership_observed=result.ownership_observed,
+                coefficient_observed=result.coefficient_observed,
+                rules_snapshot_hash=rules_snapshot_hash,
+                evaluated_at=result.evaluated_at,
+            )
+            session.add(log_entry)
+            session.flush()

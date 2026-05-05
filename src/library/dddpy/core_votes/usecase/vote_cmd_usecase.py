@@ -1,5 +1,7 @@
 """
 Vote command use case — write operations with VOT-01 through VOT-06.
+Refactored: electoral identity = unit_ownership_id, eligibility via
+frozen rules_snapshot, full audit trail.
 """
 from datetime import datetime
 import uuid as uuid_lib
@@ -12,6 +14,11 @@ from library.dddpy.core_votes.domain.vote_entity import (
     VoteType,
 )
 from library.dddpy.core_votes.domain.vote_repository import VoteRepository
+from library.dddpy.core_votes.domain.vote_rules_snapshot import (
+    VotingRulesSnapshot,
+    VoteCalculationType,
+    VoteScope,
+)
 from library.dddpy.core_votes.domain.vote_exception import (
     VoteNotFound,
     UnauthorizedVoteAccess,
@@ -19,6 +26,8 @@ from library.dddpy.core_votes.domain.vote_exception import (
     QuorumNotReached,
     AlreadyVoted,
 )
+from library.dddpy.core_votes.domain.ownership_guard import OwnershipGuard
+from library.dddpy.core_votes.usecase.voting_policy_factory import VotingPolicyFactory
 from library.dddpy.core_votes.usecase.vote_cmd_schema import (
     CreateVoteSchema,
     CastVoteSchema,
@@ -30,75 +39,44 @@ from library.dddpy.shared.logging.logging import Logger
 logger = Logger("VoteCmdUseCase")
 
 
+class NotEligibleError(VoteValidationError):
+    """Raised when a unit_ownership is not eligible to vote."""
+    def __init__(self, reason_code: str):
+        super().__init__(f"Not eligible to vote: {reason_code}")
+
+
+class OutOfScopeError(VoteValidationError):
+    """Raised when a unit_ownership is not in scope of the vote."""
+    def __init__(self, reason_code: str = "UNIT_NOT_IN_SCOPE"):
+        super().__init__(f"Unit not in scope of this vote: {reason_code}")
+
+
+class NotAuthorizedError(VoteValidationError):
+    """Raised when user does not control the unit_ownership_id."""
+    def __init__(self):
+        super().__init__("User does not control this unit")
+
+
 class VoteCmdUseCase:
 
-    def __init__(self, repository: VoteRepository):
+    def __init__(
+        self,
+        repository: VoteRepository,
+        ownership_guard: OwnershipGuard,
+        policy_factory: VotingPolicyFactory,
+    ):
         self.repository = repository
-        logger.info("VoteCmdUseCase initialized")
-
-    def _is_eligible_to_vote(self, user_id: int, condominium_id: int) -> bool:
-        """
-        VOT-03: Verify user has active ownership OR active role
-        (board_member / condominium_admin) in the condominium.
-        Denies maintenance_staff, security_staff, and tenants without ownership.
-        """
-        # Check active ownership in any unit of this condominium
-        from library.dddpy.core_unit_ownerships.infrastructure.unit_ownership_query_repository import (
-            UnitOwnershipQueryRepositoryImpl,
-        )
-        try:
-            own_repo = UnitOwnershipQueryRepositoryImpl()
-            # List active ownerships for this user
-            active_owns, _ = own_repo.list_all(
-                user_id=user_id,
-                status="active",
-                include_deleted=False,
-            )
-            # Filter by condominium via units
-            from library.dddpy.core_units.infrastructure.dbunits import DBUnits
-            from library.dddpy.shared.mysql.session_manager import session_scope
-            if active_owns:
-                with session_scope() as session:
-                    unit_ids = [o.unit_id for o in active_owns]
-                    units = session.query(DBUnits).filter(DBUnits.id.in_(unit_ids)).all()
-                    building_condo_ids = {u.building_id for u in units}
-                    # Get building -> condominium mapping
-                    from library.dddpy.core_buildings.infrastructure.dbbuildings import DBBuildings
-                    buildings = session.query(DBBuildings).filter(
-                        DBBuildings.id.in_(building_condo_ids)
-                    ).all() if building_condo_ids else []
-                    condo_ids = {b.condominium_id for b in buildings}
-                    if condominium_id in condo_ids:
-                        return True
-        except Exception as e:
-            logger.warning(f"VOT-03 ownership check failed: {e}")
-
-        # Check active role board_member or condominium_admin
-        from library.dddpy.core_condominium_roles.infrastructure.condominium_role_query_repository import (
-            CondominiumRoleQueryRepositoryImpl,
-        )
-        try:
-            role_repo = CondominiumRoleQueryRepositoryImpl()
-            active_roles, _ = role_repo.list_all(
-                user_id=user_id,
-                condominium_id=condominium_id,
-                status="active",
-                include_deleted=False,
-            )
-            ELIGIBLE_ROLES = {"board_member", "condominium_admin"}
-            for role in active_roles:
-                if role.role in ELIGIBLE_ROLES:
-                    return True
-        except Exception as e:
-            logger.warning(f"VOT-03 role check failed: {e}")
-
-        return False
+        self.ownership_guard = ownership_guard
+        self.policy_factory = policy_factory
+        logger.info("VoteCmdUseCase initialized with ownership guard + policy factory")
 
     def create(self, data: CreateVoteSchema, created_by_user_id: int) -> VoteEntity:
         """
-        Create a new vote.
+        Create a new vote with frozen rules_snapshot.
 
         VOT-06: voting_ends_at cannot be in the past at creation time.
+        The rules in data.rules_snapshot are frozen into the entity immediately —
+        they never change after creation.
         """
         logger.info(
             f"Creating vote title='{data.title}', "
@@ -135,7 +113,26 @@ class VoteCmdUseCase:
                 raise VoteValidationError(f"Duplicate option_key: {opt['option_key']}")
             option_keys.add(opt["option_key"])
 
-        # Build entity
+        # Build frozen rules_snapshot if provided
+        rules_snapshot = None
+        if data.rules_snapshot is not None:
+            rules_snapshot = VotingRulesSnapshot.from_dict(data.rules_snapshot)
+        else:
+            # Default snapshot for backward compatibility
+            from datetime import timezone as tz
+            rules_snapshot = VotingRulesSnapshot(
+                vote_calculation_type=VoteCalculationType.BY_UNIT,
+                scope=VoteScope.CONDOMINIUM,
+                building_id=None,
+                allow_only_owners=True,
+                allow_tenants=False,
+                max_debt_months=2,
+                include_parking_storage=False,
+                snapshot_at=datetime.now(tz.utc),
+                snapshot_version=1,
+            )
+
+        # Build options
         options = [
             VoteOptionEntity(
                 id=0,
@@ -169,6 +166,7 @@ class VoteCmdUseCase:
             result_proclaimed_at=None,
             created_by_user_id=created_by_user_id,
             options=options,
+            rules_snapshot=rules_snapshot,
         )
 
         try:
@@ -197,14 +195,9 @@ class VoteCmdUseCase:
 
         now = datetime.utcnow()
         if existing.voting_starts_at > now:
-            # Future start is OK (will auto-activate when time comes — but for simplicity
-            # we allow publish and require proclaim check for time)
             pass
-        # VOT-06: starts_at must not be in the past
+
         if existing.voting_starts_at < now:
-            # Allow if already past? The spec says "can only publish if starts_at is now or future"
-            # Let's allow it but the vote won't be "active" until the time comes.
-            # For simplicity: raise error if starts_at is in the past
             raise VoteValidationError(
                 "Cannot publish a vote whose voting_starts_at is in the past"
             )
@@ -245,14 +238,28 @@ class VoteCmdUseCase:
         return result
 
     def cast_vote(
-        self, vote_id: int, user_id: int, option_key: str
+        self,
+        vote_id: int,
+        user_id: int,
+        unit_ownership_id: int,
+        option_key: str,
     ) -> bool:
         """
-        Cast a vote (VOT-03 eligibility, VOT-04 one vote per user).
+        Cast a vote for a specific unit_ownership_id.
+
+        Flow (6 steps, 4 rejection points, all audited):
+        1. NOT_OWNER          → OwnershipGuard (logged)
+        2. UNIT_NOT_IN_SCOPE  → EligibilityPolicy (logged)
+        3. DEBT_EXCEEDED/etc  → EligibilityPolicy (logged)
+        4. ALREADY_VOTED      → vote_records unicity guard (logged)
+        5. weight_policy      → calculate weight
+        6. create record      → DBVoteRecord with weight
+
         VOT-05: secret vote means records are anonymous (but we still store them).
         """
         logger.info(
-            f"User {user_id} attempting to cast vote in vote_id={vote_id}, option_key={option_key}"
+            f"User {user_id} casting vote in vote_id={vote_id}, "
+            f"unit_ownership_id={unit_ownership_id}, option_key={option_key}"
         )
 
         vote = self.repository._get_by_id_any_status(vote_id)
@@ -270,18 +277,65 @@ class VoteCmdUseCase:
                 "Voting period is not currently open"
             )
 
-        # VOT-03: eligibility check
-        if not self._is_eligible_to_vote(user_id, vote.condominium_id):
-            raise UnauthorizedVoteAccess(
-                "User is not eligible to vote in this condominium. "
-                "Only owners or board/condominium admins can vote."
+        # Require rules_snapshot
+        if vote.rules_snapshot is None:
+            raise VoteValidationError(
+                "Vote has no frozen rules_snapshot — cannot cast vote"
             )
 
-        # VOT-04: one vote per user — checked inside add_vote_record
-        from library.dddpy.core_votes.infrastructure.vote_cmd_repository import VoteCmdRepositoryImpl
-        cmd_repo = VoteCmdRepositoryImpl()
-        success = cmd_repo.add_vote_record(vote_id, user_id, option_key)
-        logger.info(f"Vote cast by user_id={user_id} in vote_id={vote_id}")
+        rules_snapshot_hash = vote.rules_snapshot.compute_hash()
+
+        # Build policy bundle from frozen snapshot
+        bundle = self.policy_factory.create(vote.rules_snapshot)
+
+        # ── 1. Authorization: NOT_OWNER ──────────────────────────────────
+        if not self.ownership_guard.assert_user_controls_unit(
+            user_id, unit_ownership_id
+        ):
+            from library.dddpy.core_votes.domain.voter_eligibility_policy import (
+                EligibilityResult,
+            )
+            self.repository.record_eligibility_log(
+                vote_id, unit_ownership_id, user_id,
+                EligibilityResult(eligible=False, reason_code="NOT_OWNER"),
+                rules_snapshot_hash,
+            )
+            raise NotAuthorizedError()
+
+        # ── 2. Eligibility material (scope + debt + owner/tenant rules) ──
+        result = bundle.eligibility_policy.is_eligible(unit_ownership_id, vote)
+
+        # Log EVERY evaluation
+        self.repository.record_eligibility_log(
+            vote_id, unit_ownership_id, user_id, result, rules_snapshot_hash,
+        )
+
+        if not result.eligible:
+            raise NotEligibleError(result.reason_code)
+
+        # ── 3. Unicity: ALREADY_VOTED ────────────────────────────────────
+        if self.repository.vote_record_exists(vote_id, unit_ownership_id):
+            from library.dddpy.core_votes.domain.voter_eligibility_policy import (
+                EligibilityResult,
+            )
+            self.repository.record_eligibility_log(
+                vote_id, unit_ownership_id, user_id,
+                EligibilityResult(eligible=False, reason_code="ALREADY_VOTED"),
+                rules_snapshot_hash,
+            )
+            raise AlreadyVoted()
+
+        # ── 4. Weight ────────────────────────────────────────────────────
+        weight = float(bundle.weight_policy.calculate_weight(unit_ownership_id, vote))
+
+        # ── 5. Persist ───────────────────────────────────────────────────
+        success = self.repository.add_vote_record(
+            vote_id, user_id, unit_ownership_id, option_key, weight,
+        )
+        logger.info(
+            f"Vote cast: user_id={user_id}, unit_ownership_id={unit_ownership_id}, "
+            f"vote_id={vote_id}, option_key={option_key}, weight={weight}"
+        )
         return success
 
     def proclaim(self, vote_id: int) -> VoteEntity:
@@ -319,13 +373,11 @@ class VoteCmdUseCase:
                 quorum_ratio = total_cast / total_eligible
                 quorum_met = quorum_ratio >= (existing.quorum_percentage / 100)
             else:
-                # No eligible voters defined — skip quorum
                 quorum_met = True
 
         now = datetime.utcnow()
 
         if not quorum_met:
-            # VOT-01: quorum not reached → closed without result
             existing.status = VoteStatus.CLOSED
             existing.result_proclaimed_at = None
             logger.info(
@@ -340,7 +392,6 @@ class VoteCmdUseCase:
         # VOT-02: approval check
         denominator = total_yes + total_no
         if denominator == 0:
-            # No yes/no votes — abstain only
             existing.status = VoteStatus.REJECTED
         else:
             approval_ratio = total_yes / denominator
@@ -407,7 +458,6 @@ class VoteCmdUseCase:
         if data.description is not None:
             existing.description = data.description
         if data.voting_ends_at is not None:
-            # VOT-06: can only extend
             if data.voting_ends_at <= existing.voting_ends_at:
                 raise VoteValidationError(
                     "Cannot shorten voting period. new voting_ends_at must be after current"

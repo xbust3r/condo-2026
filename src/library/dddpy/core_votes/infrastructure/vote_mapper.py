@@ -5,6 +5,7 @@ from typing import List, Optional
 
 from library.dddpy.core_votes.infrastructure.dbvote import DBVote, DBVoteOption, DBVoteRecord
 from library.dddpy.core_votes.domain.vote_entity import VoteEntity, VoteOptionEntity
+from library.dddpy.core_votes.domain.vote_rules_snapshot import VotingRulesSnapshot
 
 
 class VoteMapper:
@@ -26,6 +27,16 @@ class VoteMapper:
         db_records: List[DBVoteRecord] = None,
     ) -> VoteEntity:
         options = [VoteMapper._option_to_domain(o) for o in (db_options or [])]
+
+        # Hydrate rules_snapshot from JSON if present
+        rules_snapshot = None
+        if db_vote.rules_snapshot:
+            try:
+                rules_snapshot = VotingRulesSnapshot.from_dict(db_vote.rules_snapshot)
+            except Exception:
+                # Legacy data may not conform — leave as None
+                pass
+
         return VoteEntity(
             id=db_vote.id,
             uuid=db_vote.uuid,
@@ -51,6 +62,7 @@ class VoteMapper:
             updated_at=db_vote.updated_at,
             deleted_at=db_vote.deleted_at,
             options=options,
+            rules_snapshot=rules_snapshot,
         )
 
     @staticmethod

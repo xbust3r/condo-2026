@@ -212,13 +212,18 @@ def cast_vote(
 ) -> dict:
     """
     Cast a vote in an active voting.
-    VOT-03: user must have active ownership OR role board_member/condominium_admin.
-    VOT-04: one vote per user.
+    VOT-03: unit ownership must be eligible (ownership + scope + debt).
+    VOT-04: one vote per unit_ownership_id.
     VOT-05: secret vote means anonymous records (but we still store them).
     RBAC: votes:vote permission.
     """
     cmd = vote_cmd_usecase_factory()
-    cmd.cast_vote(vote_id=id, user_id=user.id, option_key=request.option_key)
+    cmd.cast_vote(
+        vote_id=id,
+        user_id=user.id,
+        unit_ownership_id=request.unit_ownership_id,
+        option_key=request.option_key,
+    )
     return {"message": "Vote recorded successfully", "vote_id": id}
 
 
