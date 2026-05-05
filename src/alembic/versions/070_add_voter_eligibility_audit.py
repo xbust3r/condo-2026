@@ -16,7 +16,7 @@ from alembic import op
 revision: str = "070_add_voter_eligibility_audit"
 down_revision: Union[str, None] = "069_extend_announcements"
 branch_labels: Union[str, Sequence[str], None] = None
-depends_on: Union[str, Sequence[str], None] = None
+depends_on: Union[str, Sequence[str], None] = ("047_seed_vote_permissions",)
 
 
 def upgrade() -> None:
