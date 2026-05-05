@@ -7,6 +7,9 @@ from library.dddpy.core_votes.infrastructure.ownership_guard_impl import Ownersh
 from library.dddpy.core_votes.infrastructure.debt_based_eligibility_provider import (
     DebtBasedEligibilityProvider,
 )
+from library.dddpy.core_arrears.infrastructure.arrears_sql_reader import (
+    ArrearsSqlReader,
+)
 from library.dddpy.core_votes.infrastructure.by_unit_weight_policy import ByUnitWeightPolicy
 from library.dddpy.core_votes.infrastructure.by_coefficient_weight_policy import (
     ByCoefficientWeightPolicy,
@@ -21,7 +24,9 @@ def vote_cmd_usecase_factory() -> VoteCmdUseCase:
         repository=VoteCmdRepositoryImpl(),
         ownership_guard=OwnershipGuardImpl(),
         policy_factory=VotingPolicyFactory(
-            eligibility_policy=DebtBasedEligibilityProvider(),
+            eligibility_policy=DebtBasedEligibilityProvider(
+                arrears_reader=ArrearsSqlReader(),
+            ),
             by_unit_weight_policy=ByUnitWeightPolicy(),
             by_coefficient_weight_policy=ByCoefficientWeightPolicy(),
         ),

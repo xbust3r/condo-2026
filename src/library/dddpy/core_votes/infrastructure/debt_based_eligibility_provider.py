@@ -1,11 +1,11 @@
 """
 DebtBasedEligibilityProvider — infrastructure implementation of VoterEligibilityPolicy.
-Evaluates unit eligibility based on AR debt, ownership type, and vote scope.
+Evaluates unit eligibility based on arrears, ownership type, and vote scope.
+
+Now delegates arrears queries to ArrearsReader (from core_arrears) instead of
+direct DBAR access, following the ADR architecture.
 """
 from __future__ import annotations
-
-from datetime import date
-from decimal import Decimal
 
 from sqlalchemy import func
 
@@ -15,10 +15,9 @@ from library.dddpy.core_votes.domain.voter_eligibility_policy import (
 )
 from library.dddpy.core_votes.domain.vote_entity import VoteEntity
 from library.dddpy.core_votes.domain.vote_rules_snapshot import VoteScope
-from library.dddpy.core_accounts_receivable.infrastructure.dbar import DBAR
+from library.dddpy.core_arrears.domain.arrears_reader import ArrearsReader
 from library.dddpy.core_unit_ownerships.infrastructure.dbunit_ownership import DBUnitOwnership
 from library.dddpy.core_units.infrastructure.dbunits import DBUnits
-from library.dddpy.core_buildings.infrastructure.dbbuildings import DBBuildings
 from library.dddpy.shared.mysql.session_manager import session_scope
 from library.dddpy.shared.logging.logging import Logger
 
@@ -31,7 +30,11 @@ class DebtBasedEligibilityProvider(VoterEligibilityPolicy):
     Eligibility = scope check + ownership type check + debt check.
 
     Reads the vote's frozen rules_snapshot.  Never reads live rules.
+    Uses ArrearsReader to decouple from the specific AR data source.
     """
+
+    def __init__(self, arrears_reader: ArrearsReader) -> None:
+        self._arrears_reader = arrears_reader
 
     def is_eligible(
         self,
@@ -90,19 +93,9 @@ class DebtBasedEligibilityProvider(VoterEligibilityPolicy):
                         ownership_observed=ownership_observed,
                     )
 
-            # ── 4. Debt check ───────────────────────────────────────────
-            # Count distinct months with overdue/pending AR for this unit
-            today = date.today()
-            overdue_count = (
-                session.query(func.count(func.distinct(DBAR.period)))
-                .filter(DBAR.unit_id == own.unit_id)
-                .filter(DBAR.deleted_at.is_(None))
-                .filter(DBAR.status.in_(("pending", "partial", "overdue")))
-                .filter(DBAR.due_date < today)
-                .scalar()
-            ) or 0
-
-            debt_months = Decimal(str(overdue_count))
+            # ── 4. Debt check via ArrearsReader ─────────────────────────
+            arrears = self._arrears_reader.get_arrears(own.unit_id)
+            debt_months = arrears.months_in_arrears
 
             if debt_months > rules.max_debt_months:
                 return EligibilityResult(
