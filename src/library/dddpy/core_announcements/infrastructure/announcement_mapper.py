@@ -24,6 +24,7 @@ class AnnouncementMapper:
             created_at=db_row.created_at,
             updated_at=db_row.updated_at,
             deleted_at=db_row.deleted_at,
+            tower_id=db_row.tower_id,
         )
 
     @staticmethod
@@ -31,8 +32,10 @@ class AnnouncementMapper:
         db_row: DBAnnouncement,
         author_name: str = None,
         condominium_name: str = None,
+        tower_name: str = None,
     ) -> AnnouncementEntity:
         entity = AnnouncementMapper.to_domain(db_row)
         entity.author_name = author_name
         entity.condominium_name = condominium_name
+        entity.tower_name = tower_name
         return entity

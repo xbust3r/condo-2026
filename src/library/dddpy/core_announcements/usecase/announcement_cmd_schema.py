@@ -16,6 +16,7 @@ class CreateAnnouncementSchema(BaseModel):
     category: str = Field('info', description="Category: info, warning, urgent, event")
     visibility: str = Field('public', description="Visibility: public, owners_only, residents_only")
     is_pinned: bool = Field(False, description="Pin this announcement")
+    tower_id: Optional[int] = Field(None, description="Target tower/building id (null = all towers)")
     published_at: Optional[datetime] = Field(None, description="Publication date (null = immediately)")
     expires_at: Optional[datetime] = Field(None, description="Expiration date (null = never)")
 
@@ -26,5 +27,6 @@ class UpdateAnnouncementSchema(BaseModel):
     category: Optional[str] = Field(None)
     visibility: Optional[str] = Field(None)
     is_pinned: Optional[bool] = Field(None)
+    tower_id: Optional[int] = Field(None, description="Target tower/building id (null = all towers)")
     published_at: Optional[datetime] = Field(None)
     expires_at: Optional[datetime] = Field(None)

@@ -18,6 +18,7 @@ class DBAnnouncement(Base):
     category = Column(String(20), nullable=False, server_default='info')
     visibility = Column(String(20), nullable=False, server_default='public')
     is_pinned = Column(Boolean(), nullable=False, server_default='0')
+    tower_id = Column(BigInteger, nullable=True, index=True)
     published_at = Column(DateTime(), nullable=True)
     expires_at = Column(DateTime(), nullable=True)
     created_at = Column(DateTime(), nullable=False, server_default='CURRENT_TIMESTAMP')

@@ -52,6 +52,7 @@ def create_announcement(
         category=request.category,
         visibility=request.visibility,
         is_pinned=request.is_pinned,
+        tower_id=request.tower_id,
         published_at=request.published_at,
         expires_at=request.expires_at,
     )
@@ -62,8 +63,9 @@ def create_announcement(
 @api_handler
 def list_announcements(
     condominium_id: int = Query(None, description="Filter by condominium"),
-    category: str = Query(None, description="Filter by category (info/warning/urgent/event)"),
+    category: str = Query(None, description="Filter by category (info/warning/urgent/event/balance/assembly/maintenance/vote/rule/general)"),
     visibility: str = Query(None, description="Filter by visibility"),
+    tower_id: int = Query(None, description="Filter by tower/building id (null = all towers)"),
     include_deleted: bool = Query(False),
     skip: int = Query(0, ge=0),
     limit: int = Query(100, ge=1, le=500),
@@ -76,6 +78,7 @@ def list_announcements(
         condominium_id=condominium_id,
         category=category,
         visibility=visibility,
+        tower_id=tower_id,
         include_deleted=include_deleted,
     )
     return response.dict()
@@ -87,6 +90,7 @@ def list_active_announcements(
     condominium_id: int,
     skip: int = Query(0, ge=0),
     limit: int = Query(20, ge=1, le=200),
+    tower_id: int = Query(None, description="Filter by tower/building id (null = all towers)"),
     user: UserIdentity = Depends(rbac_required("announcement", "read")),
 ) -> dict:
     """
@@ -97,6 +101,7 @@ def list_active_announcements(
         condominium_id=condominium_id,
         skip=skip,
         limit=limit,
+        tower_id=tower_id,
     )
     return response.dict()
 

@@ -26,6 +26,7 @@ class AnnouncementFactory:
         is_pinned: bool = False,
         published_at: datetime = None,
         expires_at: datetime = None,
+        tower_id: int = None,
         **kwargs,
     ) -> DBAnnouncement:
         db_ann = DBAnnouncement(
@@ -39,6 +40,7 @@ class AnnouncementFactory:
             is_pinned=is_pinned,
             published_at=published_at or datetime.utcnow(),
             expires_at=expires_at or (datetime.utcnow() + timedelta(days=30)),
+            tower_id=tower_id,
             updated_at=kwargs.get("updated_at", func.now()),
         )
         session.add(db_ann)

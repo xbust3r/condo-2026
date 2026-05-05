@@ -29,12 +29,14 @@ class AnnouncementQueryRepositoryImpl(AnnouncementQueryRepository):
         rows: List[DBAnnouncement],
         author_names: dict = None,
         condo_names: dict = None,
+        tower_names: dict = None,
     ) -> List[AnnouncementEntity]:
         return [
             AnnouncementMapper.to_domain_enriched(
                 row,
                 author_name=author_names.get(row.author_user_id) if author_names else None,
                 condominium_name=condo_names.get(row.condominium_id) if condo_names else None,
+                tower_name=tower_names.get(row.tower_id) if tower_names else None,
             )
             for row in rows
         ]
@@ -66,6 +68,19 @@ class AnnouncementQueryRepositoryImpl(AnnouncementQueryRepository):
             ).all()
             return dict(result)
 
+    def _fetch_tower_names(self, rows: List[DBAnnouncement]) -> dict:
+        if not rows:
+            return {}
+        tower_ids = [r.tower_id for r in rows if r.tower_id is not None]
+        if not tower_ids:
+            return {}
+        with session_scope() as session:
+            from library.dddpy.core_buildings.infrastructure.dbbuildings import DBBuildings as DBBuilding
+            result = session.query(DBBuilding.id, DBBuilding.name).filter(
+                DBBuilding.id.in_(tower_ids)
+            ).all()
+            return dict(result)
+
     def get_by_id(self, id: int) -> Optional[AnnouncementEntity]:
         logger.debug(f"Fetching announcement by id={id}")
         with session_scope() as session:
@@ -77,10 +92,12 @@ class AnnouncementQueryRepositoryImpl(AnnouncementQueryRepository):
                 return None
             author_names = self._fetch_author_names([row])
             condo_names = self._fetch_condo_names([row])
+            tower_names = self._fetch_tower_names([row])
             return AnnouncementMapper.to_domain_enriched(
                 row,
                 author_name=author_names.get(row.author_user_id),
                 condominium_name=condo_names.get(row.condominium_id),
+                tower_name=tower_names.get(row.tower_id),
             )
 
     def get_by_uuid(self, uuid: str) -> Optional[AnnouncementEntity]:
@@ -94,10 +111,12 @@ class AnnouncementQueryRepositoryImpl(AnnouncementQueryRepository):
                 return None
             author_names = self._fetch_author_names([row])
             condo_names = self._fetch_condo_names([row])
+            tower_names = self._fetch_tower_names([row])
             return AnnouncementMapper.to_domain_enriched(
                 row,
                 author_name=author_names.get(row.author_user_id),
                 condominium_name=condo_names.get(row.condominium_id),
+                tower_name=tower_names.get(row.tower_id),
             )
 
     def list_all(
@@ -107,6 +126,7 @@ class AnnouncementQueryRepositoryImpl(AnnouncementQueryRepository):
         condominium_id: Optional[int] = None,
         category: Optional[str] = None,
         visibility: Optional[str] = None,
+        tower_id: Optional[int] = None,
         include_deleted: bool = False,
     ) -> Tuple[List[AnnouncementEntity], int]:
         logger.debug(f"Listing announcements skip={skip} limit={limit}")
@@ -120,13 +140,16 @@ class AnnouncementQueryRepositoryImpl(AnnouncementQueryRepository):
                 query = query.filter(DBAnnouncement.category == category)
             if visibility:
                 query = query.filter(DBAnnouncement.visibility == visibility)
+            if tower_id is not None:
+                query = query.filter(DBAnnouncement.tower_id == tower_id)
 
             total = query.count()
             rows = query.order_by(DBAnnouncement.created_at.desc()).offset(skip).limit(limit).all()
 
             author_names = self._fetch_author_names(rows)
             condo_names = self._fetch_condo_names(rows)
-            return self._bulk_enrich(rows, author_names, condo_names), total
+            tower_names = self._fetch_tower_names(rows)
+            return self._bulk_enrich(rows, author_names, condo_names, tower_names), total
 
     def list_active(
         self,
@@ -134,6 +157,7 @@ class AnnouncementQueryRepositoryImpl(AnnouncementQueryRepository):
         as_of_date=None,
         skip: int = 0,
         limit: int = 100,
+        tower_id: Optional[int] = None,
     ) -> Tuple[List[AnnouncementEntity], int]:
         check_date = as_of_date or date.today()
         logger.debug(f"Listing active announcements for condominium={condominium_id}")
@@ -150,6 +174,9 @@ class AnnouncementQueryRepositoryImpl(AnnouncementQueryRepository):
                     DBAnnouncement.expires_at > check_date,
                 )
             )
+            if tower_id is not None:
+                query = query.filter(DBAnnouncement.tower_id == tower_id)
+
             total = query.count()
             rows = (
                 query
@@ -160,4 +187,5 @@ class AnnouncementQueryRepositoryImpl(AnnouncementQueryRepository):
             )
             author_names = self._fetch_author_names(rows)
             condo_names = self._fetch_condo_names(rows)
-            return self._bulk_enrich(rows, author_names, condo_names), total
+            tower_names = self._fetch_tower_names(rows)
+            return self._bulk_enrich(rows, author_names, condo_names, tower_names), total

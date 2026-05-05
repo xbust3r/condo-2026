@@ -21,6 +21,7 @@ class AnnouncementQueryRepository:
         condominium_id: Optional[int] = None,
         category: Optional[str] = None,
         visibility: Optional[str] = None,
+        tower_id: Optional[int] = None,
         include_deleted: bool = False,
     ) -> Tuple[List[object], int]:
         pass
@@ -31,5 +32,6 @@ class AnnouncementQueryRepository:
         as_of_date=None,
         skip: int = 0,
         limit: int = 100,
+        tower_id: Optional[int] = None,
     ) -> Tuple[List[object], int]:
         pass

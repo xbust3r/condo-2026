@@ -32,7 +32,7 @@ logger = Logger("AnnouncementUseCase")
 
 class AnnouncementUseCase:
 
-    VALID_CATEGORIES = {'info', 'warning', 'urgent', 'event'}
+    VALID_CATEGORIES = {'info', 'warning', 'urgent', 'event', 'balance', 'assembly', 'maintenance', 'vote', 'rule', 'general'}
     VALID_VISIBILITY_SCOPES = {'public', 'owners_only', 'residents_only'}
 
     def __init__(self):
@@ -48,6 +48,7 @@ class AnnouncementUseCase:
         category: str = 'info',
         visibility: str = 'public',
         is_pinned: bool = False,
+        tower_id: Optional[int] = None,
         published_at: Optional[datetime] = None,
         expires_at: Optional[datetime] = None,
     ) -> ResponseSuccessSchema:
@@ -72,6 +73,7 @@ class AnnouncementUseCase:
             category=category,
             visibility=visibility,
             is_pinned=is_pinned,
+            tower_id=tower_id,
             published_at=published_at,
             expires_at=expires_at,
             created_at=datetime.utcnow(),
@@ -79,6 +81,8 @@ class AnnouncementUseCase:
         entity_id = self._cmd_repo.create(entity)
         entity.id = entity_id
         logger.info(f"Announcement created id={entity_id}")
+        # Re-fetch with enrichment (author_name, condominium_name, tower_name)
+        enriched = self._query_repo.get_by_id(entity_id)
 
         # ── Notification integration (Sprint 9 hotfix) ──────────────────────
         # Notify author with confirmation of publication
@@ -111,7 +115,7 @@ class AnnouncementUseCase:
         return ResponseSuccessSchema(
             success=True,
             message="Announcement created",
-            data=entity.to_dict(),
+            data=enriched.to_dict() if enriched else entity.to_dict(),
         )
 
     def get_by_id(self, id: int) -> ResponseSuccessSchema:
@@ -143,6 +147,7 @@ class AnnouncementUseCase:
         condominium_id: Optional[int] = None,
         category: Optional[str] = None,
         visibility: Optional[str] = None,
+        tower_id: Optional[int] = None,
         include_deleted: bool = False,
     ) -> ResponseSuccessSchema:
         logger.add_inside_method("list_all")
@@ -157,6 +162,7 @@ class AnnouncementUseCase:
             condominium_id=condominium_id,
             category=category,
             visibility=visibility,
+            tower_id=tower_id,
             include_deleted=include_deleted,
         )
         return ResponseSuccessSchema(
@@ -173,12 +179,14 @@ class AnnouncementUseCase:
         condominium_id: int,
         skip: int = 0,
         limit: int = 100,
+        tower_id: Optional[int] = None,
     ) -> ResponseSuccessSchema:
         logger.add_inside_method("list_active")
         entities, total = self._query_repo.list_active(
             condominium_id=condominium_id,
             skip=skip,
             limit=limit,
+            tower_id=tower_id,
         )
         return ResponseSuccessSchema(
             success=True,
@@ -226,6 +234,7 @@ class AnnouncementUseCase:
             category=request.category if request.category is not None else existing.category,
             visibility=request.visibility if request.visibility is not None else existing.visibility,
             is_pinned=request.is_pinned if request.is_pinned is not None else existing.is_pinned,
+            tower_id=request.tower_id if request.tower_id is not None else existing.tower_id,
             published_at=request.published_at if request.published_at is not None else existing.published_at,
             expires_at=request.expires_at if request.expires_at is not None else existing.expires_at,
             created_at=existing.created_at,

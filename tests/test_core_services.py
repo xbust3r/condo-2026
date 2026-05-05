@@ -189,6 +189,138 @@ class TestAnnouncementIntegration:
         assert f"Uno {sb.tag}" in names
         _teardown(db_session, sb)
 
+    # ── Sprint: extend announcements (categories + tower_id) ────────────
+
+    def test_create_with_new_categories(self, db_session):
+        """All 10 categories (info, warning, urgent, event, balance,
+        assembly, maintenance, vote, rule, general) must be accepted."""
+        sb = _make_sandbox(db_session, "ANN Cats")
+        from library.dddpy.core_announcements.usecase.announcement_usecase import AnnouncementUseCase
+
+        uc = AnnouncementUseCase()
+        new_cats = ["balance", "assembly", "maintenance", "vote", "rule", "general"]
+        for cat in new_cats:
+            result = uc.create(
+                condominium_id=sb.condo.id,
+                author_user_id=sb.users[0].id,
+                title=f"Aviso {cat} {sb.tag}",
+                content=f"Contenido de prueba para categoria {cat} con mas de 10 caracteres.",
+                category=cat,
+            )
+            assert result.success, f"Category {cat} was rejected"
+            assert result.data["category"] == cat
+        _teardown(db_session, sb)
+
+    def test_rejects_invalid_category(self, db_session):
+        """Unknown categories must raise AnnouncementValidationError."""
+        sb = _make_sandbox(db_session, "ANN BadCat")
+        from library.dddpy.core_announcements.usecase.announcement_usecase import AnnouncementUseCase
+        from library.dddpy.core_announcements.domain.announcement_exception import AnnouncementValidationError
+
+        uc = AnnouncementUseCase()
+        with pytest.raises(AnnouncementValidationError, match="Invalid category"):
+            uc.create(
+                condominium_id=sb.condo.id,
+                author_user_id=sb.users[0].id,
+                title="Categoria invalida",
+                content="Contenido de prueba con suficientes caracteres para el test.",
+                category="not_real",
+            )
+        _teardown(db_session, sb)
+
+    def test_create_with_tower_id(self, db_session):
+        """Announcement scoped to a specific tower returns tower_id + tower_name."""
+        sb = _make_sandbox(db_session, "ANN Tower")
+        from library.dddpy.core_announcements.usecase.announcement_usecase import AnnouncementUseCase
+
+        tower = sb.buildings[0]
+        uc = AnnouncementUseCase()
+        result = uc.create(
+            condominium_id=sb.condo.id,
+            author_user_id=sb.users[0].id,
+            title=f"Solo Torre A {sb.tag}",
+            content="Aviso exclusivo para la torre A con mas de 10 caracteres.",
+            tower_id=tower.id,
+        )
+        assert result.success
+        assert result.data["tower_id"] == tower.id
+        # Tower name should be enriched
+        assert result.data["tower_name"] is not None
+        assert "Torre" in result.data["tower_name"]
+        _teardown(db_session, sb)
+
+    def test_create_without_tower_id_is_null(self, db_session):
+        """Announcement without tower_id must default to None (all towers)."""
+        sb = _make_sandbox(db_session, "ANN NoTower")
+        from library.dddpy.core_announcements.usecase.announcement_usecase import AnnouncementUseCase
+
+        uc = AnnouncementUseCase()
+        result = uc.create(
+            condominium_id=sb.condo.id,
+            author_user_id=sb.users[0].id,
+            title=f"Todo el condominio {sb.tag}",
+            content="Aviso general para todo el condominio con mas de 10 caracteres.",
+        )
+        assert result.success
+        assert result.data["tower_id"] is None
+        assert result.data["tower_name"] is None
+        _teardown(db_session, sb)
+
+    def test_list_filter_by_tower_id(self, db_session):
+        """list_all filtered by tower_id returns only scoped announcements."""
+        sb = _make_sandbox(db_session, "ANN ListTower")
+        from library.dddpy.core_announcements.usecase.announcement_usecase import AnnouncementUseCase
+
+        tower = sb.buildings[0]
+        uc = AnnouncementUseCase()
+
+        # One announcement scoped to the tower, one without (condominium-wide)
+        uc.create(
+            condominium_id=sb.condo.id, author_user_id=sb.users[0].id,
+            title=f"Solo torre {sb.tag}", content="Contenido solo torre con suficientes caracteres para test.",
+            tower_id=tower.id,
+        )
+        uc.create(
+            condominium_id=sb.condo.id, author_user_id=sb.users[0].id,
+            title=f"Todo condominio {sb.tag}", content="Contenido general con suficientes caracteres para test.",
+        )
+
+        # Filter by the tower — only the tower-scoped one should appear
+        result = uc.list_all(condominium_id=sb.condo.id, tower_id=tower.id)
+        titles = [a["title"] for a in result.data]
+        assert f"Solo torre {sb.tag}" in titles
+        assert f"Todo condominio {sb.tag}" not in titles
+
+        # Full list (no tower filter) should include both
+        result_all = uc.list_all(condominium_id=sb.condo.id)
+        all_titles = [a["title"] for a in result_all.data]
+        assert f"Solo torre {sb.tag}" in all_titles
+        assert f"Todo condominio {sb.tag}" in all_titles
+        _teardown(db_session, sb)
+
+    def test_update_tower_id(self, db_session):
+        """Updating an announcement's tower_id must work via UpdateAnnouncementSchema."""
+        sb = _make_sandbox(db_session, "ANN UpdTower")
+        from library.dddpy.core_announcements.usecase.announcement_usecase import AnnouncementUseCase
+        from library.dddpy.core_announcements.usecase.announcement_cmd_schema import UpdateAnnouncementSchema
+
+        tower_a = sb.buildings[0]
+        uc = AnnouncementUseCase()
+
+        # Create without tower
+        created = uc.create(
+            condominium_id=sb.condo.id, author_user_id=sb.users[0].id,
+            title=f"Sin torre {sb.tag}", content="Contenido sin torre con suficientes caracteres para test.",
+        )
+        assert created.data["tower_id"] is None
+
+        # Update to add tower A
+        schema = UpdateAnnouncementSchema(tower_id=tower_a.id)
+        updated = uc.update(created.data["id"], schema)
+        assert updated.data["tower_id"] == tower_a.id
+        assert updated.data["tower_name"] is not None
+        _teardown(db_session, sb)
+
 
 # ═════════════════════════════════════════════════════════════════════════════
 # Documents

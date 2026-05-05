@@ -33,6 +33,7 @@ class AnnouncementCmdRepositoryImpl(AnnouncementCmdRepository):
                 category=entity.category,
                 visibility=entity.visibility,
                 is_pinned=entity.is_pinned,
+                tower_id=entity.tower_id,
                 published_at=entity.published_at,
                 expires_at=entity.expires_at,
             )
@@ -56,6 +57,7 @@ class AnnouncementCmdRepositoryImpl(AnnouncementCmdRepository):
             db_a.category = entity.category
             db_a.visibility = entity.visibility
             db_a.is_pinned = entity.is_pinned
+            db_a.tower_id = entity.tower_id
             db_a.published_at = entity.published_at
             db_a.expires_at = entity.expires_at
             db_a.updated_at = datetime.utcnow()

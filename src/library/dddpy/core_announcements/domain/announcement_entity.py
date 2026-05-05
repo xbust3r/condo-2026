@@ -9,7 +9,7 @@ from typing import Dict, Any, Optional
 class AnnouncementEntity:
     """Entidad de dominio para anuncios/comunicados."""
 
-    VALID_CATEGORIES = {'info', 'warning', 'urgent', 'event'}
+    VALID_CATEGORIES = {'info', 'warning', 'urgent', 'event', 'balance', 'assembly', 'maintenance', 'vote', 'rule', 'general'}
     VALID_VISIBILITY_SCOPES = {'public', 'owners_only', 'residents_only'}
 
     def __init__(
@@ -28,9 +28,11 @@ class AnnouncementEntity:
         created_at: Optional[datetime] = None,
         updated_at: Optional[datetime] = None,
         deleted_at: Optional[datetime] = None,
+        tower_id: Optional[int] = None,
         # Enriched
         author_name: Optional[str] = None,
         condominium_name: Optional[str] = None,
+        tower_name: Optional[str] = None,
     ) -> None:
         self.id = id
         self.uuid = uuid
@@ -46,8 +48,10 @@ class AnnouncementEntity:
         self.created_at = created_at
         self.updated_at = updated_at
         self.deleted_at = deleted_at
+        self.tower_id = tower_id
         self.author_name = author_name
         self.condominium_name = condominium_name
+        self.tower_name = tower_name
 
     def to_dict(self) -> Dict[str, Any]:
         return {
@@ -64,6 +68,8 @@ class AnnouncementEntity:
             'expires_at': self.expires_at.isoformat() if self.expires_at else None,
             'created_at': self.created_at.isoformat() if self.created_at else None,
             'updated_at': self.updated_at.isoformat() if self.updated_at else None,
+            'tower_id': self.tower_id,
             'author_name': self.author_name,
             'condominium_name': self.condominium_name,
+            'tower_name': self.tower_name,
         }
