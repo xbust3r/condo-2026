@@ -32,7 +32,7 @@ class CreateChargeSchema(BaseModel):
     period_pattern: Optional[str] = Field(
         None,
         max_length=7,
-        pattern=r"^\d{4}-\d{2}$",
+        regex=r"^\d{4}-\d{2}$",
         description="Period pattern YYYY-MM (required if is_recurrent=True)",
     )
     start_date: date = Field(..., description="Charge start date")
@@ -88,7 +88,7 @@ class UpdateChargeSchema(BaseModel):
     clear_unit_id: bool = Field(False, description="Explicitly set unit_id to null")
     clear_building_id: bool = Field(False, description="Explicitly set building_id to null")
     is_recurrent: Optional[bool] = Field(None)
-    period_pattern: Optional[str] = Field(None, max_length=7, pattern=r"^\d{4}-\d{2}$")
+    period_pattern: Optional[str] = Field(None, max_length=7, regex=r"^\d{4}-\d{2}$")
     start_date: Optional[date] = Field(None)
     end_date: Optional[date] = Field(None)
     status: Optional[str] = Field(None, description="Status: active/inactive/expired")
