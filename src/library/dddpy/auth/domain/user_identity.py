@@ -19,6 +19,7 @@ class UserIdentity:
     status: str
     email_verified_at: Optional[datetime]
     created_at: datetime
+    locked_until: Optional[datetime] = None
     # From user_profiles
     first_name: Optional[str]
     last_name: Optional[str]
@@ -40,6 +41,10 @@ class UserIdentity:
             "created_at": (
                 self.created_at.isoformat()
                 if self.created_at else None
+            ),
+            "locked_until": (
+                self.locked_until.isoformat()
+                if self.locked_until else None
             ),
             "profile": {
                 "uuid": self.profile_uuid,

@@ -8,6 +8,7 @@ Security:
     (logout-all, password reset, or account lock increments token_version)
   - This means revoked tokens are invalidated immediately, before expiration
 """
+from datetime import datetime, timezone
 from fastapi import Depends, Header, HTTPException, status
 from typing import Optional
 
@@ -31,11 +32,14 @@ async def get_current_user(
       1. Bearer format check
       2. JWT signature validation
       3. token_version in JWT matches current DB value
+      4. User status is active
+      5. Account is not locked (locked_until)
 
     Usage: `user: UserIdentity = Depends(get_current_user)`
 
     Raises HTTPException 401 if token is missing, invalid, expired,
     or has a stale token_version.
+    Raises HTTPException 403 if account is inactive or 423 if locked.
     """
     if not authorization:
         raise HTTPException(
@@ -87,6 +91,27 @@ async def get_current_user(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Session has been revoked. Please log in again.",
             headers={"WWW-Authenticate": "Bearer"},
+        )
+
+    # Step 4: validate user status
+    if identity.status != "active":
+        logger.warning(
+            f"Inactive user rejected: status={identity.status}, user_id={identity.id}"
+        )
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Account is not active. Contact your administrator.",
+        )
+
+    # Step 5: validate account is not locked
+    now = datetime.now(timezone.utc)
+    if identity.locked_until is not None and identity.locked_until > now:
+        logger.warning(
+            f"Locked user rejected: locked_until={identity.locked_until}, user_id={identity.id}"
+        )
+        raise HTTPException(
+            status_code=status.HTTP_423_LOCKED,
+            detail="Account is temporarily locked. Try again later.",
         )
 
     return identity
