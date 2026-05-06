@@ -19,7 +19,6 @@ class UserIdentity:
     status: str
     email_verified_at: Optional[datetime]
     created_at: datetime
-    locked_until: Optional[datetime] = None
     # From user_profiles
     first_name: Optional[str]
     last_name: Optional[str]
@@ -27,6 +26,7 @@ class UserIdentity:
     document_number: Optional[str]
     phone: Optional[str]
     profile_uuid: Optional[str]
+    locked_until: Optional[datetime] = None
 
     def to_dict(self) -> dict:
         return {
